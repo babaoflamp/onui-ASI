@@ -1,0 +1,786 @@
+{% extends "base.html" %} {% block title %}성적/출결 관리{% endblock %} {% block
+content %}
+<style>
+  .lms-tab-btn.active {
+    background: #3b82f6;
+    color: #fff;
+  }
+
+  .lms-tab-btn {
+    background: #f1f5f9;
+    color: #334155;
+  }
+
+  .score-badge-best {
+    background: #f3e8ff;
+    color: #7c3aed;
+  }
+
+  .score-badge-latest {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .status-present {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-absent {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .lms-table th {
+    background: #f8fafc;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    padding: 10px 14px;
+  }
+
+  .lms-table td {
+    padding: 10px 14px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 13px;
+  }
+
+  .lms-table tr:hover td {
+    background: #f8fafc;
+  }
+</style>
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <!-- Header -->
+  <div
+    class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8"
+  >
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">📊 성적 · 출결 관리</h1>
+      <p class="text-gray-500 text-sm mt-1">
+        학기
+        <span class="font-semibold text-blue-600" id="termLabel">2026-1</span>
+        기준
+      </p>
+    </div>
+    <div class="flex items-center gap-3">
+      <select
+        id="termSelect"
+        onchange="onTermChange(this.value)"
+        class="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+      >
+        <option value="2026-1">2026년 1학기</option>
+        <option value="2025-2">2025년 2학기</option>
+        <option value="2025-1">2025년 1학기</option>
+      </select>
+      <button
+        onclick="exportCsv()"
+        class="px-4 py-2 bg-emerald-500 text-white text-sm rounded-xl font-semibold hover:bg-emerald-600 transition shadow-sm"
+      >
+        📥 CSV 내보내기
+      </button>
+    </div>
+  </div>
+
+  <!-- 요약 카드 4개 -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">
+        학생 수
+      </p>
+      <p
+        class="text-3xl font-extrabold text-gray-900 mt-1"
+        id="summaryStudents"
+      >
+        -
+      </p>
+    </div>
+    <div class="bg-white rounded-2xl border border-blue-100 shadow-sm p-5">
+      <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">
+        반 평균 점수
+      </p>
+      <p class="text-3xl font-extrabold text-blue-600 mt-1" id="summaryAvg">
+        -
+      </p>
+    </div>
+    <div class="bg-white rounded-2xl border border-teal-100 shadow-sm p-5">
+      <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">
+        평균 출석률
+      </p>
+      <p class="text-3xl font-extrabold text-teal-600 mt-1" id="summaryAttend">
+        -
+      </p>
+    </div>
+    <div class="bg-white rounded-2xl border border-purple-100 shadow-sm p-5">
+      <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">
+        평균 학습시간
+      </p>
+      <p
+        class="text-3xl font-extrabold text-purple-600 mt-1"
+        id="summaryStudyMin"
+      >
+        -
+      </p>
+    </div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="flex gap-2 mb-6">
+    <button
+      class="lms-tab-btn active rounded-xl px-5 py-2 text-sm font-semibold transition"
+      onclick="switchTab('scores', this)"
+    >
+      🎤 성적 현황
+    </button>
+    <button
+      class="lms-tab-btn rounded-xl px-5 py-2 text-sm font-semibold transition"
+      onclick="switchTab('attendance', this)"
+    >
+      🏫 출결 현황
+    </button>
+    <button
+      class="lms-tab-btn rounded-xl px-5 py-2 text-sm font-semibold transition"
+      onclick="switchTab('detail', this)"
+    >
+      🔍 학생 상세
+    </button>
+  </div>
+
+  <!-- ── 탭1: 성적 현황 ── -->
+  <div
+    id="tab-scores"
+    class="tab-panel bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+  >
+    <div
+      class="p-5 border-b border-gray-100 flex items-center justify-between gap-3"
+    >
+      <h2 class="font-bold text-gray-900">학생별 발음 성적 순위</h2>
+      <input
+        id="scoreSearch"
+        oninput="filterTable('scoreTable', this.value)"
+        placeholder="이름 검색..."
+        class="border border-gray-200 rounded-xl px-3 py-1.5 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-200"
+      />
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full lms-table" id="scoreTable">
+        <thead>
+          <tr>
+            <th>순위</th>
+            <th>닉네임</th>
+            <th>평균(최근)</th>
+            <th>최고점수</th>
+            <th>시도 문장</th>
+            <th>총 시도</th>
+            <th>액션</th>
+          </tr>
+        </thead>
+        <tbody id="scoreTableBody">
+          <tr>
+            <td colspan="7" class="text-center text-gray-400 py-10">
+              불러오는 중...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 탭2: 출결 현황 ── -->
+  <div
+    id="tab-attendance"
+    class="tab-panel hidden bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+  >
+    <div
+      class="p-5 border-b border-gray-100 flex items-center justify-between gap-3"
+    >
+      <h2 class="font-bold text-gray-900">학생별 강의 출결 현황</h2>
+      <input
+        id="attendSearch"
+        oninput="filterTable('attendTable', this.value)"
+        placeholder="이름 검색..."
+        class="border border-gray-200 rounded-xl px-3 py-1.5 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-blue-200"
+      />
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full lms-table" id="attendTable">
+        <thead>
+          <tr>
+            <th>닉네임</th>
+            <th>총 강의</th>
+            <th>출석</th>
+            <th>결석</th>
+            <th>출석률</th>
+            <th>액션</th>
+          </tr>
+        </thead>
+        <tbody id="attendTableBody">
+          <tr>
+            <td colspan="6" class="text-center text-gray-400 py-10">
+              불러오는 중...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 탭3: 학생 상세 ── -->
+  <div
+    id="tab-detail"
+    class="tab-panel hidden bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
+  >
+    <h2 class="font-bold text-gray-900 mb-4">🔍 학생 개별 상세 조회</h2>
+    <div class="flex gap-3 mb-6">
+      <select
+        id="studentSelect"
+        onchange="loadStudentDetail(this.value)"
+        class="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white shadow-sm flex-1 focus:outline-none focus:ring-2 focus:ring-blue-300"
+      >
+        <option value="">-- 학생 선택 --</option>
+      </select>
+    </div>
+
+    <!-- 학생 상세 패널 -->
+    <div id="studentDetail" class="hidden">
+      <!-- 요약 배지 -->
+      <div
+        class="grid grid-cols-3 md:grid-cols-5 gap-3 mb-6"
+        id="detailSummaryCards"
+      ></div>
+
+      <!-- 성적 추이 (최근 10개) -->
+      <div class="mb-6">
+        <h3 class="font-semibold text-gray-700 mb-3 text-sm">
+          📈 최근 발음 점수 이력
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full lms-table text-xs" id="detailScoreTable">
+            <thead>
+              <tr>
+                <th>문장 ID</th>
+                <th>레벨</th>
+                <th>최초</th>
+                <th>최고</th>
+                <th>최근</th>
+                <th>시도</th>
+                <th>마지막 평가</th>
+              </tr>
+            </thead>
+            <tbody id="detailScoreBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 출결 상세 -->
+      <div class="mb-6">
+        <h3
+          class="font-semibold text-gray-700 mb-3 text-sm flex items-center justify-between"
+        >
+          🏫 강의별 출결 현황
+          <span class="text-[11px] text-gray-400"
+            >수동 수정은 [직접 수정] 버튼 클릭</span
+          >
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full lms-table text-xs" id="detailAttendTable">
+            <thead>
+              <tr>
+                <th>강의 ID</th>
+                <th>주차</th>
+                <th>상태</th>
+                <th>시청률</th>
+                <th>학습시간</th>
+                <th>출석일시</th>
+                <th>수정</th>
+              </tr>
+            </thead>
+            <tbody id="detailAttendBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="studentDetailEmpty" class="text-center text-gray-400 py-12">
+      학생을 선택하면 성적 및 출결 상세 정보가 표시됩니다.
+    </div>
+  </div>
+</div>
+
+<!-- 출결 수동 수정 모달 -->
+<div
+  id="attendModal"
+  class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden"
+>
+  <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+    <h3 class="font-bold text-gray-900 mb-4">출결 수동 수정</h3>
+    <input id="modalUserId" type="hidden" />
+    <input id="modalVideoId" type="hidden" />
+    <p class="text-sm text-gray-600 mb-4">
+      학생: <strong id="modalNickname"></strong><br />
+      강의: <strong id="modalVideoLabel"></strong>
+    </p>
+    <div class="flex gap-3 mb-5">
+      <button
+        onclick="setModalStatus('present')"
+        class="flex-1 py-2.5 rounded-xl font-semibold text-sm border-2 border-green-400 text-green-700 hover:bg-green-50 transition"
+        id="btnPresent"
+      >
+        ✅ 출석
+      </button>
+      <button
+        onclick="setModalStatus('absent')"
+        class="flex-1 py-2.5 rounded-xl font-semibold text-sm border-2 border-red-300 text-red-600 hover:bg-red-50 transition"
+        id="btnAbsent"
+      >
+        ❌ 결석
+      </button>
+    </div>
+    <p class="text-xs text-gray-400 mb-4" id="modalStatusNote">현재 상태: -</p>
+    <div class="flex gap-3">
+      <button
+        onclick="closeAttendModal()"
+        class="flex-1 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm hover:bg-gray-50"
+      >
+        취소
+      </button>
+      <button
+        onclick="submitAttendEdit()"
+        class="flex-1 py-2 rounded-xl bg-blue-500 text-white font-semibold text-sm hover:bg-blue-600 transition"
+      >
+        저장
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let _term = "2026-1";
+  let _classData = null; // /api/lms/stats/class
+  let _selectedUserId = null;
+  let _selectedNickname = "";
+  let _pendingAttendStatus = "";
+
+  // ── 초기 로드 ──────────────────────────────────────────────────────────
+  document.addEventListener("DOMContentLoaded", () => {
+    const role = localStorage.getItem("user_role") || "";
+    const isAdmin = localStorage.getItem("is_admin") === "true";
+    if (!["instructor", "system_admin"].includes(role) && !isAdmin) {
+      window.location.href = "/login";
+      return;
+    }
+    loadClassStats();
+  });
+
+  function onTermChange(v) {
+    _term = v;
+    document.getElementById("termLabel").textContent = v;
+    loadClassStats();
+    if (_selectedUserId) loadStudentDetail(_selectedUserId);
+  }
+
+  // ── 탭 전환 ────────────────────────────────────────────────────────────
+  function switchTab(name, btn) {
+    document
+      .querySelectorAll(".tab-panel")
+      .forEach((el) => el.classList.add("hidden"));
+    document
+      .querySelectorAll(".lms-tab-btn")
+      .forEach((b) => b.classList.remove("active"));
+    document.getElementById("tab-" + name)?.classList.remove("hidden");
+    btn.classList.add("active");
+  }
+
+  // ── 반 통계 로드 ────────────────────────────────────────────────────────
+  async function loadClassStats() {
+    try {
+      console.log("[LMS] Loading class stats for term:", _term);
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch(`/api/lms/stats/class?term_id=${_term}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        console.error("[LMS] API error:", res.status);
+        showError(res.status);
+        return;
+      }
+      _classData = await res.json();
+      console.log("[LMS] Data received:", _classData);
+      renderSummaryCards();
+      renderScoreTable();
+      renderAttendTable();
+      populateStudentSelect();
+    } catch (e) {
+      console.error("[LMS admin] loadClassStats error:", e);
+    }
+  }
+
+  function showError(code) {
+    if (code === 401 || code === 403) {
+      window.location.href = "/login";
+    }
+  }
+
+  // ── 요약 카드 ──────────────────────────────────────────────────────────
+  function renderSummaryCards() {
+    const d = _classData;
+    if (!d) return;
+
+    const scores = d.score_ranking || [];
+    const attends = d.attendance || [];
+
+    // 1. 학생 수 (API에서 전달받은 total_students 우선, 없으면 데이터가 있는 고유 사용자 수)
+    if (d.total_students !== undefined) {
+      document.getElementById("summaryStudents").textContent = d.total_students;
+    } else {
+      const uniqueUserIds = new Set([
+        ...scores.map((s) => s.user_id),
+        ...attends.map((a) => a.user_id),
+      ]);
+      document.getElementById("summaryStudents").textContent =
+        uniqueUserIds.size || "0";
+    }
+
+    // 2. 반 평균 점수
+    document.getElementById("summaryAvg").textContent =
+      d.class_avg_score != null ? Math.round(d.class_avg_score) + "%" : "-";
+
+    // 3. 평균 출석률
+    if (attends.length > 0) {
+      const avgAtt =
+        attends.reduce((s, a) => s + (a.attendance_rate || 0), 0) /
+        attends.length;
+      document.getElementById("summaryAttend").textContent =
+        Math.round(avgAtt) + "%";
+    } else {
+      document.getElementById("summaryAttend").textContent = "-";
+    }
+
+    // 4. 평균 학습시간 (study_sessions 기반 계산)
+    try {
+      if (d.study_sessions && d.study_sessions.length > 0) {
+        const totalMin = d.study_sessions.reduce(
+          (s, row) => s + (parseFloat(row.total_minutes) || 0),
+          0,
+        );
+        const avgMin = totalMin / d.study_sessions.length;
+        document.getElementById("summaryStudyMin").textContent =
+          Math.round(avgMin) + "분";
+      } else {
+        document.getElementById("summaryStudyMin").textContent = "-";
+      }
+    } catch (err) {
+      console.error("[LMS] Study time calculation error:", err);
+      document.getElementById("summaryStudyMin").textContent = "오류";
+    }
+  }
+
+  // ── 성적 테이블 ─────────────────────────────────────────────────────────
+  function renderScoreTable() {
+    const rows = _classData?.score_ranking || [];
+    const tbody = document.getElementById("scoreTableBody");
+    if (!rows.length) {
+      tbody.innerHTML =
+        '<tr><td colspan="7" class="text-center text-gray-400 py-10">데이터 없음</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows
+      .map(
+        (r, idx) => `
+    <tr data-search="${(r.nickname || "").toLowerCase()}">
+      <td class="font-bold text-gray-500">#${idx + 1}</td>
+      <td class="font-semibold text-gray-900">${r.nickname || "-"}</td>
+      <td><span class="px-2 py-0.5 rounded-full text-xs font-bold score-badge-latest">${Math.round(
+        r.avg_score || 0,
+      )}%</span></td>
+      <td><span class="px-2 py-0.5 rounded-full text-xs font-bold score-badge-best">${Math.round(
+        r.best_score || 0,
+      )}%</span></td>
+      <td class="text-gray-600">${r.sentences_tried || 0}문장</td>
+      <td class="text-gray-600">${r.total_attempts || 0}회</td>
+      <td>
+        <button onclick="goDetail(${r.user_id}, '${(r.nickname || "").replace(
+          /'/g,
+          "",
+        )}')"
+          class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition">상세</button>
+      </td>
+    </tr>`,
+      )
+      .join("");
+  }
+
+  // ── 출결 테이블 ─────────────────────────────────────────────────────────
+  function renderAttendTable() {
+    const rows = _classData?.attendance || [];
+    const tbody = document.getElementById("attendTableBody");
+    if (!rows.length) {
+      tbody.innerHTML =
+        '<tr><td colspan="6" class="text-center text-gray-400 py-10">데이터 없음</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows
+      .map((r) => {
+        const rate = r.attendance_rate || 0;
+        const color =
+          rate >= 80
+            ? "text-teal-600"
+            : rate >= 60
+              ? "text-yellow-600"
+              : "text-red-600";
+        return `<tr data-search="${(r.nickname || "").toLowerCase()}">
+      <td class="font-semibold text-gray-900">${r.nickname || "-"}</td>
+      <td>${r.total || 0}</td>
+      <td class="text-green-600 font-semibold">${r.present_count || 0}</td>
+      <td class="text-red-500">${(r.total || 0) - (r.present_count || 0)}</td>
+      <td class="font-bold ${color}">${rate}%</td>
+      <td>
+        <button onclick="goDetail(${r.user_id}, '${(r.nickname || "").replace(/'/g, "")}')"
+          class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition">상세</button>
+      </td>
+    </tr>`;
+      })
+      .join("");
+  }
+
+  // ── 학생 선택 드롭다운 채우기 ───────────────────────────────────────────
+  function populateStudentSelect() {
+    const sel = document.getElementById("studentSelect");
+    const current = sel.value;
+    const scores = _classData?.score_ranking || [];
+    const attends = _classData?.attendance || [];
+    const merged = new Map();
+    [...scores, ...attends].forEach((r) => {
+      if (r.user_id) merged.set(r.user_id, r.nickname || r.user_id);
+    });
+    sel.innerHTML =
+      '<option value="">-- 학생 선택 --</option>' +
+      [...merged.entries()]
+        .map(
+          ([id, nick]) =>
+            `<option value="${id}" ${id == current ? "selected" : ""}>${nick}</option>`,
+        )
+        .join("");
+  }
+
+  // ── 학생 상세 조회 ──────────────────────────────────────────────────────
+  function goDetail(userId, nickname) {
+    _selectedUserId = userId;
+    _selectedNickname = nickname;
+    // 탭 전환
+    switchTab("detail", document.querySelectorAll(".lms-tab-btn")[2]);
+    document.getElementById("studentSelect").value = userId;
+    loadStudentDetail(userId);
+  }
+
+  async function loadStudentDetail(userId) {
+    if (!userId) return;
+    _selectedUserId = userId;
+    _selectedNickname =
+      document.getElementById("studentSelect").selectedOptions[0]?.text ||
+      userId;
+
+    document.getElementById("studentDetail").classList.add("hidden");
+    document.getElementById("studentDetailEmpty").classList.remove("hidden");
+    document.getElementById("studentDetailEmpty").textContent =
+      "불러오는 중...";
+
+    const token = localStorage.getItem("auth_token");
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    const [scoreRes, attendRes, studyRes] = await Promise.allSettled([
+      fetch(`/api/lms/scores/sentence/${userId}/summary`, { headers }).then(
+        (r) => (r.ok ? r.json() : null),
+      ),
+      fetch(`/api/lms/attendance/summary/${userId}?term_id=${_term}`, {
+        headers,
+      }).then((r) => (r.ok ? r.json() : null)),
+      fetch(`/api/lms/study-session/summary/${userId}?term_id=${_term}`, {
+        headers,
+      }).then((r) => (r.ok ? r.json() : null)),
+    ]);
+
+    const score = scoreRes.status === "fulfilled" ? scoreRes.value : null;
+    const attend = attendRes.status === "fulfilled" ? attendRes.value : null;
+    const study = studyRes.status === "fulfilled" ? studyRes.value : null;
+
+    // 요약 카드
+    const cards = document.getElementById("detailSummaryCards");
+    const o = score?.overall || {};
+    const mins = study?.total_minutes ?? "-";
+    cards.innerHTML = `
+    <div class="bg-gray-50 rounded-xl p-3 text-center"><p class="text-[10px] text-gray-400 font-bold uppercase">평균점수</p><p class="text-xl font-extrabold text-gray-800">${o.overall_avg != null ? o.overall_avg + "%" : "-"}</p></div>
+    <div class="bg-purple-50 rounded-xl p-3 text-center"><p class="text-[10px] text-purple-400 font-bold uppercase">최고점수</p><p class="text-xl font-extrabold text-purple-700">${o.overall_best != null ? o.overall_best + "%" : "-"}</p></div>
+    <div class="bg-blue-50 rounded-xl p-3 text-center"><p class="text-[10px] text-blue-400 font-bold uppercase">총 시도</p><p class="text-xl font-extrabold text-blue-700">${o.overall_attempts ?? "-"}</p></div>
+    <div class="bg-teal-50 rounded-xl p-3 text-center"><p class="text-[10px] text-teal-400 font-bold uppercase">출석률</p><p class="text-xl font-extrabold text-teal-700">${attend ? attend.attendance_rate + "%" : "-"}</p></div>
+    <div class="bg-indigo-50 rounded-xl p-3 text-center"><p class="text-[10px] text-indigo-400 font-bold uppercase">학습시간</p><p class="text-xl font-extrabold text-indigo-700">${mins !== "-" ? mins + "분" : "-"}</p></div>`;
+
+    // 성적 이력 테이블
+    const recent = score?.recent || [];
+    document.getElementById("detailScoreBody").innerHTML = recent.length
+      ? recent
+          .map(
+            (r) => `<tr>
+        <td class="font-mono text-gray-600">${r.sentence_id}</td>
+        <td>${r.level || "-"}</td>
+        <td class="text-gray-500">${r.score_first != null ? Math.round(r.score_first) + "%" : "-"}</td>
+        <td class="font-bold text-purple-600">${r.score_best != null ? Math.round(r.score_best) + "%" : "-"}</td>
+        <td class="font-bold text-blue-600">${r.score_latest != null ? Math.round(r.score_latest) + "%" : "-"}</td>
+        <td>${r.attempt_count || 1}회</td>
+        <td class="text-gray-400">${r.last_attempted_at ? r.last_attempted_at.slice(0, 10) : "-"}</td>
+      </tr>`,
+          )
+          .join("")
+      : '<tr><td colspan="7" class="text-center text-gray-400 py-6">발음 평가 기록 없음</td></tr>';
+
+    // 출결 상세 테이블
+    const lectures = attend?.by_lecture || [];
+    document.getElementById("detailAttendBody").innerHTML = lectures.length
+      ? lectures
+          .map((l) => {
+            const badge =
+              l.status === "present"
+                ? '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold status-present">출석</span>'
+                : '<span class="px-2 py-0.5 rounded-full text-[11px] font-bold status-absent">결석</span>';
+            return `<tr>
+          <td class="font-mono text-gray-600">${l.video_id}</td>
+          <td>${l.week != null ? l.week + "주차" : "-"}</td>
+          <td>${badge}</td>
+          <td>${l.watched_pct != null ? l.watched_pct + "%" : "-"}</td>
+          <td>${l.study_seconds != null ? Math.round(l.study_seconds / 60) + "분" : "-"}</td>
+          <td class="text-gray-400">${l.attended_at ? l.attended_at.slice(0, 16) : "-"}</td>
+          <td>
+            <button onclick="openAttendModal(${userId}, '${_selectedNickname.replace(/'/g, "")}', '${l.video_id}', '${l.status}')"
+              class="px-2 py-1 bg-yellow-50 text-yellow-700 rounded-lg text-[11px] font-semibold hover:bg-yellow-100 transition border border-yellow-200">직접 수정</button>
+          </td>
+        </tr>`;
+          })
+          .join("")
+      : '<tr><td colspan="7" class="text-center text-gray-400 py-6">출결 기록 없음</td></tr>';
+
+    document.getElementById("studentDetailEmpty").classList.add("hidden");
+    document.getElementById("studentDetail").classList.remove("hidden");
+  }
+
+  // ── 출결 수동 수정 모달 ─────────────────────────────────────────────────
+  function openAttendModal(userId, nickname, videoId, currentStatus) {
+    _selectedUserId = userId;
+    _pendingAttendStatus = currentStatus;
+    document.getElementById("modalUserId").value = userId;
+    document.getElementById("modalVideoId").value = videoId;
+    document.getElementById("modalNickname").textContent = nickname;
+    document.getElementById("modalVideoLabel").textContent = videoId;
+    document.getElementById("modalStatusNote").textContent =
+      `현재 상태: ${currentStatus === "present" ? "✅ 출석" : "❌ 결석"}`;
+    document.getElementById("attendModal").classList.remove("hidden");
+  }
+
+  function setModalStatus(status) {
+    _pendingAttendStatus = status;
+    document.getElementById("modalStatusNote").textContent =
+      `변경할 상태: ${status === "present" ? "✅ 출석" : "❌ 결석"}`;
+    document.getElementById("btnPresent").className =
+      "flex-1 py-2.5 rounded-xl font-semibold text-sm border-2 transition " +
+      (status === "present"
+        ? "border-green-500 bg-green-50 text-green-700"
+        : "border-gray-200 text-gray-400");
+    document.getElementById("btnAbsent").className =
+      "flex-1 py-2.5 rounded-xl font-semibold text-sm border-2 transition " +
+      (status === "absent"
+        ? "border-red-400 bg-red-50 text-red-600"
+        : "border-gray-200 text-gray-400");
+  }
+
+  function closeAttendModal() {
+    document.getElementById("attendModal").classList.add("hidden");
+  }
+
+  async function submitAttendEdit() {
+    const userId = document.getElementById("modalUserId").value;
+    const videoId = document.getElementById("modalVideoId").value;
+    if (!_pendingAttendStatus) {
+      alert("상태를 선택하세요");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/lms/attendance/manual", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("auth_token"),
+        },
+        body: JSON.stringify({
+          user_id: parseInt(userId),
+          video_id: videoId,
+          status: _pendingAttendStatus,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        closeAttendModal();
+        loadStudentDetail(userId);
+        loadClassStats();
+      } else {
+        alert(data.error || "수정 실패");
+      }
+    } catch (e) {
+      alert("네트워크 오류: " + e.message);
+    }
+  }
+
+  // ── 검색 필터 ───────────────────────────────────────────────────────────
+  function filterTable(tableId, keyword) {
+    const kw = keyword.toLowerCase();
+    document.querySelectorAll(`#${tableId} tbody tr`).forEach((tr) => {
+      const search = (tr.dataset.search || tr.textContent).toLowerCase();
+      tr.style.display = search.includes(kw) ? "" : "none";
+    });
+  }
+
+  // ── CSV 내보내기 ────────────────────────────────────────────────────────
+  function exportCsv() {
+    if (!_classData) {
+      alert("데이터를 먼저 불러오세요");
+      return;
+    }
+    const scores = _classData.score_ranking || [];
+    const attends = new Map(
+      (_classData.attendance || []).map((a) => [a.user_id, a]),
+    );
+
+    const header = [
+      "닉네임",
+      "평균점수(%)",
+      "최고점수(%)",
+      "시도문장수",
+      "총시도",
+      "출석수",
+      "결석수",
+      "출석률(%)",
+    ];
+    const rows = scores.map((s) => {
+      const a = attends.get(s.user_id) || {};
+      return [
+        s.nickname,
+        Math.round(s.avg_score || 0),
+        Math.round(s.best_score || 0),
+        s.sentences_tried,
+        s.total_attempts,
+        a.present_count || 0,
+        (a.total || 0) - (a.present_count || 0),
+        a.attendance_rate || 0,
+      ];
+    });
+
+    const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lms_report_${_term}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,117 @@
+/* Global Dark Glass overrides (scoped to body.glass-dark) */
+
+/* Cards & containers */
+.glass-dark .bg-white {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+.glass-dark .bg-gray-50 {
+  background: rgba(255, 255, 255, 0.02) !important;
+}
+.glass-dark .bg-gray-100 {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+.glass-dark .bg-gray-200 {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Borders */
+.glass-dark .border-gray-100,
+.glass-dark .border-gray-200,
+.glass-dark .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Typography */
+.glass-dark .text-gray-900 {
+  color: #ffffff !important;
+}
+.glass-dark .text-gray-800 {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+.glass-dark .text-gray-700 {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.glass-dark .text-gray-600 {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+.glass-dark .text-gray-500 {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+.glass-dark .text-gray-400 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Tinted backgrounds */
+.glass-dark .bg-blue-50 {
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+.glass-dark .text-blue-800 {
+  color: #93c5fd !important;
+}
+.glass-dark .bg-green-50 {
+  background: rgba(16, 185, 129, 0.1) !important;
+}
+.glass-dark .text-green-800 {
+  color: #a7f3d0 !important;
+}
+.glass-dark .bg-purple-50 {
+  background: rgba(139, 92, 246, 0.1) !important;
+}
+.glass-dark .text-purple-800 {
+  color: #d8b4fe !important;
+}
+.glass-dark .bg-yellow-50 {
+  background: rgba(250, 204, 21, 0.12) !important;
+}
+.glass-dark .text-yellow-800 {
+  color: #fde68a !important;
+}
+.glass-dark .bg-red-50 {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+.glass-dark .text-red-800 {
+  color: #fecaca !important;
+}
+.glass-dark .bg-orange-50 {
+  background: rgba(249, 115, 22, 0.1) !important;
+}
+.glass-dark .text-orange-800 {
+  color: #fdba74 !important;
+}
+
+/* Inputs & selects */
+.glass-dark input[type="text"],
+.glass-dark input[type="email"],
+.glass-dark input[type="password"],
+.glass-dark input[type="number"],
+.glass-dark select,
+.glass-dark textarea {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+}
+.glass-dark input:focus,
+.glass-dark select:focus,
+.glass-dark textarea:focus {
+  outline: none !important;
+  border-color: rgba(249, 115, 22, 0.5) !important;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+}
+
+/* Tables */
+.glass-dark thead.bg-gray-50 {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+.glass-dark tbody tr {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Elevation for card-like whites */
+.glass-dark .bg-white.rounded-xl,
+.glass-dark .bg-white.rounded-2xl,
+.glass-dark .bg-white.rounded-3xl {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

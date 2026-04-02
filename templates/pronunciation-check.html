@@ -1,0 +1,719 @@
+{% extends "base.html" %} {% block title %}발음 검사 - 오누이 한국어{% endblock
+%} {% block content %}
+<div id="alertsContainer"></div>
+<div class="max-w-4xl mx-auto px-4">
+  <div class="bg-white rounded-2xl p-6 shadow-lg">
+    <!-- Header -->
+    <header class="mb-6">
+      <div
+        class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold mb-2"
+      >
+        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+        ONUI · 발음 학습
+      </div>
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">
+        <span class="text-2xl">🎯</span>
+        발음 검사
+      </h1>
+      <p class="text-sm text-gray-600">
+        빠르게 녹음하고 즉시 발음 점수를 확인하세요
+      </p>
+    </header>
+
+    <!-- Pronunciation Check Section -->
+    <section
+      class="mb-6 p-4 bg-gradient-to-br from-red-50 to-orange-50 rounded-xl border border-red-200"
+    >
+      <h2
+        class="text-lg font-semibold mb-3 text-gray-900 flex items-center gap-2"
+      >
+        <span class="text-2xl">⚙️</span>
+        연습 설정
+      </h2>
+
+      <div class="bg-white p-4 rounded-lg shadow-sm">
+        <div class="mb-4">
+          <label
+            for="practiceText"
+            class="text-sm font-semibold text-gray-700 mb-2 block"
+            >연습할 문장 입력</label
+          >
+          <div class="flex gap-2">
+            <input
+              id="practiceText"
+              type="text"
+              class="flex-1 border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+              placeholder="연습할 문장을 입력하세요 (예: 안녕하세요)"
+              value="나는 한국어를 공부하고 있어요."
+              onkeydown="if (event.key === 'Enter') { event.preventDefault(); setPracticeText(); }"
+            />
+            <button
+              onclick="setPracticeText()"
+              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+            >
+              설정
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg"
+        >
+          <div>
+            <div id="targetText" class="text-xl font-bold text-gray-900">
+              나는 한국어를 공부하고 있어요.
+            </div>
+            <div id="targetRoman" class="text-sm text-gray-500 mt-1"></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              id="listenBtn"
+              class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+            >
+              🔊 들어보기
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recording Section -->
+    <section class="mb-8">
+      <label class="block text-lg font-semibold text-[var(--text-main)] mb-4">
+        🎙️ 음성 녹음
+      </label>
+
+      <div
+        class="border-2 border-dashed border-[var(--accent)] rounded-lg p-8 text-center bg-gray-50"
+      >
+        <div id="recording-status" class="mb-4">
+          <p class="text-gray-600 text-sm">마이크를 통해 문장을 읽어주세요</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center mb-4">
+          <button
+            id="start-recording"
+            onclick="startRecording()"
+            class="px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition flex-1 sm:flex-none"
+          >
+            🎙️ 녹음 시작
+          </button>
+          <button
+            id="stop-recording"
+            onclick="stopRecording()"
+            class="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition flex-1 sm:flex-none hidden"
+          >
+            ⏹️ 녹음 중지
+          </button>
+          <button
+            id="play-recording"
+            onclick="playRecording()"
+            class="px-6 py-3 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled
+          >
+            ▶️ 재생
+          </button>
+          <button
+            id="clear-recording"
+            onclick="clearRecording()"
+            class="px-6 py-3 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition flex-1 sm:flex-none"
+          >
+            🗑️ 초기화
+          </button>
+        </div>
+
+        <!-- 녹음 시간 표시 -->
+        <div
+          id="recording-timer"
+          class="text-2xl font-mono text-[var(--accent)] mb-4 hidden"
+        >
+          00:00
+        </div>
+
+        <!-- 재생 섹션 -->
+        <div id="playback-section" class="mt-6 hidden">
+          <p class="text-sm text-gray-600 mb-3">녹음된 음성:</p>
+          <audio
+            id="audio-playback"
+            controls
+            class="w-full mb-3 rounded-lg"
+          ></audio>
+        </div>
+      </div>
+    </section>
+
+    <!-- 평가 버튼 -->
+    <div class="flex flex-col sm:flex-row gap-4 mb-8">
+      <button
+        id="evaluate-button"
+        onclick="evaluatePronunciation()"
+        class="flex-1 px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-bold text-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled
+      >
+        🎤 발음 평가하기
+      </button>
+    </div>
+
+    <!-- Tips Section -->
+    <section class="p-4 bg-gray-50 rounded-xl border border-gray-200">
+      <div class="text-sm font-semibold text-gray-900 mb-2">💡 사용 팁</div>
+      <div class="text-xs text-gray-700 space-y-1">
+        <p>
+          • <strong>마이크 권한</strong>: 처음 녹음할 때 브라우저의 마이크
+          권한을 허용해주세요
+        </p>
+        <p>
+          • <strong>명확한 발음</strong>: 정확한 평가를 위해 명확하고 천천히
+          발음해주세요
+        </p>
+        <p>
+          • <strong>조용한 환경</strong>: 주변 소음이 적은 환경에서 녹음하는
+          것이 좋습니다
+        </p>
+        <p>
+          • <strong>상세 분석</strong>: SpeechPro API는 문장별, 단어별 상세
+          점수를 제공합니다
+        </p>
+        <p>
+          • <strong>AI 피드백</strong>: 개선할 점에 대한 AI의 친절한 피드백을
+          받아보세요
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- SpeechPro 결과 모달 -->
+<div
+  id="speechpro-modal"
+  class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+>
+  <div
+    class="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-2xl shadow-2xl p-8"
+  >
+    <button
+      class="absolute top-3 right-3 text-gray-500 hover:text-gray-800 text-2xl"
+      onclick="closeSpeechProModal()"
+      aria-label="닫기"
+    >
+      ✕
+    </button>
+
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">📊 발음 평가 결과</h2>
+
+    <!-- 점수 카드 -->
+    <div class="bg-white rounded-2xl shadow p-6 mb-6">
+      <!-- 전체 점수 -->
+      <div class="mb-6">
+        <div class="text-center">
+          <div class="text-6xl font-bold text-blue-600 mb-2">
+            <span id="sp-overall-score">0</span>/100
+          </div>
+          <p
+            id="sp-score-feedback"
+            class="text-lg text-gray-600 font-semibold"
+          ></p>
+        </div>
+
+        <!-- 점수 게이지 -->
+        <div class="mt-6">
+          <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+            <div
+              id="sp-score-bar"
+              class="bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 h-full transition-all duration-500"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 상세 정보 -->
+      <div class="border-t pt-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">상세 분석</h3>
+        <div id="sp-details-content" class="space-y-3 text-gray-700">
+          <!-- 동적으로 생성됨 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- AI 피드백 섹션 -->
+    <div
+      id="sp-ai-feedback-section"
+      class="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6 mb-6 hidden"
+    >
+      <h3 class="text-lg font-semibold text-blue-900 mb-3">
+        🤖 AI 개선 피드백
+      </h3>
+      <div
+        id="sp-ai-feedback-content"
+        class="text-blue-800 whitespace-pre-wrap"
+      >
+        <!-- 동적으로 생성됨 -->
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3">
+      <button
+        onclick="closeSpeechProModal()"
+        class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition"
+      >
+        닫기
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // SpeechPro Modal functions
+  function showSpeechProModal(data, targetText) {
+    console.log("[모달] 받은 data:", data);
+
+    const modal = document.getElementById("speechpro-modal");
+    const scoreData = data.score || {};
+    const overall =
+      data.overall_score ?? scoreData.score ?? scoreData.overall_score ?? 0;
+
+    console.log("[모달] scoreData:", scoreData);
+    console.log("[모달] 최종 overall:", overall);
+    console.log("[모달] scoreData.details:", scoreData.details);
+
+    document.getElementById("sp-overall-score").textContent =
+      Math.round(overall);
+    document.getElementById("sp-score-bar").style.width = overall + "%";
+
+    let feedback = "";
+    if (overall >= 90) feedback = "🎉 훌륭합니다!";
+    else if (overall >= 80) feedback = "👍 아주 좋아요!";
+    else if (overall >= 70) feedback = "😊 잘하고 있어요!";
+    else if (overall >= 60) feedback = "💪 조금만 더 연습해요!";
+    else feedback = "📚 연습이 필요해요!";
+    document.getElementById("sp-score-feedback").textContent = feedback;
+
+    let detailsHtml = "";
+
+    // details 객체에서 상세 정보 찾기
+    const details = scoreData.details || {};
+
+    const fluency = data.fluency ?? details.fluency ?? scoreData.fluency;
+    if (fluency !== undefined) {
+      detailsHtml += `<div class="flex justify-between"><span>🎯 유창성:</span><span class="font-semibold">${Math.round(
+        fluency
+      )}%</span></div>`;
+    }
+
+    // 문장별 점수 - 여러 경로 확인
+    const sentenceScores =
+      data.sentence_scores ||
+      details.sentence_scores ||
+      details.sentences ||
+      scoreData.sentence_scores ||
+      scoreData.sentences;
+    if (sentenceScores && sentenceScores.length > 0) {
+      detailsHtml += `<div class="mt-4"><p class="font-semibold mb-2">문장별 점수:</p>`;
+      sentenceScores.forEach((s, idx) => {
+        const scoreValue = typeof s === "number" ? s : s.score || 0;
+        const barWidth = Math.round(scoreValue);
+        detailsHtml += `
+          <div class="mb-2">
+            <div class="flex justify-between text-sm mb-1">
+              <span>문장 ${idx + 1}</span>
+              <span class="font-semibold">${scoreValue}점</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+              <div class="bg-blue-500 h-2 rounded-full" style="width: ${barWidth}%"></div>
+            </div>
+          </div>
+        `;
+      });
+      detailsHtml += `</div>`;
+    }
+
+    // 단어별 분석 - 여러 경로 확인
+    const words =
+      data.words ||
+      details.words ||
+      details.word_scores ||
+      scoreData.words ||
+      scoreData.word_scores;
+    if (words && words.length > 0) {
+      detailsHtml += `<div class="mt-4"><p class="font-semibold mb-2">단어별 분석:</p><div class="space-y-2">`;
+      words.forEach((word) => {
+        const wordText = word.text || word.word || word.name;
+        const wordScore = word.score || word.value || 0;
+        if (wordText && wordText !== "!SIL") {
+          detailsHtml += `<div class="text-sm"><span class="font-medium">${wordText}:</span> <span class="text-blue-600">${Math.round(
+            wordScore
+          )}점</span></div>`;
+        }
+      });
+      detailsHtml += `</div></div>`;
+    }
+
+    // 음절(음운) 단위 분석
+    const syllables =
+      details.syllables || details.syllable_scores || scoreData.syllables;
+    if (Array.isArray(syllables) && syllables.length > 0) {
+      detailsHtml += `<div class="mt-4"><p class="font-semibold mb-2">음절별 분석:</p><div class="space-y-1">`;
+      syllables.forEach((sy, idx) => {
+        const sylText = sy.text || sy.syllable || sy.label || `음절 ${idx + 1}`;
+        const sylScore = Math.round(sy.score ?? sy.value ?? 0);
+        const hasError = sy.error || sy.mismatch || sy.ok === false;
+        const extra = sy.note || sy.message || sy.error_detail || "";
+        detailsHtml += `
+          <div class="text-sm flex items-center gap-2">
+            <span class="font-medium">${sylText}:</span>
+            <span class="${
+              hasError ? "text-red-600" : "text-blue-600"
+            }">${sylScore}점</span>
+            ${
+              hasError
+                ? '<span class="px-2 py-0.5 text-xs rounded bg-red-100 text-red-700">오류</span>'
+                : ""
+            }
+            ${extra ? `<span class="text-gray-500">(${extra})</span>` : ""}
+          </div>`;
+      });
+      detailsHtml += `</div></div>`;
+    }
+
+    // 음소/발음 오류 목록
+    const phonemeErrorsRaw =
+      details.phoneme_errors ||
+      details.phoneme_mismatches ||
+      (Array.isArray(details.phonemes)
+        ? details.phonemes.filter(
+            (p) => p.error || p.mismatch || p.ok === false
+          )
+        : null);
+    if (Array.isArray(phonemeErrorsRaw) && phonemeErrorsRaw.length > 0) {
+      detailsHtml += `<div class="mt-4"><p class="font-semibold mb-2">음소/발음 오류:</p><div class="space-y-1">`;
+      phonemeErrorsRaw.forEach((pe, idx) => {
+        const expected = pe.expected || pe.target || pe.ref || "?";
+        const actual = pe.actual || pe.hyp || pe.got || pe.pron || "?";
+        const pos =
+          pe.position ||
+          pe.index ||
+          pe.offset ||
+          (pe.syllable_index != null
+            ? `음절 ${pe.syllable_index + 1}`
+            : idx + 1);
+        const context = pe.context || pe.word || pe.near || "";
+        const hint = pe.hint || pe.suggestion || pe.note || "";
+        detailsHtml += `
+          <div class="text-sm">
+            <span class="text-gray-600">위치 ${pos}</span>:
+            <span class="text-red-700 font-medium">${expected}</span>
+            → <span class="text-blue-700 font-medium">${actual}</span>
+            ${context ? `<span class="text-gray-500">[${context}]</span>` : ""}
+            ${hint ? `<span class="ml-1 text-gray-500">(${hint})</span>` : ""}
+          </div>`;
+      });
+      detailsHtml += `</div></div>`;
+    }
+
+    // 가중치 분포(점수 구성 비율)
+    const weightsObj =
+      details.weights ||
+      details.weight_distribution ||
+      scoreData.weights ||
+      data.weights;
+    if (weightsObj && typeof weightsObj === "object") {
+      const entries = Object.entries(weightsObj).filter(
+        ([k, v]) => typeof v === "number"
+      );
+      if (entries.length > 0) {
+        detailsHtml += `<div class="mt-4"><p class="font-semibold mb-2">가중치 분포:</p>`;
+        entries.forEach(([name, val]) => {
+          const pct = Math.round(val <= 1 ? val * 100 : val);
+          detailsHtml += `
+            <div class="mb-1">
+              <div class="flex justify-between text-xs mb-0.5">
+                <span class="uppercase tracking-wide text-gray-600">${name}</span>
+                <span class="text-gray-700">${pct}%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-1.5">
+                <div class="bg-emerald-500 h-1.5 rounded-full" style="width: ${pct}%"></div>
+              </div>
+            </div>`;
+        });
+        detailsHtml += `</div>`;
+      }
+    }
+
+    // 발화 속도/타이밍 관련 지표
+    const rate =
+      details.speaking_rate ||
+      details.words_per_minute ||
+      details.wpm ||
+      scoreData.speaking_rate;
+    const duration =
+      details.duration || details.audio_duration || scoreData.duration;
+    if (rate || duration) {
+      detailsHtml += `<div class="mt-4"><p class="font-semibold mb-2">발화 타이밍:</p>`;
+      if (rate) {
+        detailsHtml += `<div class="text-sm">말하기 속도: <span class="text-indigo-600 font-medium">${Math.round(
+          rate
+        )}</span> WPM</div>`;
+      }
+      if (duration) {
+        const sec = Math.round(Number(duration));
+        detailsHtml += `<div class="text-sm">오디오 길이: <span class="text-indigo-600 font-medium">${sec}</span>초</div>`;
+      }
+      detailsHtml += `</div>`;
+    }
+
+    console.log("[모달] detailsHtml 길이:", detailsHtml.length);
+
+    document.getElementById("sp-details-content").innerHTML =
+      detailsHtml || "<p class='text-gray-500'>상세 정보가 없습니다.</p>";
+
+    if (data.ai_feedback) {
+      document
+        .getElementById("sp-ai-feedback-section")
+        .classList.remove("hidden");
+      document.getElementById("sp-ai-feedback-content").textContent =
+        data.ai_feedback;
+    } else {
+      document.getElementById("sp-ai-feedback-section").classList.add("hidden");
+    }
+
+    modal.classList.remove("hidden");
+  }
+
+  function closeSpeechProModal() {
+    document.getElementById("speechpro-modal").classList.add("hidden");
+  }
+
+  // Recording logic
+  let mediaRecorder = null;
+  let recordedChunks = [];
+  let recordingStartTime = null;
+  let recordingTimer = null;
+
+  // 녹음 시작
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      recordedChunks = [];
+      recordingStartTime = Date.now();
+
+      mediaRecorder.ondataavailable = (event) => {
+        recordedChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(recordedChunks, { type: "audio/wav" });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        document.getElementById("audio-playback").src = audioUrl;
+        document.getElementById("playback-section").classList.remove("hidden");
+        document.getElementById("evaluate-button").disabled = false;
+      };
+
+      mediaRecorder.start();
+
+      // UI 업데이트
+      document.getElementById("start-recording").classList.add("hidden");
+      document.getElementById("stop-recording").classList.remove("hidden");
+      document.getElementById("clear-recording").classList.remove("hidden");
+      document.getElementById("recording-status").innerHTML =
+        '🔴 <p class="text-red-600 font-semibold">녹음 중...</p>';
+      document.getElementById("recording-timer").classList.remove("hidden");
+
+      // 타이머 시작
+      startTimer();
+    } catch (error) {
+      AlertManager.error(`마이크 접근 실패: ${error.message}`, "마이크 오류", document.getElementById("alertsContainer"));
+    }
+  }
+
+  // 녹음 중지
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+      mediaRecorder.stream.getTracks().forEach((track) => track.stop());
+
+      // UI 업데이트
+      document.getElementById("start-recording").classList.remove("hidden");
+      document.getElementById("stop-recording").classList.add("hidden");
+      document.getElementById("play-recording").disabled = false;
+      document.getElementById("recording-status").innerHTML =
+        '<p class="text-green-600 font-semibold">✅ 녹음 완료</p>';
+      document.getElementById("recording-timer").classList.add("hidden");
+
+      // 타이머 중지
+      stopTimer();
+    }
+  }
+
+  // 녹음 초기화
+  function clearRecording() {
+    mediaRecorder = null;
+    recordedChunks = [];
+    recordingStartTime = null;
+
+    document.getElementById("audio-playback").src = "";
+    document.getElementById("playback-section").classList.add("hidden");
+    document.getElementById("recording-status").innerHTML =
+      '<p class="text-gray-600 text-sm">마이크를 통해 문장을 읽어주세요</p>';
+    document.getElementById("recording-timer").classList.add("hidden");
+    document.getElementById("start-recording").classList.remove("hidden");
+    document.getElementById("stop-recording").classList.add("hidden");
+    document.getElementById("play-recording").disabled = true;
+    document.getElementById("clear-recording").classList.add("hidden");
+    document.getElementById("evaluate-button").disabled = true;
+  }
+
+  // 발음 평가 시 로딩 표시 (only during evaluation, not on page load)
+  function showEvaluationLoading() {
+    const btn = document.getElementById("evaluate-button");
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML =
+        '<div class="flex items-center justify-center gap-2"><div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div><span>분석 중...</span></div>';
+    }
+  }
+
+  function hideEvaluationLoading() {
+    const btn = document.getElementById("evaluate-button");
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = "🎤 발음 평가하기";
+    }
+  }
+
+  // 녹음된 음성 재생
+  function playRecording() {
+    const audioPlayback = document.getElementById("audio-playback");
+    if (audioPlayback.src) {
+      audioPlayback.play();
+    }
+  }
+
+  // 타이머 관련
+  function startTimer() {
+    recordingTimer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      document.getElementById("recording-timer").textContent = `${String(
+        minutes
+      ).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }, 100);
+  }
+
+  function stopTimer() {
+    if (recordingTimer) {
+      clearInterval(recordingTimer);
+    }
+  }
+
+  // 발음 평가 실행
+  async function evaluatePronunciation() {
+    const targetText = document.getElementById("targetText").innerText;
+    const audioElement = document.getElementById("audio-playback");
+
+    if (!targetText || targetText === "문장을 입력하고 설정 버튼을 누르세요") {
+      AlertManager.warning("평가할 문장을 먼저 설정해주세요.", "입력 필요", document.getElementById("alertsContainer")); return;
+      return;
+    }
+
+    if (!audioElement.src) {
+      AlertManager.warning("음성을 녹음해주세요.", "녹음 필요", document.getElementById("alertsContainer")); return;
+      return;
+    }
+
+    try {
+      // 녹음된 오디오를 Blob으로 변환
+      const response = await fetch(audioElement.src);
+      const audioBlob = await response.blob();
+
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "recording.wav");
+      formData.append("text", targetText);
+
+      // 로딩 표시 (inline button state, no full-screen overlay)
+      showEvaluationLoading();
+
+      const res = await fetch("/api/speechpro/evaluate", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      console.log("[발음 검사] API 응답:", data);
+
+      if (data.error) {
+        AlertManager.error(`오류: ${data.error}`, "평가 오류", document.getElementById("alertsContainer"));
+      } else {
+        showSpeechProModal(data, targetText);
+      }
+    } catch (error) {
+      console.error("평가 오류:", error);
+      AlertManager.error(`평가 중 오류가 발생했습니다: ${error.message}`, "평가 오류", document.getElementById("alertsContainer"));
+    } finally {
+      // 버튼 복원
+      hideEvaluationLoading();
+    }
+  }
+
+  // Speak text using Web Speech API
+  function speakText(txt) {
+    console.warn("Browser TTS is disabled.");
+    return;
+  }
+
+  // Set practice text from input
+  function setPracticeText() {
+    const input = document.getElementById("practiceText");
+    const text = input.value.trim();
+
+    if (!text) {
+      AlertManager.warning("연습할 문장을 입력해주세요.", "입력 필요", document.getElementById("alertsContainer")); return;
+      return;
+    }
+
+    const targetText = document.getElementById("targetText");
+    const targetRoman = document.getElementById("targetRoman");
+
+    targetText.innerText = text;
+    targetRoman.innerText = "";
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    // 듣기 버튼 이벤트 - MzTTS 사용
+    document.getElementById("listenBtn").onclick = async () => {
+      const text = document.getElementById("targetText").innerText;
+      if (!text || text === "문장을 입력하고 설정 버튼을 누르세요") {
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/tts/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: text,
+            speaker: "female_calm",
+            speed: 1.0,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("TTS 생성 실패");
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+      } catch (error) {
+        console.error("TTS 오류:", error);
+        return;
+      }
+    };
+  });
+</script>
+{% endblock %}

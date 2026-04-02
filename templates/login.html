@@ -1,0 +1,219 @@
+{% extends "base.html" %} {% block title %}로그인 - 오누이 한국어 학습{%
+endblock %} {% block extra_css %}
+<style>
+  /* Keep LNB visible; use local wrapper for centering */
+
+  .glass-login-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+    border-radius: 40px;
+    width: 100%;
+    max-width: 440px;
+    padding: 60px 40px;
+  }
+
+  .input-dark {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-radius: 16px !important;
+    padding: 16px 20px !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .input-dark:focus {
+    border-color: rgba(249, 115, 22, 0.5) !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+  }
+
+  .btn-login {
+    background: #ffffff;
+    color: #000000;
+    font-weight: 900;
+    font-size: 1rem;
+    letter-spacing: -0.02em;
+    padding: 16px;
+    border-radius: 16px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-login:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
+  }
+
+  .btn-login:active {
+    transform: scale(0.98);
+  }
+
+  .btn-login-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: -0.01em;
+    padding: 16px;
+    border-radius: 16px;
+    transition: all 0.2s;
+  }
+
+  .btn-login-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .text-link {
+    color: #fb923c;
+    font-weight: 700;
+    transition: color 0.2s;
+  }
+  .text-link:hover {
+    color: #f97316;
+    text-decoration: underline;
+  }
+</style>
+{% endblock %} {% block content %}
+<!-- Align with page shell so it matches dashboard left/top start -->
+<div class="page-shell mx-auto w-full max-w-7xl px-4 flex flex-col items-center">
+  <!-- Alerts -->
+  <div id="alertsContainer" class="w-full max-w-md mb-6"></div>
+
+  <div class="glass-login-card text-center mt-2">
+    <!-- Header -->
+    <div class="mb-12">
+      <div class="sidebar-logo p-0 mb-6 text-3xl">
+        ONUI AI Speech Intelligence
+      </div>
+      <h1 class="text-3xl font-black text-white tracking-tighter mb-3">
+        Welcome Back
+      </h1>
+      <p class="text-white/40 font-medium">로그인하여 맞춤 학습을 이어가세요</p>
+    </div>
+
+    <!-- Form -->
+    <form id="loginForm" class="space-y-6 text-left">
+      <div class="space-y-2">
+        <label
+          class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-1"
+          >Nickname</label
+        >
+        <input
+          id="nicknameInput"
+          type="text"
+          required
+          placeholder="Enter nickname"
+          class="w-full input-dark outline-none text-base"
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="space-y-2">
+        <label
+          class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-1"
+          >Password</label
+        >
+        <input
+          id="passwordInput"
+          type="password"
+          required
+          placeholder="••••••••"
+          class="w-full input-dark outline-none text-base"
+          autocomplete="current-password"
+        />
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 mt-4">
+        <button id="loginBtn" type="submit" class="flex-1 btn-login">
+          SIGN IN
+        </button>
+        <a href="/signup" class="flex-1 btn-login-secondary flex items-center justify-center">
+          SIGN UP
+        </a>
+      </div>
+    </form>
+
+    <!-- OAuth / Social (Placeholder for Suno look) -->
+    <div class="mt-10 pt-10 border-t border-white/5 space-y-4">
+      <p class="text-xs text-white/30 font-bold uppercase tracking-widest">
+        More options
+      </p>
+      <div class="flex justify-center gap-4">
+        <a
+          href="/"
+          class="text-xs font-black text-white/40 hover:text-white transition-colors"
+          >BACK TO HOME</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const form = document.getElementById("loginForm");
+    const loginBtn = document.getElementById("loginBtn");
+    const nicknameInput = document.getElementById("nicknameInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const alertsContainer = document.getElementById("alertsContainer");
+
+    if (!form) return;
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      alertsContainer.innerHTML = "";
+
+      const payload = {
+        nickname: nicknameInput.value.trim(),
+        password: passwordInput.value,
+      };
+
+      if (!payload.nickname || !payload.password) {
+        ToastManager.error("정보를 모두 입력해주세요.");
+        return;
+      }
+
+      // Suno Loading Animation logic
+      loginBtn.innerHTML = '<span class="animate-pulse">SIGNING IN...</span>';
+      loginBtn.disabled = true;
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "로그인에 실패했습니다.");
+
+        localStorage.setItem("auth_token", data.token);
+        localStorage.setItem("user_nickname", data.nickname);
+        localStorage.setItem("user_role", data.role || "learner");
+        if (data.role === "system_admin")
+          localStorage.setItem("is_admin", "true");
+
+        ToastManager.success(`${data.nickname}님 반갑습니다!`);
+
+        setTimeout(() => {
+          const role = data.role;
+          if (role === "learner") location.href = "/dashboard";
+          else if (role === "instructor") location.href = "/instructor";
+          else if (role === "system_admin") location.href = "/admin";
+          else location.href = "/";
+        }, 800);
+      } catch (err) {
+        console.error(err);
+        loginBtn.innerHTML = "SIGN IN";
+        loginBtn.disabled = false;
+        ToastManager.error(err.message || "로그인 중 오류가 발생했습니다.");
+      }
+    });
+  })();
+</script>
+{% endblock %}

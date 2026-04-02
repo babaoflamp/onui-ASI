@@ -1,0 +1,391 @@
+{% extends "base.html" %} {% block title %}AI 발음 종합 평가 테스트 - 오누이 AI{% endblock %}
+{% block extra_css %}
+<style>
+  .glass-main-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+  
+  .glass-sub-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .glass-sub-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .input-dark {
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+  }
+  
+  .input-dark:focus {
+    border-color: rgba(249, 115, 22, 0.5) !important;
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+  }
+
+  .waveform-bar {
+    width: 3px;
+    background: #f97316;
+    border-radius: 99px;
+    animation: wave-bounce 1s infinite ease-in-out;
+  }
+
+  @keyframes wave-bounce {
+    0%, 100% { height: 4px; }
+    50% { height: 24px; }
+  }
+
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+  /* Tab Styles */
+  .result-tab.active {
+    color: #f97316;
+    border-bottom: 2px solid #f97316;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="alertsContainer"></div>
+<div class="max-w-6xl mx-auto px-4 py-6">
+  <!-- Header -->
+  <div class="mb-10 relative">
+    <button id="open-speechpro-advantages" type="button"
+      class="absolute top-0 right-0 p-2 hover:bg-white/5 rounded-full transition-colors text-white/40 hover:text-white" title="View SpeechPro Advantages">
+      <span class="text-2xl">ℹ️</span>
+    </button>
+
+    <div class="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
+      <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+      <span data-i18n="speechpro.badge">AI Pronunciation Engine</span>
+    </div>
+    
+    <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
+      AI 발음 <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-500">종합 평가</span>
+    </h1>
+    <p class="text-white/50 font-medium" data-i18n="speechpro.subtitle">
+      음소 단위 정밀 분석과 실시간 피드백으로 한국어 발음을 완성하세요.
+    </p>
+  </div>
+
+  <!-- Main Interaction Area -->
+  <div class="glass-main-card rounded-[40px] p-8 lg:p-12">
+    
+    <!-- Step Indicator -->
+    <div class="mb-16 flex items-center justify-between max-w-2xl mx-auto relative z-10">
+      <div class="flex flex-col items-center flex-1">
+        <div class="w-14 h-14 rounded-full bg-orange-500 text-white flex items-center justify-center font-black text-xl mb-3 shadow-[0_0_20px_rgba(249,115,22,0.4)]" id="step-1">1</div>
+        <span class="text-[10px] font-bold text-white tracking-widest uppercase opacity-60">SELECT</span>
+      </div>
+      <div class="flex-1 h-px bg-white/10 mx-4" id="step-line-1"></div>
+      <div class="flex flex-col items-center flex-1 text-white/20">
+        <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-black text-xl mb-3" id="step-2">2</div>
+        <span class="text-[10px] font-bold tracking-widest uppercase">RECORD</span>
+      </div>
+      <div class="flex-1 h-px bg-white/10 mx-4" id="step-line-2"></div>
+      <div class="flex flex-col items-center flex-1 text-white/20">
+        <div class="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center font-black text-xl mb-3" id="step-3">3</div>
+        <span class="text-[10px] font-bold tracking-widest uppercase">EVALUATE</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-12">
+      <!-- Left side: Sentence Selection -->
+      <aside class="space-y-6">
+        <div>
+          <label class="block text-xs font-black text-white/40 uppercase tracking-widest mb-4">Level Filter</label>
+          <select id="level-filter" class="w-full input-dark px-5 py-4 rounded-2xl text-sm font-bold outline-none cursor-pointer">
+            <option value="">전체 레벨</option>
+            <option value="초급1">초급 1</option>
+            <option value="초급2">초급 2</option>
+            <option value="중급1">중급 1</option>
+            <option value="중급2">중급 2</option>
+            <option value="고급1">고급 1</option>
+            <option value="고급2">고급 2</option>
+          </select>
+        </div>
+
+        <select id="evaluation-text" class="hidden"></select>
+
+        <div class="pt-2">
+          <label class="block text-xs font-black text-white/40 uppercase tracking-widest mb-4">Available Sentences</label>
+          <div id="sentence-list" class="max-h-[400px] overflow-y-auto custom-scrollbar pr-2 space-y-3"></div>
+          <button id="load-more-sentences" class="w-full mt-4 py-3 text-xs font-bold text-white/40 hover:text-white bg-white/5 rounded-xl border border-white/5 hidden">LOAD MORE</button>
+        </div>
+      </aside>
+
+      <!-- Right side: Recording Area -->
+      <section class="flex flex-col">
+        <div class="flex-1 glass-sub-card rounded-[32px] p-8 flex flex-col items-center justify-center text-center relative">
+          <div id="recording-visualizer" class="mb-10 w-full">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-black/40 border border-white/5 rounded-full mb-8">
+              <span id="status-dot" class="w-2 h-2 bg-white/20 rounded-full"></span>
+              <span id="status-text" class="text-[10px] font-black text-white/60 uppercase tracking-widest" data-i18n="speechpro.status_idle">READY</span>
+            </div>
+            <div class="flex items-center justify-center gap-8">
+               <div id="waveform" class="hidden flex items-end gap-1.5 h-10">
+                 <div class="waveform-bar" style="animation-delay: 0s"></div>
+                 <div class="waveform-bar" style="animation-delay: 0.2s"></div>
+                 <div class="waveform-bar" style="animation-delay: 0.1s"></div>
+               </div>
+               <div id="recording-timer-display" class="text-6xl font-black text-white tracking-tighter">00:00</div>
+               <div id="waveform-right" class="hidden flex items-end gap-1.5 h-10 rotate-180">
+                 <div class="waveform-bar" style="animation-delay: 0s"></div>
+                 <div class="waveform-bar" style="animation-delay: 0.2s"></div>
+                 <div class="waveform-bar" style="animation-delay: 0.1s"></div>
+               </div>
+            </div>
+          </div>
+          <div id="countdown-display" class="absolute inset-0 flex items-center justify-center text-9xl font-black text-orange-500 z-20 hidden">3</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+            <button id="start-recording" class="py-5 bg-white text-black rounded-2xl font-black text-lg shadow-2xl disabled:opacity-20" disabled>START RECORD</button>
+            <button id="stop-recording" class="py-5 bg-red-500 text-white rounded-2xl font-black text-lg shadow-2xl hidden">STOP</button>
+            <button id="play-recording" class="py-5 bg-white/10 text-white border border-white/10 rounded-2xl font-black text-lg disabled:opacity-20" disabled>PLAY BACK</button>
+          </div>
+          <audio id="audio-playback" class="hidden"></audio>
+        </div>
+        <button id="evaluate-button" class="mt-6 py-6 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-[24px] font-black text-2xl shadow-[0_0_30px_rgba(249,115,22,0.3)] disabled:opacity-20">EVALUATE NOW</button>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- Results Modal -->
+<div id="results-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeResults()"></div>
+  <div class="relative w-full max-w-5xl max-h-[90vh] glass-main-card rounded-[40px] p-10 overflow-y-auto custom-scrollbar">
+    <div class="flex justify-between items-center mb-10">
+        <h2 class="text-3xl font-black text-white tracking-tight">Evaluation Report</h2>
+        <button id="close-results-btn" class="text-white/60 hover:text-white text-2xl">✕</button>
+    </div>
+    <div class="flex gap-8 mb-10 border-b border-white/5">
+        <button id="tab-score" class="result-tab active pb-4 text-sm font-black uppercase tracking-widest" data-tab="score">Dashboard</button>
+        <button id="tab-analysis" class="result-tab text-white/40 pb-4 text-sm font-black uppercase tracking-widest" data-tab="analysis">Detailed Analysis</button>
+        <button id="tab-ai" class="result-tab text-white/40 pb-4 text-sm font-black uppercase tracking-widest" data-tab="ai">AI Feedback</button>
+    </div>
+    <div id="result-content-score" class="result-step">
+        <div class="glass-sub-card rounded-3xl p-10 text-center">
+            <div class="text-8xl font-black text-orange-500 mb-4"><span id="overall-score">0</span><span class="text-3xl text-white/40">/100</span></div>
+            <p id="score-feedback" class="text-xl text-white/80 font-bold mb-8"></p>
+            <div class="w-full bg-white/5 rounded-full h-4 mb-10 overflow-hidden"><div id="score-bar" class="h-full bg-orange-500 transition-all duration-1000" style="width: 0%"></div></div>
+            <button id="view-details-btn" class="px-8 py-4 bg-white/10 text-white rounded-xl font-bold hover:bg-white/20">View Details →</button>
+        </div>
+    </div>
+    <div id="result-content-analysis" class="result-step hidden"></div>
+    <div id="result-content-ai" class="result-step hidden"></div>
+  </div>
+</div>
+
+<!-- Original JS Logic Preserved and Re-integrated -->
+<script>
+  const appState = {
+    mediaRecorder: null, recordedChunks: [], recordingStartTime: null, recordingTimer: null,
+    selectedSentence: null, latestAiFeedbackText: "", latestAiFeedbackScore: 0,
+    sentenceAll: [], sentenceOffset: 0, sentenceLimit: 20, hasMoreSentences: true,
+    reset() {
+      this.mediaRecorder = null; this.recordedChunks = []; this.recordingStartTime = null;
+      this.recordingTimer = null; this.latestAiFeedbackText = "";
+    }
+  };
+
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      document.getElementById("start-recording").classList.add("hidden");
+      appState.mediaRecorder = new MediaRecorder(stream);
+      appState.recordedChunks = [];
+      appState.recordingStartTime = Date.now();
+      appState.mediaRecorder.ondataavailable = e => appState.recordedChunks.push(e.data);
+      appState.mediaRecorder.onstop = () => {
+        const blob = new Blob(appState.recordedChunks, { type: "audio/wav" });
+        document.getElementById("audio-playback").src = URL.createObjectURL(blob);
+        document.getElementById("evaluate-button").disabled = false;
+      };
+      appState.mediaRecorder.start();
+      document.getElementById("stop-recording").classList.remove("hidden");
+      document.getElementById("status-text").textContent = "RECORDING";
+      document.getElementById("waveform").classList.remove("hidden");
+      document.getElementById("waveform-right").classList.remove("hidden");
+      startTimer();
+    } catch (e) { alert("Mic error: " + e.message); }
+  }
+
+  function stopRecording() {
+    if (appState.mediaRecorder) {
+      appState.mediaRecorder.stop();
+      appState.mediaRecorder.stream.getTracks().forEach(t => t.stop());
+      document.getElementById("stop-recording").classList.add("hidden");
+      document.getElementById("start-recording").classList.remove("hidden");
+      document.getElementById("play-recording").disabled = false;
+      document.getElementById("status-text").textContent = "DONE";
+      document.getElementById("waveform").classList.add("hidden");
+      document.getElementById("waveform-right").classList.add("hidden");
+      stopTimer();
+    }
+  }
+
+  function playRecording() {
+    const audio = document.getElementById("audio-playback");
+    if (audio.src) {
+      audio.currentTime = 0; // 처음부터 재생
+      audio.play();
+    }
+  }
+
+  function startTimer() {
+    appState.recordingTimer = setInterval(() => {
+      const sec = Math.floor((Date.now() - appState.recordingStartTime) / 1000);
+      document.getElementById("recording-timer-display").textContent = 
+        `${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+    }, 1000);
+  }
+  function stopTimer() { clearInterval(appState.recordingTimer); }
+
+  async function loadSentences(isMore = false) {
+    if (!isMore) { appState.sentenceOffset = 0; appState.sentenceAll = []; }
+    let url = `/api/speechpro/sentences?limit=${appState.sentenceLimit}&offset=${appState.sentenceOffset}`;
+    const lvl = document.getElementById("level-filter").value;
+    if (lvl) url += `&level=${lvl}`;
+    const res = await fetch(url);
+    const payload = await res.json();
+    appState.sentenceAll = isMore ? [...appState.sentenceAll, ...payload.data] : payload.data;
+    renderSentenceList();
+  }
+
+  function renderSentenceList() {
+    const list = document.getElementById('sentence-list');
+    list.innerHTML = appState.sentenceAll.map((s, i) => `
+      <button class="glass-sub-card w-full text-left p-4 rounded-2xl text-sm text-white/80 hover:text-white transition-all border border-white/5 mb-2" onclick="selectSentence(${i})">
+        <span class="text-[10px] font-black text-orange-500/60 mr-2">${s.level}</span> ${s.sentenceKr || s.sentence}
+      </button>
+    `).join('');
+  }
+
+  function selectSentence(idx) {
+    appState.selectedSentence = appState.sentenceAll[idx];
+    document.getElementById('start-recording').disabled = false;
+    document.querySelectorAll('#sentence-list button').forEach((b, i) => {
+      b.style.borderColor = i === idx ? 'rgba(249, 115, 22, 0.5)' : 'rgba(255,255,255,0.05)';
+      b.style.background = i === idx ? 'rgba(249, 115, 22, 0.1)' : 'rgba(255,255,255,0.02)';
+    });
+  }
+
+  async function evaluatePronunciation() {
+    const audio = document.getElementById("audio-playback");
+    if (!audio.src) return;
+    const blob = await fetch(audio.src).then(r => r.blob());
+    const fd = new FormData();
+    fd.append("text", appState.selectedSentence.sentenceKr || appState.selectedSentence.sentence);
+    fd.append("audio", blob, "rec.wav");
+    if (appState.selectedSentence.fst) {
+      fd.append("syll_ltrs", appState.selectedSentence.syll_ltrs);
+      fd.append("syll_phns", appState.selectedSentence.syll_phns);
+      fd.append("fst", appState.selectedSentence.fst);
+    }
+    
+    const res = await fetch("/api/speechpro/evaluate", { method: "POST", body: fd });
+    const result = await res.json();
+    if (result.success) showResults(result);
+  }
+
+  function showResults(res) {
+    const score = Math.round(res.overall_score || 0);
+    document.getElementById("overall-score").textContent = score;
+    document.getElementById("score-bar").style.width = score + "%";
+    
+    // 탭 초기화
+    switchTab('score');
+
+    // 1. Dashboard Feedback
+    document.getElementById("score-feedback").textContent = score >= 80 ? "Excellent Job! 🌟" : 
+                                                            score >= 60 ? "Good Effort! 👍" : "Keep Practicing! 💪";
+
+    // 2. Detailed Analysis Populate (Phoneme mapping)
+    const analysisContainer = document.getElementById("result-content-analysis");
+    if (res.score && res.score.details) {
+      const details = res.score.details;
+      const accuracy = res.score.accuracy_percentage || 0;
+      const fluency = details.fluency ? (details.fluency.correct_syllable_count / (details.fluency.total_syllable_count || 1)) * 100 : 0;
+      
+      analysisContainer.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div class="glass-sub-card p-6 rounded-2xl">
+            <p class="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Accuracy Rate</p>
+            <p class="text-3xl font-black text-white">${Math.round(accuracy)}%</p>
+          </div>
+          <div class="glass-sub-card p-6 rounded-2xl">
+            <p class="text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Fluency Rate</p>
+            <p class="text-3xl font-black text-white">${Math.round(fluency)}%</p>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p class="text-xs font-black text-white/40 uppercase tracking-widest mb-4">Syllable Breakdown</p>
+          <div class="space-y-3">
+            ${(details.syllables || []).map(s => `
+              <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                <span class="text-lg font-bold text-white">${s.syllable}</span>
+                <span class="text-sm font-bold ${s.score >= 80 ? 'text-green-400' : 'text-orange-400'}">${Math.round(s.score)}%</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 3. AI Feedback Populate
+    const aiContainer = document.getElementById("result-content-ai");
+    aiContainer.innerHTML = `
+      <div class="glass-sub-card p-8 rounded-3xl min-h-[200px] flex flex-col justify-center">
+        <p class="text-[10px] font-black text-orange-400 uppercase tracking-widest mb-4">AI Feedback Report</p>
+        <p class="text-lg text-white/90 font-medium leading-relaxed italic">
+          "${res.ai_feedback || 'AI 피드백이 준비되지 않았습니다. 잠시 후 다시 시도해주세요.'}"
+        </p>
+      </div>
+    `;
+
+    document.getElementById("results-modal").classList.remove("hidden");
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.result-tab').forEach(t => {
+      t.classList.remove('active', 'text-orange-500');
+      t.classList.add('text-white/40');
+    });
+    document.querySelectorAll('.result-step').forEach(s => s.classList.add('hidden'));
+
+    const activeTab = document.querySelector(`[data-tab="${tabId}"]`);
+    activeTab.classList.add('active', 'text-orange-500');
+    activeTab.classList.remove('text-white/40');
+    document.getElementById(`result-content-${tabId}`).classList.remove('hidden');
+  }
+
+  function closeResults() { document.getElementById("results-modal").classList.add("hidden"); }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadSentences();
+    document.getElementById("level-filter").addEventListener("change", () => loadSentences());
+    document.getElementById("start-recording").addEventListener("click", startRecording);
+    document.getElementById("stop-recording").addEventListener("click", stopRecording);
+    document.getElementById("evaluate-button").addEventListener("click", evaluatePronunciation);
+    document.getElementById("play-recording").addEventListener("click", playRecording);
+    document.getElementById("close-results-btn").addEventListener("click", closeResults);
+
+    // Tab Listeners
+    document.querySelectorAll('.result-tab').forEach(tab => {
+        tab.addEventListener('click', () => switchTab(tab.getAttribute('data-tab')));
+    });
+
+    document.getElementById("view-details-btn").addEventListener("click", () => switchTab('analysis'));
+  });
+</script>
+{% endblock %}

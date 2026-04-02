@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ONUI | AI Speech Intelligence</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="512x512"
+      href="/static/favicon.png"
+    />
+    <link rel="alternate icon" href="/static/favicon.ico" />
+
+    <!-- Pretendard font -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 공통 UI 컴포넌트 CSS -->
+    <link rel="stylesheet" href="/static/css/components.css" />
+    <link rel="stylesheet" href="/static/css/floating-buttons.css" />
+    <!-- Dark Glass Global Overrides -->
+    <link rel="stylesheet" href="/static/css/dark-glass.css" />
+
+    <style>
+      :root {
+        --bg-main: #060606;
+        --bg-sidebar: rgba(18, 18, 18, 0.75);
+        --bg-glass: rgba(255, 255, 255, 0.03);
+        --text-main: #ffffff;
+        --text-sub: #a0a0a0;
+        --accent: #fb923c;
+        --sidebar-width: 240px;
+        --sidebar-collapsed-width: 80px;
+        --glass-border: rgba(255, 255, 255, 0.08);
+      }
+
+      html,
+      body {
+        font-family: "Pretendard", sans-serif;
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        margin: 0;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      body {
+        display: flex;
+        position: relative;
+      }
+
+      /* Suno Style Background Glows */
+      /* Sidebar Logo Styles moved to unified section below */
+
+      /* Badge styles: dark theme badges */
+      .badge-glow {
+        filter: drop-shadow(0 0 8px rgba(244, 114, 182, 0.3));
+      }
+      .badge-dark {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.6rem;
+        padding: 2px 8px;
+        border-radius: 999px;
+        display: inline-block;
+        transition: all 0.2s;
+      }
+      .badge-dark:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: #fff;
+        transform: scale(1.05);
+      }
+
+      @keyframes blob-float {
+        from {
+          transform: translate(0, 0) scale(1);
+        }
+        to {
+          transform: translate(10%, 15%) scale(1.1);
+        }
+      }
+
+      .animate-blob-float {
+        animation: blob-float 20s infinite alternate ease-in-out;
+      }
+
+      /* Sidebar Style (Glassmorphism) */
+      #sidebar {
+        width: var(--sidebar-width);
+        background-color: var(--bg-sidebar);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-right: 1px solid var(--glass-border);
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        z-index: 50;
+        transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        /* overflow: hidden; <- Removed this to allow the toggle button to be visible */
+      }
+
+      body.sidebar-collapsed #sidebar {
+        width: var(--sidebar-collapsed-width);
+      }
+
+      #main-content {
+        margin-left: var(--sidebar-width);
+        flex: 1;
+        padding: 40px;
+        min-height: 100vh;
+        max-width: calc(100vw - var(--sidebar-width));
+        position: relative;
+        z-index: 10;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      body.sidebar-collapsed #main-content {
+        margin-left: var(--sidebar-collapsed-width);
+        max-width: calc(100vw - var(--sidebar-collapsed-width));
+      }
+
+      .nav-item span:nth-child(2), #sidebar-auth-section p {
+        white-space: nowrap;
+        transition: opacity 0.3s;
+      }
+
+      .sidebar-logo {
+        position: relative;
+        padding: 40px 24px 24px;
+        font-size: 1.4rem;
+        font-weight: 900;
+        letter-spacing: -0.05em;
+        line-height: 1.1;
+        opacity: 0.95;
+        text-decoration: none;
+        display: block;
+        transition: opacity 0.3s;
+      }
+
+      body.sidebar-collapsed .sidebar-logo {
+        font-size: 0;
+        padding: 32px 0;
+        text-align: center;
+      }
+
+      body.sidebar-collapsed .sidebar-logo::before {
+        content: "O";
+        font-size: 1.8rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #f97316, #f472b6);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      body.sidebar-collapsed .nav-item {
+        justify-content: center;
+        padding: 12px 0;
+        margin-right: 0;
+        border-radius: 0;
+      }
+
+      body.sidebar-collapsed .nav-item span:nth-child(2) {
+        opacity: 0;
+        width: 0;
+        pointer-events: none;
+        display: inline-block;
+        overflow: hidden;
+      }
+
+      body.sidebar-collapsed .nav-item span:first-child {
+        font-size: 1.4rem;
+        margin-right: 0;
+      }
+
+      body.sidebar-collapsed .text-\[10px\].font-black.text-gray-600 {
+        opacity: 0;
+      }
+
+      body.sidebar-collapsed #sidebar-guest-section,
+      body.sidebar-collapsed #dashboardNickname,
+      body.sidebar-collapsed #sidebar-auth-section p:last-child {
+        display: none !important;
+      }
+
+      body.sidebar-collapsed #profile-trigger {
+        justify-content: center;
+        padding: 12px 0;
+      }
+
+      /* Toggle Button Styling */
+      #sidebar-toggle {
+        position: fixed;
+        left: calc(var(--sidebar-width) - 12px);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 24px;
+        height: 24px;
+        background: #fb923c;
+        border: none;
+        border-radius: 6px;
+        color: white !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 110;
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      #sidebar-toggle:hover {
+        transform: translateY(-50%) scale(1.1);
+        background: #f97316;
+      }
+
+      body.sidebar-collapsed #sidebar-toggle {
+        left: calc(var(--sidebar-collapsed-width) - 12px);
+      }
+
+      #sidebar-toggle svg {
+        transition: transform 0.4s;
+        stroke: white !important;
+      }
+
+      body.sidebar-collapsed #sidebar-toggle svg {
+        transform: rotate(180deg);
+      }
+
+      .nav-item {
+        padding: 12px 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: var(--text-sub);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        border-radius: 0 100px 100px 0;
+        margin-right: 12px;
+      }
+
+      .nav-item:hover {
+        color: var(--text-main);
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      .nav-item.active {
+        color: var(--text-main);
+        background-color: rgba(251, 146, 60, 0.1);
+        border-left: 4px solid var(--accent);
+      }
+
+      .sidebar-logo {
+        /* Base styles inherited from above, adding gradient */
+        background: linear-gradient(
+          90deg,
+          #ffedd5 0%,
+          #fb923c 20%,
+          #f472b6 40%,
+          #93c5fd 60%,
+          #fb923c 80%,
+          #ffedd5 100%
+        );
+        background-size: 300% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: logoGradient 8s linear infinite;
+        text-shadow: 0 0 14px rgba(251, 146, 60, 0.12);
+      }
+
+      /* Shimmer sweep */
+      .sidebar-logo::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -35%;
+        width: 28%;
+        height: 100%;
+        background: linear-gradient(
+          120deg,
+          transparent,
+          rgba(255, 255, 255, 0.45),
+          transparent
+        );
+        transform: skewX(-20deg);
+        filter: blur(0.5px);
+        pointer-events: none;
+        animation: shineSweep 3.8s ease-in-out infinite;
+      }
+
+      @keyframes logoGradient {
+        0% {
+          background-position: 300% 0;
+        }
+        100% {
+          background-position: 0 0;
+        }
+      }
+
+      @keyframes shineSweep {
+        0% {
+          left: -35%;
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.9;
+        }
+        50% {
+          left: 120%;
+          opacity: 0.6;
+        }
+        100% {
+          left: 140%;
+          opacity: 0;
+        }
+      }
+
+      /* Profile Dropdown Styles */
+      .profile-dropdown {
+        position: absolute;
+        left: calc(var(--sidebar-width) - 10px);
+        bottom: 20px;
+        background: rgba(20, 20, 20, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        width: 180px;
+        padding: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        display: none;
+        z-index: 100;
+        animation: menu-pop 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      @keyframes menu-pop {
+        from {
+          transform: scale(0.95);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      .dropdown-item {
+        display: block;
+        padding: 10px 16px;
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      .dropdown-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+      }
+
+      /* Reusable Glassmorphism Classes */
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      }
+
+      .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--glass-border);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .glass-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      }
+
+      .text-muted {
+        color: var(--text-sub);
+      }
+
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 2px;
+      }
+
+      #sidebar-auth-section {
+        display: none;
+      }
+
+      /* Layout normalization: unify left start across pages within page-shell */
+      .page-shell > .px-4,
+      .page-shell > .px-6,
+      .page-shell > .px-8,
+      .page-shell > .sm\:px-6,
+      .page-shell > .lg\:px-8 {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      .page-shell > .mx-auto {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      .page-shell > [class*="max-w-"] {
+        max-width: 100% !important;
+      }
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body class="glass-dark">
+    <!-- Animated Global Background Glow (Subtle Orange) -->
+    <div class="fixed inset-0 z-[0] overflow-hidden pointer-events-none">
+      <div class="absolute top-[-15%] left-[-15%] w-[60%] h-[60%] bg-orange-500/25 rounded-full blur-[140px] animate-blob-float"></div>
+      <div class="absolute bottom-[-10%] right-[-10%] w-[70%] h-[70%] bg-pink-500/20 rounded-full blur-[160px] animate-blob-float" style="animation-delay: -5s;"></div>
+      <div class="absolute top-[40%] right-[-5%] w-[50%] h-[50%] bg-orange-400/25 rounded-full blur-[120px] animate-blob-float" style="animation-delay: -10s;"></div>
+      <div class="absolute bottom-[20%] left-[5%] w-[40%] h-[40%] bg-yellow-400/20 rounded-full blur-[130px] animate-blob-float" style="animation-delay: -15s;"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+      <!-- Sidebar Toggle Button -->
+      <button id="sidebar-toggle" title="Toggle Sidebar" class="text-white">
+        <svg class="w-4 h-4" fill="none" stroke="white" viewBox="0 0 24 24" style="stroke: white !important;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </button>
+
+      <!-- 1. Top Logo -->
+      <a href="/" class="sidebar-logo">ONUI<br />AI Speech Intelligence</a>
+
+      <!-- 2. Menu Navigation -->
+      <div class="flex-1 overflow-y-auto custom-scrollbar space-y-6 pt-4">
+        <!-- 🏠 Explore -->
+        <div>
+          <div
+            class="px-6 py-2 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]"
+          >
+            Explore
+          </div>
+          <a href="/dashboard" class="nav-item">
+            <span>🏠</span> <span data-i18n="nav.home">Home</span>
+          </a>
+          <a href="/folktales" class="nav-item">
+            <span>📖</span> <span data-i18n="nav.folktales">Stories</span>
+          </a>
+          <a href="/daily-expression" class="nav-item">
+            <span>✨</span> <span data-i18n="nav.daily">Daily Phrase</span>
+          </a>
+        </div>
+
+        <!-- ⚡ Learning -->
+        <div>
+          <div
+            class="px-6 py-2 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]"
+          >
+            Learning
+          </div>
+          <a href="/video-learning" class="nav-item group relative overflow-hidden">
+            <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse blur-[1px]"></span>
+            <span>🎬</span> <span data-i18n="nav.video_learning">OnuiTube (VOD)</span>
+          </a>
+          <a href="/onui-beats" class="nav-item">
+            <span>🎵</span> <span>Onui Beats</span>
+          </a>
+          <a href="/voice-call" class="nav-item">
+            <span>📞</span> <span>AI Voice Call</span>
+          </a>
+
+          <a href="/onui-messenger" class="nav-item">
+            <span>💬</span> <span>Onui Messenger</span>
+          </a>
+          <a href="/roleplay" class="nav-item">
+            <span>💬</span> <span data-i18n="nav.roleplay">AI Roleplay</span>
+          </a>
+          <a href="/content-generation" class="nav-item">
+            <span>📘</span>
+            <span data-i18n="nav.admin_content">AI Textbook</span>
+          </a>
+          <a href="/speechpro-practice" class="nav-item">
+            <span>🎤</span> <span data-i18n="nav.pron_test">Speech Pro</span>
+          </a>
+          <a href="/sentence-evaluation" class="nav-item">
+            <span>✍️</span> <span data-i18n="nav.pron_free">Free Eval</span>
+          </a>
+        </div>
+
+        <!-- 📊 Library -->
+        <div>
+          <div
+            class="px-6 py-2 text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]"
+          >
+            Library
+          </div>
+          <a href="/learning-progress" class="nav-item">
+            <span>📊</span> <span data-i18n="nav.progress">My Reports</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 3. Bottom Auth Section -->
+      <div class="p-4 border-t border-white/5 relative">
+        <!-- Guest: Integrated Sign Up / Sign In Capsule -->
+        <div id="sidebar-guest-section" class="px-2">
+          <div
+            class="flex items-center bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-xl"
+          >
+            <a
+              href="/signup"
+              class="flex-1 py-3 text-center text-white text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all border-r border-white/5"
+            >
+              Sign Up
+            </a>
+            <a
+              href="/login"
+              class="flex-1 py-3 text-center text-white/50 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all"
+            >
+              Sign In
+            </a>
+          </div>
+        </div>
+
+        <!-- User: Profile Card with Dropdown Trigger -->
+        <div id="sidebar-auth-section">
+          <button
+            id="profile-trigger"
+            class="w-full flex items-center gap-3 p-3 hover:bg-white/5 rounded-2xl transition group text-left"
+          >
+            <div
+              class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center font-bold text-white shadow-lg"
+            >
+              U
+            </div>
+            <div class="flex-1 overflow-hidden">
+              <p id="dashboardNickname" class="text-sm font-bold truncate">
+                User
+              </p>
+              <p
+                class="text-[9px] text-gray-500 font-black uppercase tracking-wider group-hover:text-orange-400 transition"
+              >
+                Options ▾
+              </p>
+            </div>
+          </button>
+
+          <!-- Floating Dropdown Menu -->
+          <div id="profile-menu" class="profile-dropdown">
+            <a href="/mypage" class="dropdown-item">Profile</a>
+            <div class="h-px bg-white/5 my-1"></div>
+            <button
+              id="logout-btn"
+              class="dropdown-item w-full text-left text-red-400 hover:text-red-300"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+      <!-- Top bar aligned to page shell -->
+      <div class="page-shell mx-auto w-full max-w-7xl">
+        <div class="flex justify-between items-center mb-10">
+          <div class="flex-1 max-w-xl">
+            <div class="relative group">
+              <input
+                type="text"
+                placeholder="어떤 한국어를 배우고 싶나요?"
+                class="w-full bg-[#181818] border-1 border-transparent focus:border-[#444] rounded-full px-12 py-3 text-sm focus:ring-0 outline-none text-white transition-all"
+              />
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 opacity-40"
+                >🔍</span
+              >
+            </div>
+          </div>
+          <div class="flex items-center gap-6">
+            <button
+              onclick="toggleLangMenu()"
+              class="text-xs font-black text-gray-500 hover:text-white tracking-widest uppercase transition-colors"
+            >
+              Lang:
+              <span id="current-lang-label" class="text-orange-500">KR</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unified page content shell -->
+      <div class="page-shell mx-auto w-full max-w-7xl">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+
+    <!-- JS Scripts -->
+    <script src="/static/js/ui-components.js"></script>
+    <script src="/static/js/i18n.js"></script>
+    <script src="/static/js/auth.js"></script>
+    {% block extra_js %}{% endblock %} {% include
+    'components/character-popup.html' %}
+
+    <script>
+      // Auth & UI Initialization
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- Sidebar Toggle Logic ---
+        const bodyValue = document.body;
+        const toggleBtn = document.getElementById("sidebar-toggle");
+        
+        // Load sidebar preference early
+        if (localStorage.getItem("sidebar_collapsed") === "true") {
+          bodyValue.classList.add("sidebar-collapsed");
+        }
+
+        if (toggleBtn) {
+          toggleBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            bodyValue.classList.toggle("sidebar-collapsed");
+            localStorage.setItem("sidebar_collapsed", bodyValue.classList.contains("sidebar-collapsed"));
+            // Trigger resize to let any responsive charts adjusting
+            window.dispatchEvent(new Event('resize'));
+          });
+        }
+
+        const token = localStorage.getItem("auth_token");
+        const guestSec = document.getElementById("sidebar-guest-section");
+        const authSec = document.getElementById("sidebar-auth-section");
+        const nicknameEl = document.getElementById("dashboardNickname");
+
+        if (token) {
+          if (guestSec) guestSec.style.display = "none";
+          if (authSec) authSec.style.display = "block";
+          const nick = localStorage.getItem("user_nickname") || "Learner";
+          if (nicknameEl) nicknameEl.textContent = nick;
+        } else {
+          if (guestSec) guestSec.style.display = "block";
+          if (authSec) authSec.style.display = "none";
+        }
+
+        // Active Link Highlight
+        const path = window.location.pathname;
+        document.querySelectorAll(".nav-item").forEach((item) => {
+          if (item.getAttribute("href") === path) item.classList.add("active");
+        });
+
+        // Language Label
+        const lang = (localStorage.getItem("app_lang") || "ko").toUpperCase();
+        const lbl = document.getElementById("current-lang-label");
+        if (lbl) lbl.textContent = lang;
+
+        // Profile Dropdown Toggle
+        const trigger = document.getElementById("profile-trigger");
+        const menu = document.getElementById("profile-menu");
+
+        if (trigger && menu) {
+          trigger.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menu.style.display =
+              menu.style.display === "block" ? "none" : "block";
+          });
+
+          document.addEventListener("click", () => {
+            menu.style.display = "none";
+          });
+        }
+      });
+
+      function toggleLangMenu() {
+        const curr = localStorage.getItem("app_lang") || "ko";
+        const next = curr === "ko" ? "en" : "ko";
+        if (typeof setAppLang === "function") setAppLang(next);
+        else {
+          localStorage.setItem("app_lang", next);
+          location.reload();
+        }
+      }
+
+      // Logout handler
+      const loutBtn = document.getElementById("logout-btn");
+      if (loutBtn) {
+        loutBtn.addEventListener("click", () => {
+          localStorage.clear();
+          location.href = "/";
+        });
+      }
+    </script>
+  </body>
+</html>

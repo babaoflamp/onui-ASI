@@ -1,0 +1,104 @@
+{% extends "base.html" %} {% block title %}오늘의 한국어 표현 - 오누이 한국어{%
+endblock %} {% block extra_css %}
+<link rel="stylesheet" href="/static/css/daily-expression.css" />
+{% endblock %} {% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <!-- Header Section -->
+  <header class="mb-10 text-center md:text-left">
+    <div
+      class="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-4"
+    >
+      <span class="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
+      ONUI · Daily Expression
+    </div>
+    <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
+      오늘의 <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-500">한국어 표현</span>
+    </h1>
+    <p class="text-lg text-white/50 font-medium">
+      매일 한 장씩 넘겨 보면서, 자연스럽게 표현과 문화를 같이 익혀 보세요.
+    </p>
+  </header>
+
+  <div
+    class="glass-main-card rounded-[40px] p-8 lg:p-12 shadow-2xl relative overflow-hidden"
+  >
+    <!-- Floating decorations -->
+    <div class="sun">☀️</div>
+    <div class="moon">🌙</div>
+
+    <!-- Card Slider -->
+    <section class="slider-wrapper">
+      <div class="slider-header">
+        <div class="slider-title">오늘의 표현</div>
+        <div class="slider-caption" id="sliderCaption">1 / 5</div>
+      </div>
+
+      <div class="slider-frame">
+        <button class="nav-btn left" id="prevBtn" aria-label="이전 표현">
+          &lt;
+        </button>
+        <button class="nav-btn right" id="nextBtn" aria-label="다음 표현">
+          &gt;
+        </button>
+
+        <div
+          class="expression-card glass-sub-card border border-white/10 p-8 md:p-12 rounded-[40px]"
+          id="expressionCard"
+        >
+          <div class="card-label mb-6">
+            <span class="text-[10px] font-black text-orange-400 uppercase tracking-[0.2em]"
+              >Daily Phrase Item</span
+            >
+            <span
+              class="pill-type bg-orange-500/20 text-orange-400 border border-orange-500/30 font-black"
+              id="levelChip"
+              >CEFR A1</span
+            >
+          </div>
+          <div
+            class="sentence-kr text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter"
+            id="sentenceKr"
+          >
+            표현을 불러오는 중...
+          </div>
+          <div
+            class="sentence-en text-lg md:text-xl text-white/40 font-bold mb-10 tracking-tight"
+            id="sentenceEn"
+          ></div>
+          
+          <div class="space-y-4 pt-10 border-t border-white/10 relative">
+             <div class="absolute -top-3 left-6 px-3 py-1 bg-[#121212] rounded-full text-[9px] font-black text-white/30 uppercase tracking-widest border border-white/5">Culture Note</div>
+             <div
+               class="culture-note text-lg text-white/60 font-medium italic leading-relaxed"
+               id="cultureNote"
+             ></div>
+          </div>
+
+          <div class="meta-row mt-10">
+            <span id="situationLabel" class="text-[10px] font-black text-white/20 uppercase tracking-widest"></span>
+            <span id="tagLabel" class="text-[10px] font-black text-white/20 uppercase tracking-widest"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dots" id="dots"></div>
+    </section>
+
+    <!-- Description Section -->
+    <section class="mt-8 p-4 bg-white/5 rounded-xl border border-white/10">
+      <div
+        class="text-xs font-black text-white/40 uppercase tracking-widest mb-2"
+      >
+        💡 학습 팁
+      </div>
+      <div class="text-base text-white/70 space-y-1">
+        <p>• 좌우 화살표 버튼 또는 하단 점을 클릭하여 카드를 넘겨보세요</p>
+        <p>• 각 표현의 문화 노트를 읽고 한국 문화를 이해해보세요</p>
+        <p>• 매일 새로운 표현을 확인하여 일상 한국어 실력을 향상시키세요</p>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="/static/js/daily-expression.js"></script>
+{% endblock %}

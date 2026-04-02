@@ -1,0 +1,321 @@
+{% extends "base.html" %} {% block title %}전래동화 읽기 - 오누이 한국어{% endblock %}
+{% block extra_css %}
+<style>
+  .glass-main-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+  
+  .glass-sub-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .glass-sub-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .level-pill {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.2s;
+  }
+  
+  .level-pill:hover, .level-pill.active {
+    background: #fb923c;
+    color: white;
+    border-color: #fb923c;
+    box-shadow: 0 0 15px rgba(251, 146, 60, 0.3);
+  }
+
+  .story-content-area {
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.125rem;
+  }
+
+  .quiz-option {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.2s;
+  }
+  
+  .quiz-option:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  input[type="radio"]:checked + span {
+    color: #fb923c;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="alertsContainer"></div>
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <!-- Header Section -->
+  <header class="mb-10 text-center md:text-left">
+    <div class="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
+      <span class="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></span>
+      ONUI · Fun Stories
+    </div>
+    <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
+      한국의 <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">전래동화</span>
+    </h1>
+    <p class="text-lg text-white/50 font-medium">재미있는 이야기를 읽으며 자연스럽게 한국의 언어와 문화를 경험해보세요.</p>
+  </header>
+
+  <div class="glass-main-card rounded-[40px] p-8 lg:p-12 min-h-[60vh]">
+    <!-- Level Selection -->
+    <div id="filterSection" class="mb-12">
+      <h2 class="text-xs font-black text-white/40 uppercase tracking-widest mb-4">Difficulties</h2>
+      <div class="flex gap-3 flex-wrap">
+        <button class="level-btn active level-pill px-6 py-2.5 rounded-full text-xs font-black tracking-widest uppercase" data-level="all">All</button>
+        <button class="level-btn level-pill px-6 py-2.5 rounded-full text-xs font-black tracking-widest uppercase" data-level="A1">A1</button>
+        <button class="level-btn level-pill px-6 py-2.5 rounded-full text-xs font-black tracking-widest uppercase" data-level="A2">A2</button>
+        <button class="level-btn level-pill px-6 py-2.5 rounded-full text-xs font-black tracking-widest uppercase" data-level="B1">B1</button>
+        <button class="level-btn level-pill px-6 py-2.5 rounded-full text-xs font-black tracking-widest uppercase" data-level="B2">B2</button>
+      </div>
+    </div>
+
+    <!-- Folktale Grid -->
+    <div id="folktaleList" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Will be populated by JS -->
+    </div>
+
+    <!-- Reading Section (Glass Layout) -->
+    <div id="readingSection" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div class="flex flex-col gap-10">
+        
+        <!-- Story Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+           <div class="flex-1">
+              <span id="storyLevel" class="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-2 block"></span>
+              <h2 id="storyTitle" class="text-4xl font-black text-white mb-2 tracking-tight"></h2>
+              <p id="storyTitleEn" class="text-lg text-white/40 font-bold mb-4"></p>
+              <p id="storySummary" class="text-white/60 italic leading-relaxed"></p>
+           </div>
+           <button id="ttsStoryBtn" class="px-8 py-4 bg-orange-500 text-white rounded-2xl font-black shadow-lg hover:scale-105 transition-all flex items-center gap-2">
+              <span>🔊</span> FULL STORY
+           </button>
+        </div>
+
+        <!-- Story Visual & Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div id="storyImageContainer" class="hidden sticky top-8">
+              <img id="storyImage" src="" alt="Story" class="w-full rounded-[32px] shadow-2xl border border-white/5" />
+            </div>
+            <div class="glass-sub-card p-10 rounded-[32px]">
+                <div class="flex items-center justify-between mb-8">
+                   <span class="text-xs font-black text-white/30 uppercase tracking-widest">Story Body</span>
+                   <button id="ttsContentBtn" class="text-orange-500 font-black text-xs hover:underline uppercase tracking-widest">▶ LISTEN TO TEXT</button>
+                </div>
+                <p id="storyContent" class="story-content-area whitespace-pre-wrap"></p>
+            </div>
+        </div>
+
+        <!-- Vocabulary Grid -->
+        <section>
+          <h3 class="text-xs font-black text-white/40 uppercase tracking-widest mb-6">Core Vocabulary</h3>
+          <div id="vocabularyList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- Moral & Quiz Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
+            <!-- Quiz Area -->
+            <div class="space-y-8">
+                <h3 class="text-xl font-black text-white tracking-tight flex items-center gap-3">
+                   <span class="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center text-sm">?</span>
+                   Comprehension Quiz
+                </h3>
+                <div id="quizContainer" class="space-y-6"></div>
+                <button id="submitQuiz" class="w-full py-5 bg-white text-black rounded-2xl font-black text-lg shadow-2xl hover:scale-[1.01] transition-all">CHECK ANSWERS</button>
+                <div id="quizResult" class="hidden p-8 glass-sub-card rounded-[32px] text-center border-orange-500/30"></div>
+            </div>
+
+            <!-- Side Cards -->
+            <div class="space-y-6">
+                <div class="glass-sub-card p-8 rounded-[32px] border-orange-500/20">
+                    <h4 class="text-orange-400 font-black text-xs uppercase mb-4">The Moral Lesson</h4>
+                    <p id="moralLesson" class="text-white/80 leading-relaxed font-medium italic"></p>
+                </div>
+                <div class="p-8 glass-sub-card rounded-[32px]">
+                   <h4 class="text-white/40 font-black text-xs uppercase mb-4">Navigation</h4>
+                   <div class="flex flex-col gap-3">
+                      <button id="backBtn" class="w-full py-4 bg-white/5 text-white/60 font-black rounded-xl hover:bg-white/10 transition-all">← BACK TO LIST</button>
+                      <button id="nextStoryBtn" class="w-full py-4 bg-white/5 text-white font-black rounded-xl hover:bg-white/10 transition-all">NEXT STORY →</button>
+                   </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Tips -->
+  <div class="mt-12 p-8 glass-sub-card rounded-[32px]">
+    <h3 class="text-xs font-black text-white/40 uppercase tracking-widest mb-6">Learning Guide</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+       <div class="text-sm text-white/60 leading-relaxed"><span class="text-purple-400 font-black mr-2">01</span>먼저 이야기를 읽고 모르는 단어는 어휘 목록을 참고하세요.</div>
+       <div class="text-sm text-white/60 leading-relaxed"><span class="text-purple-400 font-black mr-2 =">02</span>이야기의 교훈을 생각하며 읽으면 더 깊이 있는 이해가 가능합니다.</div>
+       <div class="text-sm text-white/60 leading-relaxed"><span class="text-purple-400 font-black mr-2">03</span>퀴즈를 통해 실력을 확인하고 틀린 부분은 다시 한 번 읽어보세요.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const listEl = document.getElementById("folktaleList");
+    const readSec = document.getElementById("readingSection");
+    const filterSec = document.getElementById("filterSection");
+    
+    let folktales = [];
+    let currentLevel = "all";
+    let currentFolktale = null;
+    let userAnswers = {};
+
+    async function init() {
+      await loadFolktales();
+      renderFolktaleList();
+      setupEventListeners();
+    }
+
+    async function loadFolktales(level = null) {
+      try {
+        const url = level ? `/api/folktales?level=${level}` : "/api/folktales";
+        const res = await fetch(url);
+        const data = await res.json();
+        folktales = data.folktales || [];
+      } catch (e) { console.error(e); }
+    }
+
+    function renderFolktaleList() {
+      if (!folktales.length) {
+        listEl.innerHTML = `<div class="col-span-2 py-20 text-center text-white/20 font-black uppercase tracking-widest">No Stories Found</div>`;
+        return;
+      }
+      listEl.innerHTML = folktales.map(f => `
+        <div class="glass-sub-card p-8 rounded-[32px] cursor-pointer" onclick="showFolktale(${f.id})">
+          <div class="flex justify-between items-start mb-6">
+            <span class="text-[10px] font-black text-purple-400 border border-purple-400/30 px-2 py-0.5 rounded-full tracking-widest">${f.level}</span>
+            <span class="text-2xl opacity-40">📖</span>
+          </div>
+          <h3 class="text-2xl font-black text-white mb-2 tracking-tight">${f.title}</h3>
+          <p class="text-sm text-white/30 font-bold mb-6">${f.titleEn}</p>
+          <p class="text-sm text-white/60 line-clamp-2 leading-relaxed">${f.summary}</p>
+        </div>
+      `).join('');
+    }
+
+    window.showFolktale = function(id) {
+      currentFolktale = folktales.find(f => f.id === id);
+      if (!currentFolktale) return;
+
+      document.getElementById("storyTitle").textContent = currentFolktale.title;
+      document.getElementById("storyTitleEn").textContent = currentFolktale.titleEn;
+      document.getElementById("storyLevel").textContent = currentFolktale.level;
+      document.getElementById("storySummary").textContent = currentFolktale.summary;
+      document.getElementById("storyContent").textContent = currentFolktale.story;
+      document.getElementById("moralLesson").textContent = currentFolktale.moralLesson;
+
+      const imgCont = document.getElementById("storyImageContainer");
+      if (currentFolktale.image_url) {
+        document.getElementById("storyImage").src = currentFolktale.image_url;
+        imgCont.classList.remove("hidden");
+      } else imgCont.classList.add("hidden");
+
+      document.getElementById("vocabularyList").innerHTML = currentFolktale.vocabulary.map(v => `
+        <div class="quiz-option p-4 rounded-2xl flex items-center justify-between cursor-pointer" onclick="playTTS('${v.word}')">
+          <div class="overflow-hidden">
+            <div class="font-black text-white text-sm truncate">${v.word}</div>
+            <div class="text-[10px] text-white/40 font-bold truncate">${v.meaning}</div>
+          </div>
+          <span class="text-orange-500 text-xs">🔊</span>
+        </div>
+      `).join('');
+
+      renderQuiz();
+      listEl.classList.add("hidden");
+      filterSec.classList.add("hidden");
+      readSec.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderQuiz() {
+      document.getElementById("quizContainer").innerHTML = currentFolktale.questions.map((q, qidx) => `
+        <div class="glass-sub-card p-6 rounded-2xl">
+          <p class="font-bold text-white mb-4"><span class="text-orange-500 mr-2">${qidx+1}.</span> ${q.question}</p>
+          <div class="grid gap-2">
+            ${q.choices.map((c, cidx) => `
+              <label class="quiz-option flex items-center gap-3 p-4 rounded-xl cursor-pointer">
+                <input type="radio" name="q${qidx}" value="${cidx}" onchange="userAnswers[${qidx}]=${cidx}" class="accent-orange-500">
+                <span class="text-sm text-white/70">${c}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function checkQuiz() {
+      const correct = currentFolktale.questions.filter((q, i) => userAnswers[i] === q.correctAnswer).length;
+      const resDiv = document.getElementById("quizResult");
+      resDiv.innerHTML = `
+        <div class="text-5xl mb-4">${correct >= 3 ? '🎉' : '📖'}</div>
+        <div class="text-2xl font-black text-white mb-2">${correct === currentFolktale.questions.length ? '완벽합니다!' : '잘 하셨어요!'}</div>
+        <p class="text-white/60 font-bold">${correct} / ${currentFolktale.questions.length} Correct Answers</p>
+      `;
+      resDiv.classList.remove("hidden");
+    }
+
+    function setupEventListeners() {
+      document.querySelectorAll(".level-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          document.querySelectorAll(".level-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          await loadFolktales(btn.dataset.level === "all" ? null : btn.dataset.level);
+          renderFolktaleList();
+        });
+      });
+      document.getElementById("backBtn").onclick = () => {
+        readSec.classList.add("hidden");
+        listEl.classList.remove("hidden");
+        filterSec.classList.remove("hidden");
+      };
+      document.getElementById("submitQuiz").onclick = () => {
+        if (Object.keys(userAnswers).length < currentFolktale.questions.length) {
+            alert("모든 퀴즈를 풀어주세요!");
+            return;
+        }
+        checkQuiz();
+      };
+    }
+
+    window.playTTS = async function(text) {
+      if (!text) return;
+      try {
+        const res = await fetch('/api/tts/generate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ text }) });
+        const blob = await res.blob();
+        new Audio(URL.createObjectURL(blob)).play();
+      } catch(e) { console.error(e); }
+    }
+
+    document.getElementById('ttsStoryBtn').onclick = () => playTTS(currentFolktale.story);
+    document.getElementById('ttsContentBtn').onclick = () => playTTS(currentFolktale.story);
+
+    init();
+  })();
+</script>
+
+{% include 'components/character-popup.html' %}
+{% endblock %}

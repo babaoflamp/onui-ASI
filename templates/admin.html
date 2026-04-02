@@ -1,0 +1,188 @@
+{% extends "base.html" %} {% block title %}관리자 콘솔{% endblock %} {% block
+content %}
+<div class="min-h-[70vh] bg-gray-50 text-gray-900">
+  <div
+    class="max-w-7xl mx-auto px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-5 gap-6"
+  >
+    <!-- Sidebar -->
+    <aside
+      class="lg:col-span-1 rounded-2xl shadow-sm bg-white border border-gray-100 p-4 sticky top-20 h-fit"
+    >
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm font-semibold text-gray-900">관리자 패널</p>
+        <a href="/admin/login" class="text-xs text-gray-500 hover:text-gray-700"
+          >계정</a
+        >
+      </div>
+      <nav class="space-y-4 text-sm">
+        <div class="space-y-1">
+          <p class="px-3 text-[11px] uppercase tracking-[0.08em] text-gray-400">
+            시스템 관리
+          </p>
+          <a
+            href="/admin/dashboard?embed=1"
+            target="adminFrame"
+            class="admin-nav-item block px-3 py-2 rounded-xl hover:bg-gray-100 font-semibold text-orange-700 bg-orange-50"
+            >시스템 대시보드</a
+          >
+          <a
+            href="/admin/users?embed=1"
+            target="adminFrame"
+            class="admin-nav-item block px-3 py-2 rounded-xl hover:bg-gray-100"
+            >사용자 계정 관리</a
+          >
+          <a
+            href="/admin/api?embed=1"
+            target="adminFrame"
+            class="admin-nav-item block px-3 py-2 rounded-xl hover:bg-gray-100"
+            >API 시스템 설정</a
+          >
+          <a
+            href="/stt-api-test"
+            target="adminFrame"
+            class="admin-nav-item block px-3 py-2 rounded-xl hover:bg-gray-100"
+            >STT API 테스트</a
+          >
+          <a
+            href="/admin/system?embed=1"
+            target="adminFrame"
+            class="admin-nav-item block px-3 py-2 rounded-xl hover:bg-gray-100"
+            >서버 환경 설정</a
+          >
+          <a
+            href="/admin/logs?embed=1"
+            target="adminFrame"
+            class="admin-nav-item block px-3 py-2 rounded-xl hover:bg-gray-100"
+            >시스템 로그 모니터링</a
+          >
+        </div>
+      </nav>
+      <div class="mt-4">
+        <button
+          id="adminShellLogout"
+          class="w-full px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold shadow hover:opacity-90"
+        >
+          로그아웃
+        </button>
+      </div>
+    </aside>
+
+    <!-- Content panel -->
+    <section
+      class="lg:col-span-4 rounded-2xl shadow-sm bg-white border border-gray-100 overflow-hidden"
+    >
+      <iframe
+        id="adminFrame"
+        name="adminFrame"
+        src="/admin/dashboard?embed=1"
+        class="w-full"
+        scrolling="no"
+        style="border: 0; display: block; overflow: hidden; height: 100vh"
+      ></iframe>
+    </section>
+  </div>
+</div>
+
+<script>
+  (function ensureAdmin() {
+    const token = localStorage.getItem("auth_token");
+    const role = localStorage.getItem("user_role");
+
+    // Only allow system_admin
+    if (!token || role !== "system_admin") {
+      window.location.href = "/login";
+      return;
+    }
+
+    const frame = document.getElementById("adminFrame");
+    if (frame) {
+      frame.src = "/admin/dashboard?embed=1";
+    }
+  })();
+
+  // Sidebar active highlighting for selected menu
+  (function setupAdminNavHighlight() {
+    const items = document.querySelectorAll(".admin-nav-item");
+    if (!items.length) return;
+    const activeClasses = ["font-semibold", "text-orange-700", "bg-orange-50"];
+
+    function setActive(el) {
+      items.forEach((i) => i.classList.remove(...activeClasses));
+      el.classList.add(...activeClasses);
+    }
+
+    // Click to activate
+    items.forEach((item) => {
+      item.addEventListener("click", function () {
+        setActive(this);
+      });
+    });
+
+    // Ensure default active if none is set
+    const anyActive = Array.from(items).some((i) =>
+      activeClasses.some((c) => i.classList.contains(c)),
+    );
+    if (!anyActive) setActive(items[0]);
+  })();
+
+  // Auto-resize iframe to prevent internal scrollbars
+  (function autoResizeAdminIframe() {
+    const iframe = document.getElementById("adminFrame");
+    if (!iframe) return;
+
+    const resize = () => {
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) return;
+        const h = Math.max(
+          doc.body?.scrollHeight || 0,
+          doc.documentElement?.scrollHeight || 0,
+          doc.body?.offsetHeight || 0,
+          doc.documentElement?.offsetHeight || 0,
+        );
+        if (h && Math.abs(iframe.clientHeight - h) > 5) {
+          iframe.style.height = h + "px";
+        }
+      } catch (e) {
+        // Cross-origin or timing issue; ignore
+      }
+    };
+
+    iframe.addEventListener("load", () => {
+      resize();
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (!doc) return;
+        const observer = new MutationObserver(() => resize());
+        observer.observe(doc.documentElement, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+        });
+        let count = 0;
+        const id = setInterval(() => {
+          resize();
+          if (++count > 20) clearInterval(id);
+        }, 250);
+      } catch (e) {
+        setTimeout(resize, 300);
+        setTimeout(resize, 1000);
+      }
+    });
+
+    setTimeout(resize, 300);
+  })();
+
+  // Logout handler (reuses base.js logic style)
+  document
+    .getElementById("adminShellLogout")
+    ?.addEventListener("click", function () {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_nickname");
+      localStorage.removeItem("is_guest");
+      localStorage.removeItem("is_admin");
+      localStorage.removeItem("user_role");
+      window.location.href = "/admin/login";
+    });
+</script>
+{% endblock %}

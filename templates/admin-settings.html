@@ -1,0 +1,300 @@
+{% extends "base.html" %} {% block title %}설정 - 관리자{% endblock %} {% block
+content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <p class="text-xs font-semibold text-gray-600 uppercase tracking-widest">
+        Administration
+      </p>
+      <h1 class="text-3xl font-bold text-gray-900 mt-1">관리자 설정</h1>
+      <p class="text-gray-600 mt-2">모델, API, 로그 설정</p>
+    </div>
+    <a
+      href="/admin/dashboard"
+      class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+      >← 대시보드</a
+    >
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- AI Model Settings -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">🤖 AI 모델 설정</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-600 block mb-2"
+            >백엔드 선택</label
+          >
+          <select
+            id="modelBackend"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="ollama">Ollama (로컬)</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="openai">OpenAI</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-2">
+            현재 설정: <code id="currentBackend" class="font-mono">ollama</code>
+          </p>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-600 block mb-2"
+            >Ollama 모델</label
+          >
+          <input
+            id="ollamaModel"
+            type="text"
+            placeholder="exaone3.5:2.4b"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+          />
+          <p class="text-xs text-gray-500 mt-2">
+            현재 모델: <code id="currentModel" class="font-mono">exaone</code>
+          </p>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-600 block mb-2"
+            >Ollama URL</label
+          >
+          <input
+            id="ollamaUrl"
+            type="text"
+            placeholder="http://localhost:11434"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+          />
+          <p class="text-xs text-gray-500 mt-2">
+            현재 URL:
+            <code id="currentUrl" class="font-mono"
+              >http://localhost:11434</code
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TTS & STT Settings -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">🎤 TTS/STT 설정</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-600 block mb-2"
+            >MzTTS API URL</label
+          >
+          <input
+            id="mzttsUrl"
+            type="text"
+            placeholder="http://112.220.79.218:56014"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+          />
+          <p class="text-xs text-gray-500 mt-2">
+            현재 URL:
+            <code id="currentMztts" class="font-mono"
+              >http://112.220.79.218:56014</code
+            >
+          </p>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-600 block mb-2"
+            >로컬 STT 엔진</label
+          >
+          <select
+            id="localStt"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="none">비활성화</option>
+            <option value="vosk">VOSK</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-2">
+            VOSK 모델 경로:
+            <code id="voskPath" class="font-mono">/path/to/vosk-model</code>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Romanization Settings -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">
+        📝 로마자 표기 설정
+      </h2>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-600 block mb-2"
+            >로마자 모드</label
+          >
+          <select
+            id="romanizeMode"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="force">Force (항상 로마자 변환)</option>
+            <option value="prefer">Prefer (유효한 것 유지, 없으면 변환)</option>
+          </select>
+          <p class="text-xs text-gray-500 mt-2">
+            현재 모드: <code id="currentRomanize" class="font-mono">force</code>
+          </p>
+        </div>
+
+        <div
+          class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800"
+        >
+          <p>
+            <strong>정보:</strong> 한국어 발음을 라틴 문자로 자동 변환합니다.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Logging Settings -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">📋 로깅 설정</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-semibold text-gray-600 block mb-2"
+            >로그 레벨</label
+          >
+          <select
+            id="logLevel"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+          >
+            <option value="DEBUG">DEBUG</option>
+            <option value="INFO" selected>INFO</option>
+            <option value="WARNING">WARNING</option>
+            <option value="ERROR">ERROR</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-600 block mb-2"
+            >로그 파일</label
+          >
+          <p class="text-xs text-gray-600 font-mono">logs/detailed.log</p>
+          <button
+            onclick="downloadLogs()"
+            class="mt-2 px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all"
+          >
+            📥 로그 다운로드
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Button -->
+  <div class="mt-6 flex justify-center">
+    <button
+      onclick="saveSettings()"
+      class="px-8 py-3 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold hover:from-orange-600 hover:to-pink-600 transition-all shadow-lg"
+    >
+      💾 설정 저장
+    </button>
+  </div>
+
+  <div id="settingsStatus" class="mt-4 text-sm text-gray-600 text-center"></div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  (function () {
+    const statusEl = document.getElementById("settingsStatus");
+
+    function setStatus(msg, ok = true) {
+      statusEl.textContent = msg;
+      statusEl.className = ok
+        ? "text-sm text-emerald-600 text-center"
+        : "text-sm text-red-600 text-center";
+    }
+
+    function ensureAdmin() {
+      const token = localStorage.getItem("auth_token");
+      const role =
+        localStorage.getItem("user_role") ||
+        (localStorage.getItem("is_admin") === "true" ? "system_admin" : "");
+      if (!token || role !== "system_admin") {
+        AlertManager.error("접근 권한이 없습니다.", "권한 오류", document.body);
+        setTimeout(() => (window.location.href = "/admin/login"), 800);
+        window.location.href = "/admin/login";
+        return null;
+      }
+      return token;
+    }
+
+    // Load current settings (from env or server)
+    async function loadSettings() {
+      const token = ensureAdmin();
+      if (!token) return;
+
+      try {
+        const res = await fetch("/api/admin/settings", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({}));
+          throw new Error(error.detail || "설정을 불러오지 못했습니다.");
+        }
+
+        const data = await res.json();
+        const settings = data.settings || {};
+
+        document.getElementById("currentBackend").textContent =
+          settings.model_backend || "ollama";
+        document.getElementById("currentModel").textContent =
+          settings.ollama_model || "exaone";
+        document.getElementById("currentUrl").textContent =
+          settings.ollama_url || "http://localhost:11434";
+        document.getElementById("currentMztts").textContent =
+          settings.mztts_url || "http://112.220.79.218:56014";
+        document.getElementById("currentRomanize").textContent =
+          settings.romanize_mode || "force";
+
+        // Pre-fill form fields
+        document.getElementById("modelBackend").value =
+          settings.model_backend || "ollama";
+        document.getElementById("ollamaModel").value =
+          settings.ollama_model || "";
+        document.getElementById("ollamaUrl").value = settings.ollama_url || "";
+        document.getElementById("mzttsUrl").value = settings.mztts_url || "";
+        document.getElementById("romanizeMode").value =
+          settings.romanize_mode || "force";
+
+        setStatus("설정을 불러왔습니다.", true);
+      } catch (err) {
+        console.error("Failed to load settings", err);
+        setStatus(err.message, false);
+      }
+    }
+
+    window.saveSettings = async function () {
+      const token = ensureAdmin();
+      if (!token) return;
+
+      setStatus("설정을 저장하는 중...", true);
+
+      // Note: Settings are read-only from environment variables
+      // In production, implement a proper settings update endpoint
+      setStatus(
+        "설정은 환경변수로 관리됩니다. 서버를 재시작하여 변경사항을 적용해주세요.",
+        false,
+      );
+    };
+
+    window.downloadLogs = function () {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        AlertManager.error("인증 토큰이 없습니다.");
+        return;
+      }
+      // 토큰을 URL 파라미터로 넘기거나, 브라우저 다운로드를 위해 window.open 사용 (세션 쿠키가 있는 경우)
+      // 여기서는 window.location.href를 사용하고, API가 쿠키 기반 또는 헤더 기반 인증을 처리해야 함.
+      // 벡엔드 API가 Bearer 헤더를 요구하므로 단순 이동으로는 안될 수 있음.
+      // 하지만 FileResponse는 브라우저가 직접 처리하므로 세션 쿠키가 더 적합함.
+      // 현재 프로젝트는 Bearer 토큰 방식을 주로 사용하므로, 다운로드 링크를 위해 임시 처리가 필요할 수 있으나
+      // 일단 단순 경로로 이동 시도 (서버에서 세션 체크 가능하도록)
+      window.location.href = `/api/admin/logs/download?token=${token}`;
+    };
+
+    loadSettings();
+  })();
+</script>
+{% endblock %}

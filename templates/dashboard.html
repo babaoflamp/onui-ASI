@@ -1,0 +1,174 @@
+{% extends "base.html" %} {% block title %}학습 대시보드 - 오누이 한국어{%
+endblock %} {% block extra_css %}
+<style>
+  /* === Suno-inspired Dark Theme Styles === */
+  .suno-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 24px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .suno-card:hover {
+    background-color: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  }
+  .suno-card .play-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .suno-card:hover .play-overlay {
+    opacity: 1;
+  }
+  .section-header {
+    font-size: 1.5rem;
+    font-weight: 900;
+    margin-bottom: 24px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .score-badge {
+    background: linear-gradient(135deg, #f97316, #fb923c);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="max-w-7xl mx-auto space-y-12">
+  <!-- 🎤 Recent Evaluation Feed (Suno style) -->
+  <section>
+    <h2 class="section-header">
+      <span data-i18n="dash.sample.title">최근 발음 평가</span>
+      <span
+        class="text-[10px] bg-orange-500 text-white px-2 py-0.5 rounded font-black tracking-widest"
+        >LIVE</span
+      >
+    </h2>
+
+    <div
+      id="recent-evaluation-feed"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+    >
+      <!-- JS로 동적 생성됨 -->
+      <div class="suno-card animate-pulse h-48 bg-[#181818] border-none"></div>
+    </div>
+  </section>
+
+  <!-- 📚 Recommended Track -->
+  <section>
+    <h2 class="section-header">학습 트랙 추천</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <a href="/speechpro-practice" class="suno-card group text-center py-8">
+        <div class="text-4xl mb-4">🎙️</div>
+        <p class="font-bold">발음 정확도</p>
+        <p class="text-xs text-gray-500 mt-2">음소 단위 정밀 분석</p>
+      </a>
+      <a href="/content-generation" class="suno-card group text-center py-8">
+        <div class="text-4xl mb-4">📘</div>
+        <p class="font-bold">맞춤형 교재</p>
+        <p class="text-xs text-gray-500 mt-2">AI 기반 문장 생성</p>
+      </a>
+      <a href="/daily-expression" class="suno-card group text-center py-8">
+        <div class="text-4xl mb-4">✨</div>
+        <p class="font-bold">오늘의 표현</p>
+        <p class="text-xs text-gray-500 mt-2">매일 새로운 한 마디</p>
+      </a>
+      <a href="/learning-progress" class="suno-card group text-center py-8">
+        <div class="text-4xl mb-4">📊</div>
+        <p class="font-bold">학습 리포트</p>
+        <p class="text-xs text-gray-500 mt-2">나의 성장 기록 확인</p>
+      </a>
+    </div>
+  </section>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    loadSunoStyleDashboard();
+  });
+
+  async function loadSunoStyleDashboard() {
+    const token = localStorage.getItem("auth_token");
+    const feedContainer = document.getElementById("recent-evaluation-feed");
+
+    try {
+      const resp = await fetch("/api/dashboard/recent-pronunciation", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await resp.json();
+
+      feedContainer.innerHTML = "";
+
+      if (data?.recent && data.recent.score_latest > 0) {
+        feedContainer.innerHTML = createSunoCard(data.recent);
+      } else {
+        // 데이터가 없을 때 샘플 카드
+        feedContainer.innerHTML = `
+                <div class="suno-card col-span-1 border-dashed border-gray-700 flex flex-col items-center justify-center text-center py-12" onclick="location.href='/speechpro-practice'">
+                    <div class="text-4xl mb-4">🐯</div>
+                    <p class="font-bold text-gray-400">아직 평가 기록이 없습니다</p>
+                    <p class="text-xs text-gray-500 mt-2">지금 첫 발음을 진단해보세요</p>
+                </div>
+                ${createSunoCard({
+                  sentence_text: "안녕하세요. 만나서 반가워요.",
+                  score_latest: 92,
+                  fluency_accuracy_latest: 95,
+                  is_sample: true,
+                })}
+            `;
+      }
+    } catch (e) {
+      console.error("Dashboard Load Error:", e);
+      feedContainer.innerHTML =
+        '<p class="text-gray-500 p-8">데이터를 불러오는 중 오류가 발생했습니다.</p>';
+    }
+  }
+
+  function createSunoCard(item) {
+    const isSample = item.is_sample;
+    return `
+        <div class="suno-card group" onclick="location.href='/speechpro-practice?text=${encodeURIComponent(item.sentence_text)}'">
+            <div class="flex justify-between items-start mb-6">
+                <div class="flex items-center gap-2">
+                    <span class="score-badge">${Math.round(item.score_latest)}점</span>
+                    ${isSample ? '<span class="text-[10px] text-orange-500 font-black tracking-tighter">SAMPLE</span>' : ""}
+                </div>
+                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">${item.last_attempted_at ? item.last_attempted_at.split(" ")[0] : "NEW"}</span>
+            </div>
+            <h3 class="text-xl font-black text-white mb-6 line-clamp-2 leading-tight">${item.sentence_text}</h3>
+            <div class="flex items-center gap-4 mt-auto">
+                <div class="flex-1 bg-gray-800 h-2 rounded-full overflow-hidden">
+                    <div class="bg-gradient-to-r from-orange-500 to-red-500 h-full" style="width: ${item.fluency_accuracy_latest}%"></div>
+                </div>
+                <span class="text-[10px] font-bold text-gray-400">FLUENCY ${Math.round(item.fluency_accuracy_latest)}%</span>
+            </div>
+            <div class="play-overlay">
+                <div class="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center shadow-2xl scale-110">
+                    <span class="text-white text-xl ml-1">▶</span>
+                </div>
+            </div>
+        </div>
+    `;
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+{% block title %}OnuiTube - AI Video Learning{% endblock %}
+{% block extra_css %}
+<style>
+  .suno-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+  }
+  
+  .video-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+  }
+
+  /* Captions Layer */
+  .captions-layer {
+    position: absolute;
+    bottom: 10%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .caption-box {
+    display: inline-block;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    padding: 10px 24px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .caption-word {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+    padding: 0 4px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: inline-block;
+  }
+
+  .caption-word:hover {
+    background: rgba(249, 115, 22, 0.5); /* Orange hover */
+    color: #fff;
+    transform: translateY(-2px);
+  }
+
+  .caption-translation {
+    font-size: 1.1rem;
+    color: #fb923c;
+    font-weight: 600;
+    margin-top: 4px;
+    opacity: 0.9;
+  }
+
+  /* Sidebar Dictionary / Progress */
+  .vocab-panel {
+    height: 100%;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
+  
+  /* Tooltip logic */
+  .word-tooltip {
+    position: absolute;
+    bottom: calc(100% + 15px);
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 16px;
+    border-radius: 12px;
+    width: max-content;
+    max-width: 300px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+    pointer-events: none;
+  }
+  
+  .caption-word.active .word-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-full grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
+  
+  <!-- Left Header & Video Section -->
+  <div class="lg:col-span-8 flex flex-col gap-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest mb-3">
+          <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse blur-[1px]"></span>
+          <span class="text-orange-400">OnuiTube Premiere</span>
+        </div>
+        <h1 class="text-3xl font-black text-white tracking-tight">K-Pop Interview (Level 2)</h1>
+        <p class="text-white/40 text-sm mt-1">이중 자막과 클릭 사전으로 몰입형 학습을 경험하세요.</p>
+      </div>
+      
+      <!-- Auto Pause Toggle -->
+      <label class="flex items-center gap-3 cursor-pointer group">
+        <span class="text-sm font-bold text-white/50 group-hover:text-white transition-colors">문장 끝 자동 일시정지</span>
+        <div class="relative">
+          <input type="checkbox" id="auto-pause-toggle" class="peer sr-only" checked />
+          <div class="block w-12 h-6 rounded-full bg-white/10 border border-white/10 peer-checked:bg-orange-500 transition-all"></div>
+          <div class="absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-all peer-checked:translate-x-6"></div>
+        </div>
+      </label>
+    </div>
+
+    <!-- Video Player Container -->
+    <div class="suno-card video-container group/player">
+      <!-- HTML5 Video Mock. Using Sintel as a placeholder -->
+      <video id="learning-video" class="w-full h-full object-cover" poster="/static/images/onui-pure-idol.png" playsinline loop>
+        <source src="https://vjs.zencdn.net/v/oceans.mp4" type="video/mp4" />
+      </video>
+
+      <!-- Video Controls Overlay -->
+      <div id="video-overlay-play" class="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer transition-opacity group-hover/player:bg-black/20">
+        <div class="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(249,115,22,0.4)] transition-transform hover:scale-110">
+          <svg class="w-10 h-10 text-white ml-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+
+      <!-- Captions Layer -->
+      <div class="captions-layer" id="captions-container">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+    
+    <!-- Controls under Video -->
+    <div class="flex items-center justify-between p-4 suno-card mt-[-10px]">
+      <button id="btn-rewind-sentence" class="p-3 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="현재 문장 다시듣기">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
+      </button>
+
+      <button id="btn-shadowing" class="group flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-black text-white hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-all active:scale-95">
+        <svg class="w-5 h-5 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+        <span>따라 말하기 (Shadowing)</span>
+      </button>
+      
+      <button class="p-3 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="재생 속도 (1.0x)">
+        <span class="font-black">1.0x</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Right Sidebar - My Vocabulary & Info -->
+  <div class="lg:col-span-4 h-full flex flex-col gap-6">
+    <div class="suno-card flex-1 flex flex-col p-6 max-h-[800px]">
+      <div class="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+        <h2 class="text-xl font-black text-white flex items-center gap-2">
+          <span>📚</span> 내 단어장 (Flashcards)
+        </h2>
+        <span class="text-xs font-bold bg-white/10 text-white/70 px-2 py-1 rounded-md" id="vocab-count">0 words</span>
+      </div>
+
+      <div id="vocab-list" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pr-2">
+        <!-- Empty State -->
+        <div id="vocab-empty" class="h-full flex flex-col items-center justify-center text-center opacity-50 py-10">
+          <span class="text-4xl mb-3">🖱️</span>
+          <p class="text-sm font-bold text-white">영상 자막에서 모르는<br/>단어를 클릭해보세요!</p>
+          <p class="text-xs text-white/50 mt-2">클릭한 단어가 여기에 자동 저장됩니다.</p>
+        </div>
+        <!-- Vocab items injected by JS -->
+      </div>
+      
+      <button class="mt-4 w-full py-4 text-sm font-black text-white/50 border-2 border-dashed border-white/10 rounded-xl hover:text-white hover:border-orange-500/50 hover:bg-orange-500/10 transition-all">
+        플래시카드로 복습하기
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts for Video Learning Logic -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const video = document.getElementById('learning-video');
+    const playOverlay = document.getElementById('video-overlay-play');
+    const captionsContainer = document.getElementById('captions-container');
+    const vocabList = document.getElementById('vocab-list');
+    const vocabEmpty = document.getElementById('vocab-empty');
+    const vocabCountBtn = document.getElementById('vocab-count');
+    const autoPauseToggle = document.getElementById('auto-pause-toggle');
+    const btnRewind = document.getElementById('btn-rewind-sentence');
+    
+    let isPlaying = false;
+    let savedVocab = [];
+
+    // Mock Timeline Transcripts
+    const transcripts = [
+      { start: 0.5, end: 3.5, id: 0, text: "안녕하세요, 저는 르세라핌의 채원입니다.", trans: "Hello, I am Chaewon from LE SSERAFIM.", words: [
+        { label: "안녕하세요,", mean: "Hello,", pos: "Greeting" },
+        { label: "저는", mean: "I am", pos: "Pronoun" },
+        { label: "르세라핌의", mean: "LE SSERAFIM's", pos: "Noun" },
+        { label: "채원입니다.", mean: "Chaewon.", pos: "Noun" }
+      ]},
+      { start: 3.8, end: 6.5, id: 1, text: "지금부터 여러분의 한국어 실력을 쑥쑥 키워드릴게요.", trans: "From now on, I will quickly improve your Korean skills.", words: [
+        { label: "지금부터", mean: "From now on", pos: "Adverb" },
+        { label: "여러분의", mean: "Your", pos: "Pronoun" },
+        { label: "한국어", mean: "Korean (language)", pos: "Noun" },
+        { label: "실력을", mean: "Skills", pos: "Noun" },
+        { label: "쑥쑥", mean: "Rapidly (growing)", pos: "Adverb" },
+        { label: "키워드릴게요.", mean: "I will improve (grow) it.", pos: "Verb" }
+      ]},
+      { start: 7.0, end: 12.0, id: 2, text: "단어를 누르면 재생이 멈추고 뜻이 나와요!", trans: "If you click a word, playback pauses and the meaning appears!", words: [
+        { label: "단어를", mean: "Words", pos: "Noun" },
+        { label: "누르면", mean: "If you click", pos: "Verb" },
+        { label: "재생이", mean: "Playback", pos: "Noun" },
+        { label: "멈추고", mean: "Pauses and", pos: "Verb" },
+        { label: "뜻이", mean: "Meaning", pos: "Noun" },
+        { label: "나와요!", mean: "Appears!", pos: "Verb" }
+      ]}
+    ];
+
+    let currentSubtitleIndex = -1;
+
+    // Toggle Play/Pause
+    function togglePlay() {
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    }
+
+    playOverlay.addEventListener('click', togglePlay);
+    video.addEventListener('click', togglePlay);
+
+    video.addEventListener('play', () => {
+      playOverlay.classList.add('opacity-0');
+      // Hide active tooltip
+      const activeWord = document.querySelector('.caption-word.active');
+      if (activeWord) activeWord.classList.remove('active');
+    });
+
+    video.addEventListener('pause', () => {
+      playOverlay.classList.remove('opacity-0');
+    });
+
+    // Time Update & Captions Rendering
+    video.addEventListener('timeupdate', () => {
+      const time = video.currentTime;
+      
+      // Auto pause at the end of the current sentence if enabled
+      if (currentSubtitleIndex !== -1 && autoPauseToggle.checked) {
+        const curLine = transcripts[currentSubtitleIndex];
+        // If we just crossed the end threshold of the current line
+        if (time >= curLine.end && time < curLine.end + 0.3) {
+           video.pause();
+           video.currentTime = curLine.end + 0.05; // bump slightly ahead
+           return;
+        }
+      }
+
+      // Find the active transcript
+      let activeIndex = transcripts.findIndex(s => time >= s.start && time <= s.end);
+
+      if (activeIndex !== currentSubtitleIndex) {
+        currentSubtitleIndex = activeIndex;
+        renderCaptions(activeIndex);
+      }
+    });
+
+    // Render HTML for the active subtitle
+    function renderCaptions(index) {
+      captionsContainer.innerHTML = '';
+      if (index === -1) return; // No caps to show
+      
+      const line = transcripts[index];
+      const box = document.createElement('div');
+      box.className = 'caption-box shadow-2xl';
+
+      const lineWrapper = document.createElement('div');
+
+      line.words.forEach((wordObj) => {
+        const span = document.createElement('span');
+        span.className = 'caption-word relative';
+        span.innerText = wordObj.label;
+        
+        // Tooltip DOM
+        const tooltip = document.createElement('div');
+        tooltip.className = 'word-tooltip flex flex-col items-start text-left z-50';
+        tooltip.innerHTML = `
+          <div class="text-[10px] uppercase font-black text-orange-500 mb-1 tracking-widest">${wordObj.pos}</div>
+          <div class="text-xl font-bold text-white mb-2 leading-tight">${wordObj.label}</div>
+          <div class="text-sm font-medium text-white/80">${wordObj.mean}</div>
+          <button class="mt-3 w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-lg transition-colors save-vocab-btn">
+            + 단어장 추가
+          </button>
+        `;
+
+        span.appendChild(tooltip);
+
+        // Click interaction
+        span.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Pause video immediately
+          video.pause();
+          
+          // Hide others
+          document.querySelectorAll('.caption-word.active').forEach(el => {
+            if (el !== span) el.classList.remove('active');
+          });
+
+          // Toggle visibility
+          span.classList.toggle('active');
+
+          // Hook save button
+          const saveBtn = tooltip.querySelector('.save-vocab-btn');
+          saveBtn.onclick = (event) => {
+            event.stopPropagation();
+            addToVocab(wordObj);
+            span.classList.remove('active');
+          };
+        });
+
+        lineWrapper.appendChild(span);
+        // Add space
+        lineWrapper.appendChild(document.createTextNode(' '));
+      });
+
+      const transEl = document.createElement('div');
+      transEl.className = 'caption-translation';
+      transEl.innerText = line.trans;
+
+      box.appendChild(lineWrapper);
+      box.appendChild(transEl);
+      captionsContainer.appendChild(box);
+    }
+
+    // Hide tooltip when clicking elsewhere
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.caption-word.active').forEach(el => el.classList.remove('active'));
+    });
+
+    // Add to Vocabulary Sidebar
+    function addToVocab(wordObj) {
+      if (savedVocab.find(w => w.label === wordObj.label)) return; // Prevents dupes
+      
+      savedVocab.push(wordObj);
+      vocabEmpty.style.display = 'none';
+
+      const card = document.createElement('div');
+      card.className = 'bg-white/5 border border-white/10 rounded-xl p-4 flex justify-between items-start animate-in fade-in slide-in-from-right-4 hover:bg-white/10 transition-colors group cursor-pointer';
+      card.innerHTML = `
+        <div>
+          <h4 class="text-lg font-black text-white mb-1 group-hover:text-orange-400 transition-colors">${wordObj.label}</h4>
+          <p class="text-sm text-white/60 font-medium">${wordObj.mean}</p>
+        </div>
+        <button class="text-white/20 hover:text-orange-500 transition-colors p-2" title="단어 듣기 (TTS)">🔊</button>
+      `;
+
+      // Insert at top
+      if (vocabList.firstChild) {
+        vocabList.insertBefore(card, vocabList.firstChild);
+      } else {
+        vocabList.appendChild(card);
+      }
+
+      vocabCountBtn.innerText = `${savedVocab.length} words`;
+      ToastManager.success(`단어장에 저장되었습니다: ${wordObj.label}`);
+    }
+
+    // Rewind Sentence
+    btnRewind.addEventListener('click', () => {
+      const time = video.currentTime;
+      // Find current or just passed sentence
+      let lastLine = null;
+      for (const t of transcripts) {
+        if (t.end + 1 >= time) {
+          lastLine = t;
+          break;
+        }
+      }
+      if (lastLine) {
+        video.currentTime = lastLine.start;
+        video.play();
+      }
+    });
+
+  });
+</script>
+{% endblock %}

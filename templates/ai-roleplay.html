@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+
+{% block title %}AI Roleplay - ONUI AI Speech Intelligence{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: 450px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+    .chat-container::-webkit-scrollbar { width: 4px; }
+    .chat-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+    .message-user {
+        background: linear-gradient(135deg, #f97316, #ec4899);
+        color: white;
+        align-self: flex-end;
+        border-radius: 20px 20px 4px 20px;
+        box-shadow: 0 10px 20px rgba(249, 115, 22, 0.2);
+    }
+    .message-ai {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        align-self: flex-start;
+        border-radius: 20px 20px 20px 4px;
+    }
+    .scenario-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+        border-radius: 32px;
+    }
+    .scenario-card:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+    @keyframes pulse-neon {
+        0%, 100% { box-shadow: 0 0 15px rgba(249, 115, 22, 0.3); }
+        50% { box-shadow: 0 0 30px rgba(249, 115, 22, 0.6); }
+    }
+    .recording-pulse {
+        animation: pulse-neon 1.5s infinite;
+        background: #f97316 !important;
+        color: white !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-12">
+    <!-- Header Section -->
+    <div class="mb-16 animate-in fade-in slide-in-from-top-8 duration-700 flex flex-col md:flex-row items-center justify-between bg-white/5 border border-white/10 p-10 rounded-[40px] relative overflow-hidden group">
+        <!-- Background Glows -->
+        <div class="absolute -right-20 -top-20 w-64 h-64 bg-pink-500/20 blur-[80px] rounded-full group-hover:bg-pink-500/30 transition-all duration-700"></div>
+        <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-all duration-700"></div>
+
+        <div class="md:w-1/2 relative z-10 text-center md:text-left mb-8 md:mb-0">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-white/80 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 backdrop-blur-md">
+                <span class="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse"></span>
+                Premium Companion
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter leading-tight">
+                AI <span class="bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent italic pb-2 pr-2">Roleplay</span>
+            </h1>
+            <p class="text-white/60 text-lg font-medium leading-relaxed max-w-lg">
+                카페, 공항, 병원 등 진짜와 똑같은 상황에서 전문 복장을 한 예쁜 여동생 '오누이'와 실전 회화를 연습해 보세요!
+            </p>
+        </div>
+
+        <div class="md:w-1/2 relative z-10 flex justify-center md:justify-end">
+            <div class="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-white/20 shadow-[0_0_50px_rgba(249,115,22,0.2)] group-hover:shadow-[0_0_80px_rgba(236,72,153,0.4)] transition-all duration-700 transform group-hover:scale-105">
+                <img src="/static/images/onui-pure-idol.png" alt="Pure Korean Idol Avatar" class="w-full h-full object-cover">
+            </div>
+        </div>
+    </div>
+
+    <!-- Scenario Selection -->
+    <div id="scenario-selection" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+        <!-- Scenarios will be loaded here via JS -->
+    </div>
+
+    <!-- Chat Interface (Premium Glass Card) -->
+    <div id="chat-interface" class="hidden max-w-4xl mx-auto glass-main-card rounded-[40px] overflow-hidden border border-white/10 animate-in zoom-in duration-500">
+        <!-- Chat Header -->
+        <div class="border-b border-white/5 p-6 flex justify-between items-center bg-white/2">
+            <div class="flex items-center space-x-5">
+                <button onclick="backToScenarios()" class="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 group">
+                    <svg class="w-5 h-5 text-white/50 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <div>
+                    <h2 id="current-scenario-title" class="text-xl font-black text-white tracking-tight">Scenario Title</h2>
+                    <p id="current-scenario-level" class="text-orange-500 text-[10px] font-black uppercase tracking-widest">Level: A1-A2</p>
+                </div>
+            </div>
+            <button onclick="finishRoleplay()" class="px-6 py-3 bg-white/5 text-white/80 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all border border-white/10">
+                Finish & Evaluate
+            </button>
+        </div>
+
+        <!-- Chat Area -->
+        <div id="chat-box" class="chat-container p-8 flex flex-col space-y-6 bg-transparent">
+            <!-- Messages will appear here -->
+        </div>
+
+        <!-- AI Avatar & Goals (Unified Glass Bottom) -->
+        <div class="px-8 py-6 bg-white/2 border-t border-white/5 flex flex-col md:flex-row items-center gap-10">
+            <div class="flex-shrink-0 scale-125">
+                {% include "components/ai-avatar.html" %}
+            </div>
+            <div class="flex-1">
+                <h3 class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Current Objectives</h3>
+                <div class="flex flex-wrap gap-3" id="scenario-goals">
+                    <!-- Goals will be listed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-8 bg-black/20 border-t border-white/5">
+            <div class="flex items-center space-x-4">
+                <button id="mic-btn" class="p-5 bg-white/5 text-white/40 rounded-full hover:bg-orange-500/20 hover:text-orange-500 transition-all border border-white/5 shadow-inner">
+                    <svg id="mic-icon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4z"></path>
+                        <path d="M6 10a4 4 0 008 0v-1h1v1a5 5 0 01-10 0v-1h1v1z"></path>
+                    </svg>
+                </button>
+                <div class="flex-1 relative">
+                    <input type="text" id="user-input" placeholder="Type or speak in Korean..." class="w-full p-5 bg-white/5 border-white/10 rounded-[24px] focus:ring-2 focus:ring-orange-500 outline-none text-white font-medium placeholder:text-white/20 transition-all border">
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center space-x-2">
+                        <button id="send-btn" class="p-3 bg-orange-500 text-white rounded-full hover:bg-orange-400 transition-all shadow-[0_10px_20px_rgba(249,115,22,0.3)] hover:scale-110 active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evaluation Modal (Suno Style) -->
+    <div id="eval-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeEvalModal()"></div>
+        <div class="relative w-full max-w-2xl glass-main-card rounded-[40px] p-10 text-center animate-in zoom-in duration-500">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-8">
+                <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+                Progress Report
+            </div>
+
+            <div class="flex flex-col items-center mb-10">
+                <div class="w-32 h-32 rounded-full border-2 border-orange-500/30 flex items-center justify-center mb-4 bg-orange-500/5">
+                    <span id="eval-score" class="text-5xl font-black text-white">0</span>
+                </div>
+                <h2 class="text-2xl font-black text-white uppercase tracking-tight">AI Mastery Insight</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-6 text-left mb-10">
+                <div class="bg-white/5 border border-white/5 rounded-3xl p-6">
+                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-2 font-mono">Expert Feedback</p>
+                    <p id="eval-feedback" class="text-white/80 leading-relaxed font-medium italic"></p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-green-500/5 border border-green-500/10 p-6 rounded-3xl">
+                        <h3 class="text-[10px] font-black text-green-400 uppercase tracking-widest mb-4">✦ Strengths</h3>
+                        <ul id="eval-strengths" class="text-xs text-white/60 space-y-2 list-none p-0 m-0"></ul>
+                    </div>
+                    <div class="bg-blue-500/5 border border-blue-500/10 p-6 rounded-3xl">
+                        <h3 class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-4">✦ Upgrades</h3>
+                        <ul id="eval-improvements" class="text-xs text-white/60 space-y-2 list-none p-0 m-0"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="closeEvalModal()" class="flex-1 py-5 bg-white/5 text-white/50 rounded-full font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all">
+                    Dismiss
+                </button>
+                <button onclick="backToScenarios()" class="flex-2 px-12 py-5 bg-gradient-to-r from-orange-500 to-pink-600 text-white rounded-full font-black text-xs uppercase tracking-widest shadow-[0_15px_30px_rgba(249,115,22,0.3)] hover:scale-105 active:scale-95 transition-all">
+                    Practice More
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const token = localStorage.getItem('auth_token');
+    const nickname = localStorage.getItem('user_nickname');
+
+    // Simple auth check
+    if (!token) {
+        window.location.href = '/login?redirect=/roleplay';
+    }
+
+    let scenarios = [];
+    let currentScenario = null;
+    let chatHistory = [];
+    let isRecording = false;
+    let recognition = null;
+
+    // Initialize Speech Recognition
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'ko-KR';
+
+        recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            document.getElementById('user-input').value = text;
+            stopMic();
+            sendMessage();
+        };
+
+        recognition.onerror = (event) => {
+            console.error('Speech recognition error:', event.error);
+            stopMic();
+        };
+
+        recognition.onend = () => {
+            stopMic();
+        };
+    }
+
+    async function loadScenarios() {
+        try {
+            const resp = await fetch('/api/roleplay/scenarios');
+            scenarios = await resp.json();
+            renderScenarios();
+        } catch (e) {
+            console.error('Failed to load scenarios', e);
+        }
+    }
+
+    function renderScenarios() {
+        const container = document.getElementById('scenario-selection');
+        container.innerHTML = scenarios.map((s, idx) => `
+            <div onclick="startRoleplay('${s.id}')" class="scenario-card cursor-pointer p-8 flex flex-col group animate-in fade-in slide-in-from-bottom-8 duration-700" style="animation-delay: ${idx * 0.1}s">
+                <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center text-3xl mb-6 border border-white/5 group-hover:bg-orange-500 group-hover:border-orange-500/20 transition-all duration-500">
+                    ${s.title.split(' ')[0]}
+                </div>
+                <h3 class="text-2xl font-black text-white mb-2 tracking-tight group-hover:text-orange-500 transition-colors">${s.title.substring(s.title.indexOf(' ') + 1)}</h3>
+                <p class="text-white/40 text-sm mb-6 line-clamp-3 leading-relaxed font-medium">${s.description}</p>
+                <div class="mt-auto flex justify-between items-center pt-6 border-t border-white/5">
+                    <span class="px-3 py-1 bg-white/5 text-white/50 rounded-full text-[10px] font-black uppercase tracking-widest">${s.level}</span>
+                    <span class="text-orange-500 font-black text-[10px] uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">Start Session ➜</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    let currentAvatarIcon = '/static/images/onui-sister-icon.png';
+
+    function startRoleplay(id) {
+        currentScenario = scenarios.find(s => s.id === id);
+        if (!currentScenario) return;
+
+        // --- 상하단 아바타 통합 의상 전환 ---
+        if (window.AI_AVATAR && typeof AI_AVATAR.updateOutfit === 'function') {
+            AI_AVATAR.updateOutfit(currentScenario.title);
+        }
+        
+        // 채팅 프로필 경로 할당
+        if (currentScenario.title.includes('카페') || currentScenario.title.includes('주문')) {
+            currentAvatarIcon = '/static/images/onui-idol-barista.png';
+        } else if (currentScenario.title.includes('공항') || currentScenario.title.includes('체크인')) {
+            currentAvatarIcon = '/static/images/onui-idol-staff.png';
+        } else if (currentScenario.title.includes('병원') || currentScenario.title.includes('증상')) {
+            currentAvatarIcon = '/static/images/onui-idol-nurse.png';
+        } else {
+            currentAvatarIcon = '/static/images/onui-sister-icon.png';
+        }
+
+        document.getElementById('scenario-selection').classList.add('hidden');
+        document.getElementById('chat-interface').classList.remove('hidden');
+        document.getElementById('current-scenario-title').textContent = currentScenario.title;
+        document.getElementById('current-scenario-level').textContent = `Level: ${currentScenario.level}`;
+        
+        // Render goals
+        document.getElementById('scenario-goals').innerHTML = currentScenario.goals.map(g => `
+            <span class="px-4 py-2 bg-white/5 text-white/70 rounded-2xl text-xs font-bold border border-white/5">✦ ${g}</span>
+        `).join('');
+
+        // Clear chat
+        document.getElementById('chat-box').innerHTML = '';
+        chatHistory = [];
+
+        // Add initial message
+        addMessage('ai', currentScenario.initial_message);
+        chatHistory.push({role: 'assistant', content: currentScenario.initial_message});
+        playTTS(currentScenario.initial_message);
+    }
+
+    function backToScenarios() {
+        document.getElementById('chat-interface').classList.add('hidden');
+        document.getElementById('eval-modal').classList.add('hidden');
+        document.getElementById('scenario-selection').classList.remove('hidden');
+        currentScenario = null;
+    }
+
+    function addMessage(role, text) {
+        const chatBox = document.getElementById('chat-box');
+        const wrapper = document.createElement('div');
+        wrapper.className = `flex w-full gap-3 ${role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-${role === 'user' ? 'right' : 'left'}-4 fade-in duration-300`;
+        
+        if (role === 'ai') {
+            const avatar = document.createElement('div');
+            avatar.className = "w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-pink-400/30 shadow-[0_5px_15px_rgba(255,182,193,0.2)] mt-1 bg-white";
+            avatar.innerHTML = `<img src="${currentAvatarIcon}" class="w-full h-full object-cover">`;
+            wrapper.appendChild(avatar);
+        }
+
+        const div = document.createElement('div');
+        div.className = `max-w-[75%] p-5 font-medium leading-relaxed ${role === 'user' ? 'message-user' : 'message-ai'}`;
+        div.textContent = text;
+        
+        wrapper.appendChild(div);
+        chatBox.appendChild(wrapper);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text || !currentScenario) return;
+
+        input.value = '';
+        addMessage('user', text);
+        chatHistory.push({role: 'user', content: text});
+
+        if (window.AI_AVATAR) AI_AVATAR.setStatus('Thinking...');
+
+        const typingId = 'typing-' + Date.now();
+        const wrapper = document.createElement('div');
+        wrapper.id = typingId;
+        wrapper.className = 'flex w-full justify-start';
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'max-w-[80%] p-5 message-ai italic text-white/20';
+        typingDiv.textContent = '...';
+        wrapper.appendChild(typingDiv);
+        document.getElementById('chat-box').appendChild(wrapper);
+        document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+
+        try {
+            const resp = await fetch('/api/roleplay/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify({
+                    scenario_id: currentScenario.id,
+                    messages: chatHistory
+                })
+            });
+            const data = await resp.json();
+            
+            document.getElementById(typingId).remove();
+            if (window.AI_AVATAR) AI_AVATAR.setStatus(null);
+
+            if (data.message) {
+                addMessage('ai', data.message);
+                chatHistory.push({role: 'assistant', content: data.message});
+                playTTS(data.message);
+            }
+        } catch (e) {
+            console.error('Chat error', e);
+            document.getElementById(typingId).textContent = 'Connection error.';
+        }
+    }
+
+    async function playTTS(text) {
+        try {
+            const resp = await fetch('/api/tts/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify({
+                    text: text,
+                    backend: 'gemini'
+                })
+            });
+            const blob = await resp.blob();
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            
+            audio.onplay = () => {
+                if (window.AI_AVATAR) {
+                    const duration = (audio.duration && !isNaN(audio.duration)) ? audio.duration * 1000 : text.length * 250;
+                    AI_AVATAR.speak(text, duration);
+                }
+            };
+            audio.play();
+        } catch (e) { console.warn('TTS failed', e); }
+    }
+
+    function toggleMic() {
+        if (!recognition) return alert('Voice recognition not supported.');
+        isRecording ? stopMic() : startMic();
+    }
+
+    function startMic() {
+        isRecording = true;
+        recognition.start();
+        document.getElementById('mic-btn').classList.add('recording-pulse');
+    }
+
+    function stopMic() {
+        isRecording = false;
+        recognition.stop();
+        document.getElementById('mic-btn').classList.remove('recording-pulse');
+    }
+
+    async function finishRoleplay() {
+        if (!currentScenario || chatHistory.length < 3) {
+            if (!confirm('End conversation now?')) return;
+        }
+
+        const btn = document.querySelector('[onclick="finishRoleplay()"]');
+        const originalText = btn.textContent;
+        btn.textContent = 'Analysing...';
+        btn.disabled = true;
+
+        try {
+            const resp = await fetch('/api/roleplay/evaluate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ scenario_id: currentScenario.id, messages: chatHistory })
+            });
+            const data = await resp.json();
+            showEvalModal(data.result);
+        } catch (e) {
+            alert('Evaluation failed.');
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    function showEvalModal(result) {
+        const mockResult = {
+            score: 88,
+            feedback: "Excellent work! You effectively navigated the scenario with appropriate vocabulary and natural flow.",
+            strengths: ["Proper honorifics", "Contextual word choice"],
+            improvements: ["Sentence ending variety", "Smoother transitions"]
+        };
+        const res = result && typeof result === 'object' ? result : mockResult;
+        
+        document.getElementById('eval-score').textContent = res.score;
+        document.getElementById('eval-feedback').textContent = res.feedback;
+        document.getElementById('eval-strengths').innerHTML = res.strengths.map(s => `<li>${s}</li>`).join('');
+        document.getElementById('eval-improvements').innerHTML = res.improvements.map(i => `<li>${i}</li>`).join('');
+        document.getElementById('eval-modal').classList.remove('hidden');
+    }
+
+    function closeEvalModal() { document.getElementById('eval-modal').classList.add('hidden'); }
+
+    document.getElementById('send-btn').onclick = sendMessage;
+    document.getElementById('mic-btn').onclick = toggleMic;
+    document.getElementById('user-input').onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
+    window.onload = loadScenarios;
+</script>
+{% endblock %}

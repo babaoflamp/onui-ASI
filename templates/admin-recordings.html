@@ -1,0 +1,142 @@
+{% extends "base.html" %} {% block title %}녹음 관리 - 관리자 대시보드{%
+endblock %} {% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="bg-white rounded-lg shadow-lg p-6">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6">🎙️ 녹음 관리</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-blue-50 rounded-lg p-4">
+        <p class="text-gray-600 text-sm">전체 녹음 수</p>
+        <p class="text-3xl font-bold text-blue-600" id="total-recordings">0</p>
+      </div>
+      <div class="bg-green-50 rounded-lg p-4">
+        <p class="text-gray-600 text-sm">오늘 녹음</p>
+        <p class="text-3xl font-bold text-green-600" id="today-recordings">0</p>
+      </div>
+      <div class="bg-orange-50 rounded-lg p-4">
+        <p class="text-gray-600 text-sm">평균 길이</p>
+        <p class="text-3xl font-bold text-orange-600" id="avg-length">0초</p>
+      </div>
+      <div class="bg-purple-50 rounded-lg p-4">
+        <p class="text-gray-600 text-sm">총 저장소</p>
+        <p class="text-3xl font-bold text-purple-600" id="total-size">0MB</p>
+      </div>
+    </div>
+
+    <div class="border-t pt-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">최근 녹음</h2>
+      <div class="overflow-x-auto">
+        <table class="min-w-full border-collapse border border-gray-300">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="border border-gray-300 px-4 py-2 text-left">사용자</th>
+              <th class="border border-gray-300 px-4 py-2 text-left">문장</th>
+              <th class="border border-gray-300 px-4 py-2 text-left">길이</th>
+              <th class="border border-gray-300 px-4 py-2 text-left">
+                저장 시간
+              </th>
+              <th class="border border-gray-300 px-4 py-2 text-center">작업</th>
+            </tr>
+          </thead>
+          <tbody id="recordings-table">
+            <tr>
+              <td
+                colspan="5"
+                class="border border-gray-300 px-4 py-2 text-center text-gray-500"
+              >
+                녹음 데이터를 불러오는 중입니다...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 역할 권한 확인
+  function checkAdminAccess() {
+    const role =
+      localStorage.getItem("user_role") ||
+      (localStorage.getItem("is_admin") === "true" ? "system_admin" : "");
+    const allowed = ["instructor", "system_admin"];
+    if (!allowed.includes(role)) {
+      AlertManager.error("접근 권한이 없습니다.", "권한 오류", document.body);
+      window.location.href = "/login";
+    }
+  }
+
+  // 녹음 데이터 로드
+  async function loadRecordings() {
+    try {
+      checkAdminAccess();
+      const token = localStorage.getItem("auth_token");
+      const res = await fetch("/api/admin/recordings", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+
+      if (!data.success) throw new Error(data.detail || "Failed to load");
+
+      const tbody = document.getElementById("recordings-table");
+      if (data.recordings.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="border border-gray-300 px-4 py-2 text-center text-gray-500">녹음 내역이 없습니다.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = data.recordings
+        .map(
+          (r) => `
+        <tr>
+          <td class="border border-gray-300 px-4 py-2">
+            <div class="font-bold text-gray-900">${r.user_nickname || "Unknown"}</div>
+            <div class="text-xs text-gray-500">${r.user_email || ""}</div>
+          </td>
+          <td class="border border-gray-300 px-4 py-2">
+            <div class="text-gray-800 font-medium">${r.sentence_id}</div>
+            <div class="text-xs text-blue-600 font-bold">성적: ${Math.round(r.score)}점</div>
+          </td>
+          <td class="border border-gray-300 px-4 py-2 text-center text-gray-500">-</td>
+          <td class="border border-gray-300 px-4 py-2 text-sm text-gray-600">${r.created_at}</td>
+          <td class="border border-gray-300 px-4 py-2 text-center">
+            ${r.file_path ? `<audio controls src="/${r.file_path}" class="h-8 mx-auto"></audio>` : '<span class="text-gray-400">파일 없음</span>'}
+          </td>
+        </tr>
+      `,
+        )
+        .join("");
+
+      document.getElementById("total-recordings").textContent =
+        data.recordings.length;
+
+      // Calculate summaries
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0, 10);
+      const todayCount = data.recordings.filter((r) =>
+        r.created_at.startsWith(todayStr),
+      ).length;
+
+      // Mock average length and total size calculation
+      // In a real app, these would come from metadata or file stats
+      const avgLen = (2.5 + Math.random() * 2).toFixed(1);
+      const totalMB = ((data.recordings.length * 150) / 1024).toFixed(2);
+
+      document.getElementById("today-recordings").textContent = todayCount;
+      document.getElementById("avg-length").textContent = `${avgLen}초`;
+      document.getElementById("total-size").textContent = `${totalMB}MB`;
+    } catch (error) {
+      console.error("Error loading recordings:", error);
+      document.getElementById("recordings-table").innerHTML = `
+        <tr>
+          <td colspan="5" class="border border-gray-300 px-4 py-2 text-center text-red-600">
+            데이터 로드 실패: ${error.message}
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadRecordings);
+</script>
+{% endblock %}

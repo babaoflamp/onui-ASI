@@ -1,0 +1,297 @@
+{% extends "base.html" %} {% block title %}상황별 콘텐츠 생성 - 오누이 한국어{%
+endblock %} {% block content %}
+<div id="alertsContainer"></div>
+<div class="max-w-4xl mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="mb-8">
+    <div
+      class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold mb-2"
+    >
+      <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+      ONUI · AI 학습 도구
+    </div>
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">
+      🎨 AI 상황별 이미지 생성
+    </h1>
+    <p class="text-sm text-gray-600">
+      학습 상황에 맞는 이미지를 AI로 자동 생성합니다 (DALL-E 3)
+    </p>
+  </div>
+
+  <div class="bg-white rounded-2xl p-6 shadow-lg">
+    <!-- Input Section -->
+    <section
+      class="mb-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200"
+    >
+      <h2
+        class="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2"
+      >
+        <span class="text-2xl">📝</span>
+        상황 설명
+      </h2>
+
+      <div class="space-y-4">
+        <!-- Situation Input -->
+        <div>
+          <label
+            for="situation"
+            class="block text-sm font-medium text-gray-700 mb-2"
+          >
+            학습 상황을 설명해주세요
+          </label>
+          <textarea
+            id="situation"
+            rows="4"
+            class="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none text-sm"
+          >
+서울 시장에서 과일을 사는 상황</textarea
+          >
+        </div>
+
+        <!-- Options -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label
+              for="imageStyle"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              이미지 스타일
+            </label>
+            <select
+              id="imageStyle"
+              class="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+            >
+              <option value="watercolor" selected>수채화 (Watercolor)</option>
+              <option value="illustration">일러스트 (Illustration)</option>
+              <option value="cartoon">만화 (Cartoon)</option>
+              <option value="realistic">사실적인 (Realistic)</option>
+              <option value="oil-painting">유화 (Oil Painting)</option>
+              <option value="pencil-sketch">연필 스케치 (Pencil Sketch)</option>
+              <option value="digital-art">디지털 아트 (Digital Art)</option>
+              <option value="anime">애니메이션 (Anime)</option>
+              <option value="vintage">빈티지 (Vintage)</option>
+              <option value="minimalist">미니멀리스트 (Minimalist)</option>
+              <option value="pop-art">팝아트 (Pop Art)</option>
+              <option value="3d-render">3D 렌더링 (3D Render)</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              for="imageQuality"
+              class="block text-sm font-medium text-gray-700 mb-2"
+            >
+              이미지 품질
+            </label>
+            <select
+              id="imageQuality"
+              class="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm"
+            >
+              <option value="standard" selected>표준 (Standard)</option>
+              <option value="hd">고화질 (HD)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button
+          onclick="generateImage()"
+          class="w-full bg-[#FF8C1A] border-2 border-[#FF8C1A] text-white px-6 py-3 rounded-lg hover:bg-[#e67a15] transition-all shadow-md hover:shadow-lg font-semibold"
+        >
+          🎨 이미지 생성하기
+        </button>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="resultsSection" class="hidden">
+      <!-- Image Result -->
+      <div
+        class="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200"
+      >
+        <h3
+          class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2"
+        >
+          <span class="text-2xl">🖼️</span>
+          생성된 이미지
+        </h3>
+        <div id="imageResult" class="bg-white rounded-lg p-4 shadow-inner">
+          <div class="flex items-center justify-center h-64 text-gray-400">
+            이미지 로딩 중...
+          </div>
+        </div>
+        <div class="mt-4 flex gap-2">
+          <button
+            onclick="downloadImage()"
+            class="flex-1 bg-[#FFE6BF] border-2 border-[#FF8C1A] text-gray-800 px-6 py-2 rounded-lg hover:bg-[#FF8C1A] hover:text-white transition font-semibold"
+          >
+            📥 이미지 다운로드
+          </button>
+          <button
+            onclick="regenerateImage()"
+            class="flex-1 bg-white border-2 border-[#FF8C1A] text-gray-800 px-6 py-2 rounded-lg hover:bg-[#FFE6BF] transition font-semibold"
+          >
+            🔄 다시 생성
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Info Section -->
+    <section class="mt-6 p-6 bg-gray-50 rounded-xl border border-gray-200">
+      <div class="text-sm font-semibold text-gray-900 mb-2">💡 사용 가이드</div>
+      <div class="text-xs text-gray-700 space-y-1">
+        <p>
+          • <strong>상황 설명</strong>: 학습 상황을 자세히 설명하면 더 정확한
+          이미지가 생성됩니다
+        </p>
+        <p>
+          • <strong>이미지 스타일</strong>: 수채화, 일러스트, 만화, 사실적인,
+          유화, 연필 스케치, 디지털 아트, 애니메이션, 빈티지, 미니멀리스트,
+          팝아트, 3D 렌더링 등 12가지 스타일 중 선택할 수 있습니다
+        </p>
+        <p>
+          • <strong>이미지 품질</strong>: 표준 품질(빠름) 또는 고화질(느림) 중
+          선택할 수 있습니다
+        </p>
+        <p>
+          • <strong>활용 방법</strong>: 생성된 이미지는 교재 제작, 발표 자료,
+          학습 카드 등에 활용할 수 있습니다
+        </p>
+        <p>
+          • <strong>주의사항</strong>: AI 생성 이미지는 학습 목적으로만
+          사용하시기 바랍니다
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  let currentImageUrl = null;
+  let generationTime = 0;
+
+  async function generateImage() {
+    const situation = document.getElementById("situation").value.trim();
+
+    if (!situation) {
+      AlertManager.warning("학습 상황을 입력해주세요.", "입력 필요", document.getElementById("alertsContainer")); return;
+      return;
+    }
+
+    const imageStyle = document.getElementById("imageStyle").value;
+    const imageQuality = document.getElementById("imageQuality").value;
+
+    // Show results section
+    document.getElementById("resultsSection").classList.remove("hidden");
+
+    // Show loading state
+    document.getElementById("imageResult").innerHTML =
+      '<div class="flex items-center justify-center h-64"><div class="text-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div><p class="text-gray-600">DALL-E 3로 이미지 생성 중...</p><p class="text-xs text-gray-500 mt-2">최대 30초 정도 소요될 수 있습니다</p></div></div>';
+
+    // Start timer
+    const startTime = Date.now();
+
+    try {
+      // Generate Image
+      const imageResponse = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          situation: situation,
+          style: imageStyle,
+          quality: imageQuality,
+        }),
+      });
+
+      // Robust response handling: check status and parse safely
+      if (!imageResponse.ok) {
+        const errorText = await imageResponse.text();
+        throw new Error(
+          `HTTP ${imageResponse.status} ${imageResponse.statusText}: ${
+            errorText || "빈 응답"
+          }`
+        );
+      }
+
+      const rawText = await imageResponse.text();
+      let imageData;
+      try {
+        imageData = rawText ? JSON.parse(rawText) : null;
+      } catch (parseErr) {
+        throw new Error(
+          `서버 응답이 JSON이 아닙니다: ${rawText?.slice(0, 200) || "빈 응답"}`
+        );
+      }
+
+      if (!imageData) {
+        throw new Error("서버로부터 유효한 응답을 받지 못했습니다.");
+      }
+
+      // Calculate generation time
+      generationTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+      if (imageData.success) {
+        currentImageUrl = imageData.image_url;
+        document.getElementById("imageResult").innerHTML = `
+          <img src="${
+            imageData.image_url
+          }" alt="생성된 이미지" class="w-full rounded-lg" />
+          <div class="mt-3 text-center">
+            <p class="text-xs text-gray-500">⏱️ 생성 시간: ${generationTime}초</p>
+            <p class="text-xs text-gray-400 mt-1">스타일: ${getStyleName(
+              imageStyle
+            )} | 품질: ${imageQuality === "hd" ? "고화질" : "표준"}</p>
+          </div>
+        `;
+      } else {
+        document.getElementById(
+          "imageResult"
+        ).innerHTML = `<div class="text-center text-red-600 py-8">이미지 생성 실패: ${
+          imageData.message || "알 수 없는 오류"
+        }</div>`;
+      }
+    } catch (error) {
+      console.error("이미지 생성 오류:", error);
+      document.getElementById(
+        "imageResult"
+      ).innerHTML = `<div class="text-center text-red-600 py-8">이미지 생성 중 오류가 발생했습니다: ${error.message}</div>`;
+    }
+  }
+
+  function getStyleName(styleValue) {
+    const styleNames = {
+      watercolor: "수채화",
+      illustration: "일러스트",
+      cartoon: "만화",
+      realistic: "사실적인",
+      "oil-painting": "유화",
+      "pencil-sketch": "연필 스케치",
+      "digital-art": "디지털 아트",
+      anime: "애니메이션",
+      vintage: "빈티지",
+      minimalist: "미니멀리스트",
+      "pop-art": "팝아트",
+      "3d-render": "3D 렌더링",
+    };
+    return styleNames[styleValue] || styleValue;
+  }
+
+  function downloadImage() {
+    if (!currentImageUrl) {
+      AlertManager.warning("다운로드할 이미지가 없습니다.", "이미지 없음", document.getElementById("alertsContainer")); return;
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = currentImageUrl;
+    link.download = "onui-generated-image.png";
+    link.click();
+  }
+
+  function regenerateImage() {
+    generateImage();
+  }
+</script>
+{% endblock %}

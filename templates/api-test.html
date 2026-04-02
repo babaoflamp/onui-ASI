@@ -1,0 +1,865 @@
+{% extends "base.html" %} {% block title %}API 테스트 - 관리자{% endblock %} {%
+block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <p class="text-xs font-semibold text-green-600 uppercase tracking-widest">
+        API Testing
+      </p>
+      <h1 class="text-3xl font-bold text-gray-900 mt-1">API 테스트 도구</h1>
+      <p class="text-gray-600 mt-2">
+        엔드포인트 테스트, 요청/응답 확인, 성능 측정
+      </p>
+    </div>
+    <a
+      href="/admin/dashboard"
+      class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+      >← 대시보드</a
+    >
+  </div>
+
+  <!-- Quick request form -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+      <div>
+        <label class="text-xs font-semibold text-gray-600">메서드</label>
+        <select
+          id="apiMethod"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400"
+        >
+          <option>GET</option>
+          <option>POST</option>
+          <option>PUT</option>
+          <option>DELETE</option>
+          <option>PATCH</option>
+        </select>
+      </div>
+      <div class="md:col-span-3">
+        <label class="text-xs font-semibold text-gray-600"
+          >URL (상대경로)</label
+        >
+        <input
+          id="apiUrl"
+          type="text"
+          placeholder="/api/admin/summary"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400"
+        />
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="text-xs font-semibold text-gray-600 block mb-2"
+        >프리셋</label
+      >
+      <div class="flex flex-wrap gap-2">
+        <button
+          onclick="setPreset('/api/admin/summary','GET')"
+          class="px-3 py-1 rounded-lg bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200"
+        >
+          대시보드 요약
+        </button>
+        <button
+          onclick="setPreset('/api/admin/users','GET')"
+          class="px-3 py-1 rounded-lg bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200"
+        >
+          사용자 목록
+        </button>
+        <button
+          onclick="setPreset('/api/user/profile','GET')"
+          class="px-3 py-1 rounded-lg bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200"
+        >
+          프로필
+        </button>
+        <button
+          onclick="setPreset('/api/ollama/models','GET')"
+          class="px-3 py-1 rounded-lg bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200"
+        >
+          Ollama 모델
+        </button>
+      </div>
+    </div>
+    <div class="mb-4">
+      <label class="text-xs font-semibold text-gray-600 block mb-2"
+        >헤더
+        <span class="ml-4 font-normal"
+          ><input type="checkbox" id="autoToken" checked /> 자동 토큰</span
+        ></label
+      >
+      <textarea
+        id="apiHeaders"
+        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-green-400 h-20"
+        placeholder="Content-Type: application/json"
+      ></textarea>
+    </div>
+    <div class="mb-4">
+      <label class="text-xs font-semibold text-gray-600 block mb-2"
+        >요청 본문 (JSON)</label
+      >
+      <textarea
+        id="apiBody"
+        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-green-400 h-28"
+        placeholder='{"key":"value"}'
+      ></textarea>
+    </div>
+    <div class="flex gap-3">
+      <button
+        onclick="sendRequest()"
+        class="flex-1 px-4 py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600"
+      >
+        🚀 요청 전송
+      </button>
+      <button
+        onclick="clearRequest()"
+        class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50"
+      >
+        초기화
+      </button>
+    </div>
+  </div>
+
+  <!-- API groups -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div
+      class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4"
+    >
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900">🎤 SpeechPro API</h2>
+        <span class="text-xs text-gray-500">발음 평가</span>
+      </div>
+      <div class="space-y-2">
+        <button
+          class="w-full bg-violet-500 hover:bg-violet-600 text-white px-4 py-2 rounded"
+          onclick="simpleFetch('/api/speechpro/sentences','speechpro-sentences')"
+        >
+          GET /api/speechpro/sentences
+        </button>
+        <pre
+          id="speechpro-sentences"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-32 overflow-auto"
+        ></pre>
+      </div>
+      <div class="space-y-2">
+        <button
+          class="w-full bg-violet-400 hover:bg-violet-500 text-white px-4 py-2 rounded"
+          onclick="simpleFetch('/api/speechpro/config','speechpro-config')"
+        >
+          GET /api/speechpro/config
+        </button>
+        <pre
+          id="speechpro-config"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-32 overflow-auto"
+        ></pre>
+      </div>
+      <div class="space-y-2">
+        <textarea
+          id="speechpro-text"
+          class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+          placeholder="평가할 텍스트"
+          rows="2"
+        ></textarea>
+        <div class="flex gap-2">
+          <button
+            id="speechpro-record-btn"
+            class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+            onclick="toggleSpeechProRecording()"
+          >
+            🎙️ 녹음 시작
+          </button>
+          <button
+            id="speechpro-evaluate-btn"
+            class="flex-1 bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded"
+            onclick="testSpeechProEvaluate()"
+            disabled
+          >
+            POST /api/speechpro/evaluate
+          </button>
+        </div>
+        <div
+          id="speechpro-recording-status"
+          class="text-xs text-gray-600"
+        ></div>
+        <pre
+          id="speechpro-evaluate-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-40 overflow-auto"
+        ></pre>
+      </div>
+    </div>
+
+    <div
+      class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4"
+    >
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900">🗣️ FluencyPro API</h2>
+        <span class="text-xs text-gray-500">유창성 평가</span>
+      </div>
+      <div class="space-y-2">
+        <textarea
+          id="fluencypro-text"
+          class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+          placeholder="분석할 텍스트"
+          rows="2"
+        ></textarea>
+        <div class="flex gap-2">
+          <button
+            id="fluency-record-btn"
+            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            onclick="toggleFluencyRecording()"
+          >
+            🎙️ 녹음 시작
+          </button>
+          <button
+            id="fluency-analyze-btn"
+            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            onclick="testFluencyAnalyze()"
+            disabled
+          >
+            POST /api/fluencypro/analyze
+          </button>
+        </div>
+        <div id="fluency-recording-status" class="text-xs text-gray-600"></div>
+        <pre
+          id="fluency-analyze-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-40 overflow-auto"
+        ></pre>
+      </div>
+      <div class="space-y-2">
+        <input
+          id="fluency-metrics-user"
+          class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+          placeholder="User ID"
+        />
+        <button
+          class="w-full bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded"
+          onclick="testFluencyMetrics()"
+        >
+          GET /api/fluencypro/metrics/{user}
+        </button>
+        <pre
+          id="fluency-metrics-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-32 overflow-auto"
+        ></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div
+      class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4"
+    >
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900">🔊 Gemini TTS API</h2>
+        <span class="text-xs text-gray-500">텍스트 → 음성</span>
+      </div>
+      <div class="space-y-2">
+        <button
+          class="w-full bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded"
+          onclick="simpleFetch('/api/tts/info','tts-info-result')"
+        >
+          GET /api/tts/info
+        </button>
+        <pre
+          id="tts-info-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-32 overflow-auto"
+        ></pre>
+      </div>
+      <div class="space-y-2">
+        <input
+          id="tts-text"
+          class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+          placeholder="한국어 텍스트"
+        />
+        <button
+          class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+          onclick="testTTSGeneration()"
+        >
+          POST /api/tts/generate (재생)
+        </button>
+        <div id="tts-result" class="text-xs text-gray-600"></div>
+      </div>
+    </div>
+
+    <div
+      class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4"
+    >
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900">🤖 AI & Ollama</h2>
+        <span class="text-xs text-gray-500">모델 테스트</span>
+      </div>
+      <div class="space-y-2">
+        <button
+          class="w-full bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded"
+          onclick="simpleFetch('/api/ollama/models','ollama-models-result')"
+        >
+          GET /api/ollama/models
+        </button>
+        <pre
+          id="ollama-models-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-32 overflow-auto"
+        ></pre>
+      </div>
+      <div class="space-y-2">
+        <textarea
+          id="ollama-prompt"
+          class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+          placeholder="프롬프트"
+          rows="2"
+        ></textarea>
+        <select
+          id="ollama-model-select"
+          class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+        ></select>
+        <button
+          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded"
+          onclick="testOllamaTest()"
+        >
+          POST /api/ollama/test
+        </button>
+        <pre
+          id="ollama-test-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-32 overflow-auto"
+        ></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+    <div
+      class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4"
+    >
+      <h2 class="text-lg font-semibold text-gray-900">📚 콘텐츠 & 학습</h2>
+      <div class="space-y-2">
+        <input
+          id="content-topic"
+          class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+          placeholder="주제"
+        />
+        <select
+          id="content-level"
+          class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+        >
+          <option value="초급">초급</option>
+          <option value="중급">중급</option>
+          <option value="고급">고급</option>
+        </select>
+        <button
+          class="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded"
+          onclick="testGenerateContent()"
+        >
+          POST /api/generate-content
+        </button>
+        <pre
+          id="content-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-32 overflow-auto"
+        ></pre>
+      </div>
+      <div class="space-y-2">
+        <textarea
+          id="fluency-text"
+          class="w-full border border-gray-200 rounded px-3 py-2 text-sm"
+          placeholder="한국어 문장"
+          rows="2"
+        ></textarea>
+        <button
+          class="w-full bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded"
+          onclick="testFluencyCheck()"
+        >
+          POST /api/fluency-check
+        </button>
+        <pre
+          id="fluency-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-32 overflow-auto"
+        ></pre>
+      </div>
+    </div>
+
+    <div
+      class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-4"
+    >
+      <h2 class="text-lg font-semibold text-gray-900">🎮 학습/게임 API</h2>
+      <div class="space-y-2">
+        <button
+          class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+          onclick="simpleFetch('/api/puzzle/sentences','puzzle-result')"
+        >
+          GET /api/puzzle/sentences
+        </button>
+        <pre
+          id="puzzle-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-28 overflow-auto"
+        ></pre>
+      </div>
+      <div class="space-y-2">
+        <button
+          class="w-full bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+          onclick="simpleFetch('/api/expressions','expression-result')"
+        >
+          GET /api/expressions
+        </button>
+        <button
+          class="w-full bg-green-400 hover:bg-green-500 text-white px-4 py-2 rounded"
+          onclick="simpleFetch('/api/expressions/today','expression-result')"
+        >
+          GET /api/expressions/today
+        </button>
+        <pre
+          id="expression-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-28 overflow-auto"
+        ></pre>
+      </div>
+      <div class="space-y-2">
+        <button
+          class="w-full bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded"
+          onclick="simpleFetch('/api/vocabulary','vocab-result')"
+        >
+          GET /api/vocabulary
+        </button>
+        <pre
+          id="vocab-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-28 overflow-auto"
+        ></pre>
+      </div>
+      <div class="space-y-2">
+        <button
+          class="w-full bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded"
+          onclick="simpleFetch('/api/pronunciation-words','pronunciation-result')"
+        >
+          GET /api/pronunciation-words
+        </button>
+        <pre
+          id="pronunciation-result"
+          class="bg-gray-50 border border-gray-200 rounded p-3 text-xs h-28 overflow-auto"
+        ></pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  (function () {
+    const methodEl = document.getElementById("apiMethod");
+    const urlEl = document.getElementById("apiUrl");
+    const headersEl = document.getElementById("apiHeaders");
+    const bodyEl = document.getElementById("apiBody");
+    const autoTokenEl = document.getElementById("autoToken");
+    const statusEl = document.getElementById("responseStatus");
+    const timeEl = document.getElementById("responseTime");
+    const sizeEl = document.getElementById("responseSize");
+    const bodyResultEl = document.getElementById("responseBody");
+    const historyListEl = document.getElementById("historyList");
+
+    let requestHistory = JSON.parse(
+      localStorage.getItem("apiTestHistory") || "[]"
+    );
+    let speechProRecorder = null;
+    let speechProChunks = [];
+    let fluencyRecorder = null;
+    let fluencyAudio = null;
+
+    function ensureAdmin() {
+      const token = localStorage.getItem("auth_token");
+      const role =
+        localStorage.getItem("user_role") ||
+        (localStorage.getItem("is_admin") === "true" ? "system_admin" : "");
+      if (!token || role !== "system_admin") {
+AlertManager.error("접근 권한이 없습니다.", "권한 오류", document.getElementById("alertsContainer") || document.body);
+        setTimeout(() => (window.location.href = "/admin/login"), 800);
+        window.location.href = "/admin/login";
+        return null;
+      }
+      return token;
+    }
+
+    function authHeaders(base = {}) {
+      const token = localStorage.getItem("auth_token");
+      const role =
+        localStorage.getItem("user_role") ||
+        (localStorage.getItem("is_admin") === "true" ? "system_admin" : "");
+      if (token && role === "system_admin") base["Authorization"] = `Bearer ${token}`;
+      return base;
+    }
+
+    window.setPreset = function (url, method) {
+      urlEl.value = url;
+      methodEl.value = method;
+      bodyEl.value = "";
+    };
+
+    window.clearRequest = function () {
+      urlEl.value = "";
+      bodyEl.value = "";
+      statusEl.textContent = "-";
+      timeEl.textContent = "-ms";
+      sizeEl.textContent = "-";
+      bodyResultEl.textContent = "요청을 전송해주세요.";
+    };
+
+    window.sendRequest = async function () {
+      const token = ensureAdmin();
+      if (!token) return;
+      const method = methodEl.value;
+      const url = urlEl.value.trim();
+      if (!url) { AlertManager.warning("URL을 입력하세요.", "입력 필요", document.getElementById("alertsContainer")); return; }
+      statusEl.textContent = "전송중...";
+      timeEl.textContent = "-ms";
+      sizeEl.textContent = "-";
+      bodyResultEl.textContent = "응답을 기다리는 중...";
+      const start = performance.now();
+      try {
+        const options = {
+          method,
+          headers: { "Content-Type": "application/json" },
+        };
+        if (autoTokenEl.checked)
+          options.headers["Authorization"] = `Bearer ${token}`;
+        const customHeaders = headersEl.value.trim();
+        if (customHeaders) {
+          customHeaders.split("\n").forEach((line) => {
+            const [k, ...v] = line.split(":");
+            if (k && v.length) options.headers[k.trim()] = v.join(":").trim();
+          });
+        }
+        if (["POST", "PUT", "PATCH"].includes(method) && bodyEl.value.trim()) {
+          try {
+            options.body = JSON.stringify(JSON.parse(bodyEl.value));
+          } catch {
+            options.body = bodyEl.value;
+          }
+        }
+        const res = await fetch(url, options);
+        const duration = Math.round(performance.now() - start);
+        statusEl.textContent = res.status;
+        statusEl.className = res.ok
+          ? "text-2xl font-bold text-green-600"
+          : "text-2xl font-bold text-red-600";
+        timeEl.textContent = `${duration}ms`;
+        const ctype = res.headers.get("content-type") || "text/plain";
+        let data = ctype.includes("application/json")
+          ? JSON.stringify(await res.json(), null, 2)
+          : await res.text();
+        sizeEl.textContent = `${data.length} bytes`;
+        bodyResultEl.textContent = data || "(빈 응답)";
+        requestHistory.unshift({
+          method,
+          url,
+          status: res.status,
+          time: new Date().toLocaleTimeString("ko-KR"),
+        });
+        if (requestHistory.length > 20) requestHistory.pop();
+        localStorage.setItem("apiTestHistory", JSON.stringify(requestHistory));
+        renderHistory();
+      } catch (err) {
+        statusEl.textContent = "ERROR";
+        statusEl.className = "text-2xl font-bold text-red-600";
+        bodyResultEl.textContent = `오류: ${err.message}`;
+        timeEl.textContent = `${Math.round(performance.now() - start)}ms`;
+      }
+    };
+
+    function renderHistory() {
+      if (requestHistory.length === 0) {
+        historyListEl.innerHTML =
+          '<p class="text-xs text-gray-500">요청 이력이 없습니다.</p>';
+        return;
+      }
+      historyListEl.innerHTML = requestHistory
+        .map(
+          (item, idx) => `
+          <div class="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer" onclick="loadFromHistory(${idx})">
+            <div class="flex items-center justify-between">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold text-gray-900"><span class="font-mono text-green-600">${
+                  item.method
+                }</span> ${item.url}</p>
+                <p class="text-xs text-gray-500">${item.time}</p>
+              </div>
+              <span class="text-xs font-bold ${
+                item.status < 300 ? "text-green-600" : "text-red-600"
+              }">${item.status}</span>
+            </div>
+          </div>`
+        )
+        .join("");
+    }
+
+    window.loadFromHistory = function (idx) {
+      const item = requestHistory[idx];
+      if (!item) return;
+      setPreset(item.url, item.method);
+    };
+
+    window.simpleFetch = async function (url, targetId) {
+      const token = ensureAdmin();
+      if (!token) return;
+      const tgt = document.getElementById(targetId);
+      if (tgt) tgt.textContent = "Loading...";
+      try {
+        const res = await fetch(url, { headers: authHeaders() });
+        const ctype = res.headers.get("content-type") || "text/plain";
+        const data = ctype.includes("application/json")
+          ? JSON.stringify(await res.json(), null, 2)
+          : await res.text();
+        if (tgt) tgt.textContent = data;
+      } catch (e) {
+        if (tgt) tgt.textContent = `Error: ${e.message}`;
+      }
+    };
+
+    window.toggleSpeechProRecording = async function () {
+      const btn = document.getElementById("speechpro-record-btn");
+      const status = document.getElementById("speechpro-recording-status");
+      const evalBtn = document.getElementById("speechpro-evaluate-btn");
+      if (!speechProRecorder || speechProRecorder.state === "inactive") {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          speechProRecorder = new MediaRecorder(stream);
+          speechProChunks = [];
+          speechProRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) speechProChunks.push(e.data);
+          };
+          speechProRecorder.onstop = () => {
+            window.speechProAudioBlob = new Blob(speechProChunks, {
+              type: "audio/webm",
+            });
+            status.textContent = `녹음 완료 (${(
+              window.speechProAudioBlob.size / 1024
+            ).toFixed(1)} KB)`;
+            evalBtn.disabled = false;
+            stream.getTracks().forEach((t) => t.stop());
+          };
+          speechProRecorder.start();
+          btn.textContent = "⏹️ 녹음 중지";
+          status.textContent = "녹음 중...";
+          evalBtn.disabled = true;
+        } catch (e) {
+          status.textContent = `마이크 오류: ${e.message}`;
+        }
+      } else {
+        speechProRecorder.stop();
+        btn.textContent = "🎙️ 녹음 시작";
+      }
+    };
+
+    window.testSpeechProEvaluate = async function () {
+      const text = document.getElementById("speechpro-text").value.trim();
+      const tgt = document.getElementById("speechpro-evaluate-result");
+      const audio = window.speechProAudioBlob;
+      if (!text) return (tgt.textContent = "텍스트를 입력하세요.");
+      if (!audio) return (tgt.textContent = "녹음을 먼저 진행하세요.");
+      tgt.textContent = "평가 중...";
+      try {
+        const fd = new FormData();
+        fd.append("text", text);
+        fd.append("audio", audio, "recording.webm");
+        const res = await fetch("/api/speechpro/evaluate", {
+          method: "POST",
+          headers: authHeaders(),
+          body: fd,
+        });
+        const data = await res.json();
+        let display = JSON.stringify(data, null, 2);
+        if (data.success)
+          display = `✓ 평가 성공\n점수: ${Math.round(
+            data.overall_score || 0
+          )}\n\n${data.ai_feedback || ""}\n\n${display}`;
+        tgt.textContent = display;
+      } catch (e) {
+        tgt.textContent = `Error: ${e.message}`;
+      }
+    };
+
+    window.toggleFluencyRecording = async function () {
+      const btn = document.getElementById("fluency-record-btn");
+      const status = document.getElementById("fluency-recording-status");
+      const analyzeBtn = document.getElementById("fluency-analyze-btn");
+      if (!fluencyRecorder) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          const chunks = [];
+          fluencyRecorder = new MediaRecorder(stream);
+          fluencyRecorder.ondataavailable = (e) => chunks.push(e.data);
+          fluencyRecorder.onstop = () => {
+            fluencyAudio = new Blob(chunks, { type: "audio/wav" });
+            status.textContent = `녹음 완료 (${(
+              fluencyAudio.size / 1024
+            ).toFixed(1)} KB)`;
+            analyzeBtn.disabled = false;
+            btn.textContent = "🎙️ 녹음 다시";
+            stream.getTracks().forEach((t) => t.stop());
+          };
+          fluencyRecorder.start();
+          btn.textContent = "⏹️ 녹음 중지";
+          status.textContent = "녹음 중...";
+        } catch (e) {
+          status.textContent = `마이크 오류: ${e.message}`;
+        }
+      } else {
+        fluencyRecorder.stop();
+        fluencyRecorder = null;
+      }
+    };
+
+    window.testFluencyAnalyze = async function () {
+      const text = document.getElementById("fluencypro-text").value.trim();
+      const tgt = document.getElementById("fluency-analyze-result");
+      if (!text) return (tgt.textContent = "텍스트를 입력하세요.");
+      if (!fluencyAudio) return (tgt.textContent = "음성을 녹음하세요.");
+      tgt.textContent = "분석 중...";
+      try {
+        const fd = new FormData();
+        fd.append("text", text);
+        fd.append("audio", fluencyAudio, "fluency.wav");
+        const res = await fetch("/api/fluencypro/analyze", {
+          method: "POST",
+          headers: authHeaders(),
+          body: fd,
+        });
+        const data = await res.json();
+        tgt.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        tgt.textContent = `Error: ${e.message}`;
+      }
+    };
+
+    window.testFluencyMetrics = async function () {
+      const uid = document.getElementById("fluency-metrics-user").value.trim();
+      if (!uid) return;
+      simpleFetch(`/api/fluencypro/metrics/${uid}`, "fluency-metrics-result");
+    };
+
+    window.testTTSGeneration = async function () {
+      const text = document.getElementById("tts-text").value.trim();
+      const tgt = document.getElementById("tts-result");
+      if (!text) return (tgt.textContent = "텍스트를 입력하세요.");
+      tgt.textContent = "생성 중...";
+      try {
+        const payload = { text, speaker: 0, tempo: 1.0, pitch: 1.0, gain: 1.0 };
+        const res = await fetch("/api/tts/generate", {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          tgt.textContent = `Error: ${JSON.stringify(err)}`;
+          return;
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          tgt.textContent = "재생 완료";
+        };
+        audio.onerror = () => {
+          tgt.textContent = "오디오 재생 실패";
+        };
+        await audio.play();
+        tgt.textContent = "재생 중...";
+      } catch (e) {
+        tgt.textContent = `Error: ${e.message}`;
+      }
+    };
+
+    window.testGenerateContent = async function () {
+      const topic =
+        document.getElementById("content-topic").value || "카페에서";
+      const level = document.getElementById("content-level").value || "초급";
+      const tgt = document.getElementById("content-result");
+      tgt.textContent = "생성 중...";
+      try {
+        const fd = new FormData();
+        fd.append("topic", topic);
+        fd.append("level", level);
+        const res = await fetch("/api/generate-content", {
+          method: "POST",
+          headers: authHeaders(),
+          body: fd,
+        });
+        const data = await res.json();
+        tgt.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        tgt.textContent = `Error: ${e.message}`;
+      }
+    };
+
+    window.testFluencyCheck = async function () {
+      const text = document.getElementById("fluency-text").value.trim();
+      const tgt = document.getElementById("fluency-result");
+      if (!text) return (tgt.textContent = "문장을 입력하세요.");
+      tgt.textContent = "요청 중...";
+      try {
+        const fd = new FormData();
+        fd.append("user_text", text);
+        const res = await fetch("/api/fluency-check", {
+          method: "POST",
+          headers: authHeaders(),
+          body: fd,
+        });
+        const data = await res.json();
+        tgt.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        tgt.textContent = `Error: ${e.message}`;
+      }
+    };
+
+    async function loadOllamaModels() {
+      const select = document.getElementById("ollama-model-select");
+      if (!select) return;
+      try {
+        const res = await fetch("/api/ollama/models", {
+          headers: authHeaders(),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        let models = [];
+        if (Array.isArray(data)) models = data;
+        else if (Array.isArray(data.models)) models = data.models;
+        select.innerHTML = '<option value="">(자동 선택)</option>';
+        models.forEach((m) => {
+          const opt = document.createElement("option");
+          const id =
+            typeof m === "string" ? m : m.id || m.name || m.model || "model";
+          opt.value = id;
+          opt.textContent =
+            typeof m === "string"
+              ? m
+              : m.name || m.id || m.model || JSON.stringify(m);
+          select.appendChild(opt);
+        });
+      } catch (e) {
+        console.warn("Ollama model load failed", e);
+      }
+    }
+
+    window.testOllamaTest = async function () {
+      const prompt = document.getElementById("ollama-prompt").value.trim();
+      const model = document.getElementById("ollama-model-select").value;
+      const tgt = document.getElementById("ollama-test-result");
+      if (!prompt) return (tgt.textContent = "프롬프트를 입력하세요.");
+      tgt.textContent = "요청 중...";
+      try {
+        const fd = new FormData();
+        fd.append("prompt", prompt);
+        if (model) fd.append("model", model);
+        const res = await fetch("/api/ollama/test", {
+          method: "POST",
+          headers: authHeaders(),
+          body: fd,
+        });
+        const data = await res.json();
+        tgt.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        tgt.textContent = `Error: ${e.message}`;
+      }
+    };
+
+    // Init
+    ensureAdmin();
+    renderHistory();
+    loadOllamaModels();
+  })();
+</script>
+{% endblock %}

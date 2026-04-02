@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}AI Voice Call - Onui{% endblock %}
+{% block extra_css %}
+<style>
+  .call-container {
+    background: radial-gradient(circle at center, #1f1f1f, #000);
+    border-radius: 40px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    position: relative;
+    overflow: hidden;
+  }
+  .caller-avatar {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 60px rgba(255,255,255,0.1);
+    animation: float 6s ease-in-out infinite;
+  }
+  @keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0); }
+  }
+  .wave-ring {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    border: 2px solid rgba(249, 115, 22, 0.5);
+    animation: ripple 2s linear infinite;
+    pointer-events: none;
+  }
+  .wave-ring:nth-child(2) { animation-delay: 0.6s; }
+  .wave-ring:nth-child(3) { animation-delay: 1.2s; }
+  
+  @keyframes ripple {
+    0% { width: 200px; height: 200px; opacity: 1; }
+    100% { width: 400px; height: 400px; opacity: 0; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="h-full flex items-center justify-center pb-12">
+  <div class="call-container w-full max-w-md h-[700px] flex flex-col items-center py-12">
+    <!-- Header -->
+    <div class="text-center mb-16 z-10">
+      <h2 class="text-3xl font-black text-white">채원 (AI Tutor)</h2>
+      <p class="text-orange-400 font-mono mt-2" id="call-timer">00:00</p>
+    </div>
+
+    <!-- Avatar Center -->
+    <div class="relative w-full flex justify-center items-center flex-1">
+      <div class="wave-ring"></div>
+      <div class="wave-ring"></div>
+      <div class="wave-ring"></div>
+      <img src="/static/images/onui-pure-idol.png" class="caller-avatar z-10" />
+    </div>
+    
+    <!-- AI Speaking Transcript -->
+    <div class="w-3/4 text-center mt-8 z-10 min-h-[60px]">
+      <p class="text-white/80 font-medium text-lg leading-snug">"오늘 스타벅스에서 어떤 음료를 주문하시겠어요?"</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="flex gap-6 mt-12 z-10">
+      <button class="w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+        <span class="text-2xl">🎙️</span>
+      </button>
+      <button class="w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+        <span class="text-2xl">📹</span>
+      </button>
+      <button class="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors shadow-[0_0_30px_rgba(239,68,68,0.4)]" onclick="window.history.back()">
+        <span class="text-2xl transform rotate-135">📞</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let seconds = 0;
+  setInterval(() => {
+    seconds++;
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    document.getElementById('call-timer').innerText = `${m}:${s}`;
+  }, 1000);
+</script>
+{% endblock %}

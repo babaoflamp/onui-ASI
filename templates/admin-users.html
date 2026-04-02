@@ -1,0 +1,279 @@
+{% extends "base.html" %} {% block title %}사용자 관리 - 관리자{% endblock %} {%
+block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <p class="text-xs font-semibold text-blue-600 uppercase tracking-widest">
+        User Management
+      </p>
+      <h1 class="text-3xl font-bold text-gray-900 mt-1">사용자 관리</h1>
+      <p class="text-gray-600 mt-2">모든 사용자 계정, 권한, 활동 확인</p>
+    </div>
+  </div>
+
+  <!-- Alerts Container -->
+  <div id="alertsContainer" class="mb-6"></div>
+
+  <!-- Search & Filter -->
+  <div class="bg-white border border-gray-200 rounded-2xl p-4 mb-6 shadow-sm">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <input
+        id="searchKeyword"
+        type="text"
+        placeholder="이메일 또는 닉네임 검색..."
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 md:col-span-2"
+      />
+      <select
+        id="filterRole"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
+      >
+        <option value="">모든 역할</option>
+        <option value="system_admin">시스템관리자</option>
+        <option value="instructor">교수</option>
+        <option value="learner">학습자</option>
+      </select>
+      <button
+        onclick="loadUsers()"
+        class="px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition-colors"
+      >
+        🔍 검색 및 새로고침
+      </button>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div
+    class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden"
+  >
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700">
+              이메일
+            </th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700">
+              닉네임
+            </th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700">
+              역할
+            </th>
+            <th class="px-4 py-3 text-left font-semibold text-gray-700">
+              가입일
+            </th>
+            <th class="px-4 py-3 text-center font-semibold text-gray-700">
+              액션
+            </th>
+          </tr>
+        </thead>
+        <tbody id="usersTbody" class="divide-y divide-gray-100 bg-white">
+          <tr>
+            <td class="px-4 py-8 text-gray-500 text-center" colspan="5">
+              데이터를 불러오는 중입니다...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  (function () {
+    const alertsContainer = document.getElementById("alertsContainer");
+    const tbody = document.getElementById("usersTbody");
+    const searchEl = document.getElementById("searchKeyword");
+    const filterEl = document.getElementById("filterRole");
+
+    const roleLabelMap = {
+      learner: "학습자",
+      instructor: "교수",
+      system_admin: "시스템관리자",
+    };
+
+    function getAuthContext() {
+      const token = localStorage.getItem("auth_token");
+      const storedRole = localStorage.getItem("user_role");
+      const isAdmin = localStorage.getItem("is_admin") === "true";
+      const role = storedRole || (isAdmin ? "system_admin" : "learner");
+      return { token, role };
+    }
+
+    window.loadUsers = async function () {
+      const { token, role } = getAuthContext();
+      const allowedRoles = ["instructor", "system_admin"];
+
+      if (!token || !allowedRoles.includes(role)) {
+        AlertManager.error(
+          "접근 권한이 없습니다.",
+          "권한 오류",
+          alertsContainer,
+        );
+        setTimeout(() => (window.location.href = "/login"), 1500);
+        return;
+      }
+
+      try {
+        LoadingManager.show("사용자 목록을 불러오는 중...");
+        const res = await fetch("/api/admin/users?limit=200", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(
+            errorData.detail || "사용자 목록을 불러오지 못했습니다.",
+          );
+        }
+
+        const data = await res.json();
+        let users = data.users || [];
+
+        // 프론트엔드 필터링
+        const keyword = (searchEl.value || "").trim().toLowerCase();
+        const roleFilter = (filterEl.value || "").trim();
+
+        if (keyword) {
+          users = users.filter(
+            (u) =>
+              (u.email || "").toLowerCase().includes(keyword) ||
+              (u.nickname || "").toLowerCase().includes(keyword),
+          );
+        }
+        if (roleFilter) {
+          users = users.filter((u) => u.role === roleFilter);
+        }
+
+        if (users.length === 0) {
+          tbody.innerHTML = `<tr><td class="px-4 py-8 text-gray-500 text-center" colspan="5">일치하는 사용자가 없습니다.</td></tr>`;
+        } else {
+          const canManage = role === "system_admin";
+          tbody.innerHTML = users
+            .map((user) => {
+              const userRole = user.role || "learner";
+              const roleLabel = roleLabelMap[userRole] || "학습자";
+              const roleBadgeClass =
+                userRole === "system_admin"
+                  ? "bg-orange-100 text-orange-800"
+                  : userRole === "instructor"
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-gray-100 text-gray-800";
+
+              return `
+              <tr>
+                <td class="px-4 py-3 text-gray-900 font-medium">${user.email}</td>
+                <td class="px-4 py-3 text-gray-700">${user.nickname}</td>
+                <td class="px-4 py-3">
+                  <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${roleBadgeClass}">
+                    ${roleLabel}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-gray-500 text-xs">${(user.created_at || "").substring(0, 10)}</td>
+                <td class="px-4 py-3 text-center">
+                  ${
+                    canManage
+                      ? `
+                    <div class="flex items-center justify-center gap-2">
+                      <select id="role-${user.id}" class="border border-gray-200 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-blue-300">
+                        <option value="learner" ${userRole === "learner" ? "selected" : ""}>학습자</option>
+                        <option value="instructor" ${userRole === "instructor" ? "selected" : ""}>교수</option>
+                        <option value="system_admin" ${userRole === "system_admin" ? "selected" : ""}>관리자</option>
+                      </select>
+                      <button onclick="updateRole(${user.id})" class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs font-bold hover:bg-blue-100 transition">변경</button>
+                      <button onclick="resetPassword(${user.id})" class="px-2 py-1 bg-yellow-50 text-yellow-700 rounded text-xs font-bold hover:bg-yellow-100 transition">비번</button>
+                    </div>
+                  `
+                      : `<span class="text-gray-400 text-xs italic">읽기 전용</span>`
+                  }
+                </td>
+              </tr>
+            `;
+            })
+            .join("");
+        }
+
+        LoadingManager.hide();
+      } catch (err) {
+        LoadingManager.hide();
+        console.error("Load users error:", err);
+        AlertManager.error(err.message, "데이터 오류", alertsContainer);
+        tbody.innerHTML = `<tr><td class="px-4 py-8 text-red-500 text-center" colspan="5">${err.message}</td></tr>`;
+      }
+    };
+
+    window.updateRole = async function (userId) {
+      const { token } = getAuthContext();
+      const select = document.getElementById(`role-${userId}`);
+      if (!select || !token) return;
+
+      const newRole = select.value;
+      if (
+        !confirm(
+          `사용자의 역할을 '${roleLabelMap[newRole]}'으로 변경하시겠습니까?`,
+        )
+      )
+        return;
+
+      try {
+        const res = await fetch(`/api/admin/users/${userId}/role`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ role: newRole }),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.detail || "역할 변경에 실패했습니다.");
+        }
+
+        ToastManager.success("역할이 성공적으로 변경되었습니다.");
+        loadUsers();
+      } catch (err) {
+        AlertManager.error(err.message, "변경 오류", alertsContainer);
+      }
+    };
+
+    window.resetPassword = async function (userId) {
+      const { token } = getAuthContext();
+      if (!token) return;
+
+      const newPwd = prompt("새 비밀번호를 입력하세요 (8자 이상):");
+      if (!newPwd) return;
+      if (newPwd.length < 8) {
+        alert("비밀번호는 8자 이상이어야 합니다.");
+        return;
+      }
+
+      if (!confirm("해당 사용자의 비밀번호를 초기화하시겠습니까?")) return;
+
+      try {
+        const res = await fetch(`/api/admin/users/${userId}/reset-password`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ new_password: newPwd }),
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(
+            errorData.detail || "비밀번호 초기화에 실패했습니다.",
+          );
+        }
+
+        ToastManager.success("비밀번호가 성공적으로 초기화되었습니다.");
+      } catch (err) {
+        AlertManager.error(err.message, "초기화 오류", alertsContainer);
+      }
+    };
+
+    // Initial load
+    document.addEventListener("DOMContentLoaded", loadUsers);
+  })();
+</script>
+{% endblock %}

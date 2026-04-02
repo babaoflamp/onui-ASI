@@ -1,0 +1,289 @@
+{% extends "base.html" %} {% block title %}회원가입 | 오누이 한국어{% endblock
+%} {% block extra_css %}
+<style>
+  .glass-login-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+    border-radius: 40px;
+    width: 100%;
+    max-width: 440px;
+    padding: 40px 30px;
+  }
+
+  .input-dark {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-radius: 16px !important;
+    padding: 16px 20px !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .input-dark:focus {
+    border-color: rgba(249, 115, 22, 0.5) !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+  }
+
+  .btn-login {
+    background: #ffffff;
+    color: #000000;
+    font-weight: 900;
+    font-size: 1rem;
+    letter-spacing: -0.02em;
+    padding: 16px;
+    border-radius: 16px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-login:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 10px 25px rgba(255, 255, 255, 0.15);
+  }
+
+  .btn-login:active {
+    transform: scale(0.98);
+  }
+
+  .btn-login-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: -0.01em;
+    padding: 16px;
+    border-radius: 16px;
+    transition: all 0.2s;
+  }
+
+  .btn-login-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .text-link {
+    color: #fb923c;
+    font-weight: 700;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="page-shell mx-auto w-full max-w-7xl px-4 flex flex-col items-center">
+  <div class="glass-login-card text-center mt-2">
+    <!-- Header -->
+    <div class="mb-12">
+      <div class="sidebar-logo p-0 mb-6 text-3xl">
+        ONUI AI Speech Intelligence
+      </div>
+      <h1 class="text-3xl font-black text-white tracking-tighter mb-3">
+        Create Account
+      </h1>
+      <p class="text-white/40 font-medium">오누이와 함께 한국어 학습을 시작하세요</p>
+    </div>
+
+    <!-- Alerts Container -->
+    <div id="alertsContainer" class="mb-6 text-left"></div>
+
+    <form id="signupForm" class="space-y-2 text-left">
+      <div class="space-y-1">
+        <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-1">Name</label>
+        <input
+          id="name"
+          name="name"
+          type="text"
+          required
+          placeholder="Enter your name"
+          class="w-full input-dark outline-none text-base"
+        />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-1">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          placeholder="you@example.com"
+          class="w-full input-dark outline-none text-base"
+        />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-1">Nickname</label>
+        <input
+          id="nickname"
+          name="nickname"
+          type="text"
+          required
+          placeholder="Choose a nickname"
+          class="w-full input-dark outline-none text-base"
+        />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-1">Password</label>
+        <input
+          id="password"
+          name="password"
+          type="password"
+          required
+          placeholder="At least 8 characters"
+          class="w-full input-dark outline-none text-base"
+        />
+      </div>
+      <div class="space-y-1">
+        <label class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-1">Confirm Password</label>
+        <input
+          id="confirm_password"
+          name="confirm_password"
+          type="password"
+          required
+          placeholder="Confirm password"
+          class="w-full input-dark outline-none text-base"
+        />
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 mt-4">
+        <button id="signupBtn" type="submit" class="flex-1 btn-login">
+          CREATE ACCOUNT
+        </button>
+        <a href="/login" class="flex-1 btn-login-secondary flex items-center justify-center">
+          SIGN IN
+        </a>
+      </div>
+    </form>
+
+    <div class="mt-10 pt-10 border-t border-white/5 text-center text-sm">
+      <a
+        href="/"
+        class="text-xs font-black text-white/40 hover:text-white transition-colors"
+        >BACK TO HOME</a
+      >
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const form = document.getElementById("signupForm");
+      const signupBtn = document.getElementById("signupBtn");
+      const nameInput = document.getElementById("name");
+      const emailInput = document.getElementById("email");
+      const nicknameInput = document.getElementById("nickname");
+      const passwordInput = document.getElementById("password");
+      const confirmPasswordInput = document.getElementById("confirm_password");
+      const alertsContainer = document.getElementById("alertsContainer");
+
+      // Clear field errors on input
+      const inputs = [
+        nameInput,
+        emailInput,
+        nicknameInput,
+        passwordInput,
+        confirmPasswordInput,
+      ];
+      inputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          FormValidator.clearFieldError(input);
+        });
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // 유효성 검사
+        alertsContainer.innerHTML = "";
+        let hasErrors = false;
+
+        if (!FormValidator.isRequired(nameInput.value)) {
+          FormValidator.showFieldError(nameInput, "이름은 필수입니다.");
+          hasErrors = true;
+        }
+
+        if (!FormValidator.isRequired(emailInput.value)) {
+          FormValidator.showFieldError(emailInput, "이메일은 필수입니다.");
+          hasErrors = true;
+        } else if (!FormValidator.isValidEmail(emailInput.value)) {
+          FormValidator.showFieldError(
+            emailInput,
+            "유효한 이메일을 입력해주세요.",
+          );
+          hasErrors = true;
+        }
+
+        if (!FormValidator.isRequired(nicknameInput.value)) {
+          FormValidator.showFieldError(nicknameInput, "닉네임은 필수입니다.");
+          hasErrors = true;
+        }
+
+        if (!FormValidator.isRequired(passwordInput.value)) {
+          FormValidator.showFieldError(passwordInput, "비밀번호는 필수입니다.");
+          hasErrors = true;
+        } else if (!FormValidator.minLength(passwordInput.value, 8)) {
+          FormValidator.showFieldError(
+            passwordInput,
+            "비밀번호는 8자 이상이어야 합니다.",
+          );
+          hasErrors = true;
+        }
+
+        if (passwordInput.value !== confirmPasswordInput.value) {
+          FormValidator.showFieldError(
+            confirmPasswordInput,
+            "비밀번호가 일치하지 않습니다.",
+          );
+          hasErrors = true;
+        }
+
+        if (hasErrors) {
+          AlertManager.error(
+            "입력 정보를 확인해주세요.",
+            "유효성 검사 오류",
+            alertsContainer,
+          );
+          return;
+        }
+
+        LoadingManager.setButtonLoading(signupBtn, "가입 중...");
+
+        try {
+          const response = await fetch("/api/signup", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: nameInput.value,
+              email: emailInput.value,
+              nickname: nicknameInput.value,
+              password: passwordInput.value,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.detail || "회원가입에 실패했습니다.");
+          }
+
+          LoadingManager.clearButtonLoading(signupBtn);
+          ToastManager.success("회원가입이 완료되었습니다.");
+
+          setTimeout(() => {
+            window.location.href = "/login";
+          }, 1500);
+        } catch (error) {
+          console.error("회원가입 오류:", error);
+          LoadingManager.clearButtonLoading(signupBtn);
+          AlertManager.error(
+            error.message || "오류가 발생했습니다.",
+            "회원가입 실패",
+            alertsContainer,
+          );
+        }
+      });
+    })();
+  </script>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+<!-- AI Avatar Component: Idol Image with Animated Overlay -->
+<div id="ai-avatar-container" class="relative w-32 h-32 mx-auto group">
+    <!-- Speech Aura (Active when speaking) -->
+    <div id="avatar-aura" class="absolute inset-x-0 bottom-0 h-1/2 bg-pink-500/20 blur-[25px] opacity-0 transition-opacity duration-500"></div>
+
+    <!-- Main Avatar Image -->
+    <div class="relative w-full h-full rounded-full overflow-hidden border-2 border-white/20 shadow-2xl z-10 transition-transform duration-500 group-hover:scale-105">
+        <img id="avatar-img-main" src="/static/images/onui-pure-idol.png" alt="ONUI AI" class="w-full h-full object-cover">
+        
+        <!-- Animation Layer (Blinking) -->
+        <svg id="animation-overlay" viewBox="0 0 100 100" class="absolute inset-0 w-full h-full pointer-events-none z-20">
+            <!-- Blinking Eyes Overlay (Positions adjusted for the idol face) -->
+            <g id="eyes-blink-group" opacity="0">
+                <path d="M 39 44 Q 45 42 51 44" fill="none" stroke="#221100" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M 57 44 Q 63 42 69 44" fill="none" stroke="#221100" stroke-width="2.5" stroke-linecap="round"/>
+            </g>
+            
+            <!-- Mouth Speech Pulse Overlay -->
+             <circle id="speech-pulse" cx="54" cy="65" r="5" fill="pink" opacity="0">
+                <animate id="pulse-anim" attributeName="opacity" values="0;0.4;0" dur="0.8s" repeatCount="indefinite" begin="indefinite" />
+                <animate attributeName="r" values="4;8;4" dur="0.8s" repeatCount="indefinite" begin="indefinite" />
+             </circle>
+        </svg>
+    </div>
+
+    <!-- Glassy Label -->
+    <div id="avatar-status" class="absolute -top-6 left-1/2 -translate-x-1/2 bg-white/10 backdrop-blur-md text-[9px] font-black uppercase px-3 py-1.5 rounded-full border border-white/20 text-white/70 hidden z-30">Thinking...</div>
+</div>
+
+<style>
+    @keyframes gentle-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    #ai-avatar-container { animation: gentle-bob 4s infinite ease-in-out; }
+    
+    .is-speaking #avatar-aura { opacity: 1; }
+</style>
+
+<script>
+    window.AI_AVATAR = {
+        isSpeaking: false,
+        speak(text, durationMs) {
+            if (this.isSpeaking) return;
+            this.isSpeaking = true;
+            this.setStatus("Listening...");
+            
+            const container = document.getElementById('ai-avatar-container');
+            const pulse = document.getElementById('pulse-anim');
+            const pulseCircle = document.getElementById('speech-pulse');
+            
+            if (container) container.classList.add('is-speaking');
+            if (pulse) {
+                pulseCircle.style.opacity = '0.4';
+                pulse.beginElement();
+            }
+
+            setTimeout(() => {
+                if (container) container.classList.remove('is-speaking');
+                if (pulse) {
+                    pulseCircle.style.opacity = '0';
+                    pulse.endElement();
+                }
+                this.isSpeaking = false;
+                this.setStatus(null);
+            }, durationMs || 3500);
+        },
+
+        updateOutfit(situation) {
+            const img = document.getElementById('avatar-img-main');
+            if (!img) return;
+            let src = '/static/images/onui-pure-idol.png';
+            if (situation.includes('카페') || situation.includes('주문')) {
+                src = '/static/images/onui-idol-barista.png';
+            } else if (situation.includes('공항') || situation.includes('체크인')) {
+                src = '/static/images/onui-idol-staff.png';
+            } else if (situation.includes('병원') || situation.includes('증상')) {
+                src = '/static/images/onui-idol-nurse.png';
+            }
+            
+            img.style.transition = 'opacity 0.4s ease';
+            img.style.opacity = '0';
+            setTimeout(() => {
+                img.src = src;
+                img.style.opacity = '1';
+            }, 400);
+        },
+
+        blink() {
+            if (this.isSpeaking) return;
+            const blinkLayer = document.getElementById('eyes-blink-group');
+            if (blinkLayer) {
+                blinkLayer.style.opacity = '1';
+                setTimeout(() => blinkLayer.style.opacity = '0', 180);
+            }
+        },
+
+        setStatus(text) {
+            const el = document.getElementById('avatar-status');
+            if (el) { el.textContent = text; el.classList.toggle('hidden', !text); }
+        }
+    };
+    
+    setInterval(() => { if (!window.AI_AVATAR.isSpeaking && Math.random() > 0.65) window.AI_AVATAR.blink(); }, 3800);
+</script>
