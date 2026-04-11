@@ -10,89 +10,469 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
   }
-  .album-art {
-    width: 250px;
-    height: 250px;
-    border-radius: 20px;
-    box-shadow: 0 0 50px rgba(249, 115, 22, 0.2);
-    animation: pulseGlow 4s infinite alternate;
+
+  /* Simplified Player Style */
+  .album-art-container {
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 8px solid rgba(255,255,255,0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    background: #111;
+    margin-bottom: 2.5rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  @keyframes pulseGlow {
-    0% { box-shadow: 0 0 30px rgba(249, 115, 22, 0.2); }
-    100% { box-shadow: 0 0 60px rgba(249, 115, 22, 0.6); }
+  .album-art-img {
+    width: 100%;
+    height: 100%;
+    object-cover: cover;
+    transition: transform 0.5s ease;
   }
+  .playing .album-art-img {
+    animation: rotate 10s linear infinite;
+  }
+  .album-art-container::after {
+    content: '';
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: #111;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+    z-index: 10;
+  }
+  .vinyl-disk::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px; height: 20px;
+    background: #000;
+    border: 2px solid #333;
+    border-radius: 50%;
+  }
+
+  .playing .album-art, .playing .vinyl-disk {
+    animation: rotate 8s linear infinite;
+  }
+  .playing .vinyl-disk {
+    transform: translateX(60px);
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes rotate-with-offset {
+    from { transform: translateX(60px) rotate(0deg); }
+    to { transform: translateX(60px) rotate(360deg); }
+  }
+  .playing .vinyl-disk { animation: rotate-with-offset 8s linear infinite; }
+
   .lyric-blank {
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid rgba(255,255,255,0.5);
-    color: #f97316;
-    font-weight: 800;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px border-transparent;
+    border-bottom: 2px solid rgba(255,255,255,0.3);
+    color: #fb923c;
+    font-weight: 900;
     text-align: center;
-    width: 120px;
+    width: 100px;
+    padding: 2px 8px;
+    border-radius: 8px;
     outline: none;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .lyric-blank:focus {
-    border-color: #f97316;
+    background: rgba(249, 115, 22, 0.1);
+    border-bottom-color: #f97316;
+    width: 130px;
   }
   .lyric-blank.correct {
-    border-color: #22c55e;
+    background: rgba(34, 197, 94, 0.1);
+    border-bottom-color: #22c55e;
     color: #22c55e;
+  }
+  .lyric-blank.wrong {
+    background: rgba(239, 68, 68, 0.1);
+    border-bottom-color: #ef4444;
+  }
+  
+  /* Feedback Tooltip styles */
+  .feedback-tooltip {
+    position: absolute;
+    top: 110%; /* Place right below the input */
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 50;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    pointer-events: none;
+  }
+  
+  .feedback-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 6px 6px 6px;
+    border-style: solid;
+    border-color: transparent transparent rgba(0, 0, 0, 0.85) transparent;
+  }
+
+  .lyric-blank.wrong + .feedback-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  .answer-highlight {
+    color: #4ade80;
+    font-weight: 900;
+  }
+  .meaning-highlight {
+    color: #fb923c;
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  .song-card {
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .song-card:hover {
+    transform: translateY(-8px);
+    background: rgba(255,255,255,0.08);
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="h-full flex flex-col items-center max-w-4xl mx-auto pb-12">
-  <div class="w-full mb-8 text-center">
-    <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest mb-3">
-      <span class="text-orange-400">Onui Beats</span>
+<div id="beats-container" class="max-w-4xl mx-auto py-12 px-4 min-h-screen">
+  <!-- Premium Header Section -->
+  <div id="beats-header" class="mb-12 animate-in fade-in slide-in-from-top-8 duration-700 flex flex-col md:flex-row items-center justify-between bg-white/5 border border-white/10 p-8 rounded-[40px] relative overflow-hidden group">
+    <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/20 blur-[80px] rounded-full group-hover:bg-indigo-500/30 transition-all"></div>
+    <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-purple-500/20 blur-[80px] rounded-full group-hover:bg-purple-500/30 transition-all"></div>
+
+    <div class="md:w-3/5 relative z-10 text-center md:text-left mb-6 md:mb-0">
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-white/80 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
+        <span class="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></span>
+        K-Pop Blanks
+      </div>
+      <h1 class="text-3xl md:text-5xl font-black text-white mb-2 tracking-tighter leading-tight">
+        Onui <span class="bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent italic pb-2 pr-2">Beats</span>
+      </h1>
+      <p class="text-white/60 text-base font-medium leading-relaxed max-w-md" data-i18n="bt.desc">
+        Fill in the blanks of lyrics while listening to music. The most enjoyable way to learn Korean with rhythm!
+      </p>
     </div>
-    <h1 class="text-3xl font-black text-white tracking-tight">K-Pop Lyrics Challenge</h1>
-    <p class="text-white/40 text-sm mt-1">노래방처럼 음악을 듣고 가사의 빈칸을 채워보세요!</p>
+
+    <div class="md:w-2/5 relative z-10 flex justify-center md:justify-end">
+        <div class="relative w-32 h-32 md:w-44 md:h-44 rounded-[40px] overflow-hidden border-4 border-white/10 shadow-2xl rotate-3 group-hover:rotate-0 transition-all duration-700 bg-white/5">
+            <img src="/static/images/kpop-banner.svg" alt="K-Pop Vibes" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+        </div>
+    </div>
   </div>
 
-  <div class="suno-card w-full p-10 flex flex-col items-center">
-    <!-- Album Art -->
-    <img src="/static/images/onui-pure-idol.png" class="album-art object-cover mb-8" />
-    
-    <h2 class="text-2xl font-black text-white mb-1">ANTIFRAGILE</h2>
-    <p class="text-orange-400 font-bold mb-8">LE SSERAFIM</p>
+  <!-- Song Selection Lobby -->
+  <div id="lobby-screen" class="animate-in fade-in duration-700">
+    <h2 class="text-xl font-black text-white mb-8 flex items-center gap-3">
+       <span class="flex items-center justify-center w-8 h-8 bg-indigo-500 rounded-lg text-sm">🎵</span>
+       <span data-i18n="bt.select_stage">Select Your Stage</span>
+    </h2>
+    <div id="song-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Songs will be injected here -->
+      <div class="col-span-full py-20 text-center text-white/20 font-black uppercase tracking-widest animate-pulse" data-i18n="bt.loading_playlist">Loading Playlist...</div>
+    </div>
+  </div>
 
-    <!-- Music Player Mock -->
-    <div class="w-full max-w-md bg-black/40 rounded-full p-2 flex items-center gap-4 mb-10 border border-white/10">
-      <button class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition-transform" onclick="ToastManager.success('음원 재생 시작 (Mock)')">
-        <svg class="w-6 h-6 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-        <div class="h-full bg-gradient-to-r from-orange-500 to-pink-500 w-1/3"></div>
+  <!-- Game Screen -->
+  <div id="game-screen" class="hidden animate-in zoom-in duration-500">
+    <div class="flex items-center justify-between mb-8">
+       <button id="btn-back-lobby" class="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white/60 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all" data-i18n="bt.back_to_playlist">
+         ← Back to Playlist
+       </button>
+       <div class="flex items-center gap-4">
+          <div class="px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl">
+             <span class="text-[10px] font-black text-indigo-400 uppercase block leading-none mb-1" data-i18n="bt.accuracy">Accuracy</span>
+             <span id="accuracy-display" class="text-xl font-black text-white">0%</span>
+          </div>
+       </div>
+    </div>
+
+    <div id="game-card" class="suno-card w-full p-8 md:p-12 flex flex-col items-center">
+      <!-- Local Audio Album Art -->
+      <div id="player-visual" class="album-art-container">
+         <img id="game-album-art" src="/static/images/onui-pure-idol.png" class="album-art-img" alt="Album Art">
       </div>
-      <span class="text-xs font-bold text-white/50 pr-4">0:15 / 0:45</span>
-    </div>
+      
+      <div class="text-center mb-8">
+        <h2 id="game-song-title" class="text-3xl font-black text-white mb-2 tracking-tight">Song Title</h2>
+        <p id="game-song-artist" class="text-indigo-400 font-bold text-lg">Artist Name</p>
+      </div>
 
-    <!-- Lyrics Game -->
-    <div class="w-full max-w-lg space-y-6 text-center text-xl text-white/80 font-medium leading-relaxed">
-      <p>가시밭길 위로 riding, you made me boost</p>
-      <p>거짓으로 가득 찬 party <input type="text" class="lyric-blank" placeholder="___" spellcheck="false" autocomplete="off" onchange="checkAnswer(this, '가볍게')" /> 무시</p>
-      <p>내 뒤에 말들이 많아, 나도 알아</p>
-    </div>
+      <!-- Music Player Controls -->
+      <div class="w-full max-w-xl bg-black/40 backdrop-blur-xl rounded-2xl p-4 flex items-center gap-5 mb-12 border border-white/5">
+        <button id="play-btn" class="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-xl">
+          <svg id="play-icon" class="w-7 h-7 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="flex-1">
+          <div class="flex justify-between text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">
+             <span id="time-current">0:00</span>
+             <span id="time-total">0:00</span>
+          </div>
+          <div class="h-1.5 bg-white/10 rounded-full overflow-hidden cursor-pointer" id="progress-container">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 w-0 transition-all duration-100"></div>
+          </div>
+        </div>
+      </div>
 
-    <button class="mt-12 px-8 py-4 bg-orange-500 hover:bg-orange-400 text-white font-black rounded-full shadow-[0_0_30px_rgba(249,115,22,0.4)] transition-all active:scale-95">
-      정답 확인하기
-    </button>
+      <!-- Instructions -->
+      <div class="mb-10 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold text-white/40 uppercase tracking-widest" data-i18n="bt.instructions">
+         Fill in the blanks while listening
+      </div>
+
+      <!-- Lyrics Area -->
+      <div id="lyrics-container" class="w-full max-w-2xl space-y-8 text-center text-2xl text-white font-medium leading-relaxed">
+        <p class="animate-pulse text-white/20">Loading lyrics...</p>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-4 mt-16 w-full max-w-md">
+        <button id="check-ans-btn" class="flex-1 py-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-[1.02] text-white font-black rounded-[24px] shadow-2xl transition-all active:scale-95" data-i18n="bt.check_answer">
+          CHECK MY ANSWERS
+        </button>
+      </div>
+    </div>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<!-- Add Canvas Confetti Library for celebrations -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script>
-  function checkAnswer(input, correctAnswer) {
-    if (input.value.trim() === correctAnswer) {
-      input.classList.add('correct');
-      ToastManager.success('정답입니다! 🎵');
-    } else {
-      input.classList.remove('correct');
-      input.style.borderColor = 'red';
-      setTimeout(() => input.style.borderColor = '', 1000);
+  let audio = new Audio();
+  let songs = [];
+  let currentSong = null;
+  let progressInterval = null;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const playBtn = document.getElementById('play-btn');
+    const playIcon = document.getElementById('play-icon');
+    const progressBar = document.getElementById('progress-bar');
+    const progressContainer = document.getElementById('progress-container');
+    const timeCurrent = document.getElementById('time-current');
+    const timeTotal = document.getElementById('time-total');
+    const lyricsContainer = document.getElementById('lyrics-container');
+    const lobbyScreen = document.getElementById('lobby-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const songGrid = document.getElementById('song-grid');
+    const accuracyDisplay = document.getElementById('accuracy-display');
+    const playerVisual = document.getElementById('player-visual');
+
+    async function fetchSongs() {
+      try {
+        const resp = await fetch('/api/beats/songs');
+        const data = await resp.json();
+        if (data.success) {
+          songs = data.songs;
+          renderLobby();
+        }
+      } catch (err) { 
+        console.error('Failed to load songs', err); 
+      }
     }
-  }
+
+    function renderLobby() {
+      songGrid.innerHTML = songs.map((s, idx) => `
+        <div onclick="startSong(${idx})" class="song-card suno-card p-6 flex items-center gap-6 cursor-pointer group">
+           <div class="relative w-24 h-24 flex-shrink-0">
+             <img src="${s.image_url}" class="w-full h-full object-cover rounded-2xl shadow-lg group-hover:scale-105 transition-all duration-500" />
+           </div>
+           <div class="flex-1 overflow-hidden">
+             <h3 class="text-xl font-black text-white mb-1 truncate">${s.title}</h3>
+             <p class="text-indigo-400 font-bold text-sm uppercase tracking-widest">${s.artist}</p>
+           </div>
+           <div class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/20"> → </div>
+        </div>
+      `).join('');
+    }
+
+    window.startSong = (idx) => {
+      currentSong = songs[idx];
+      lobbyScreen.classList.add('hidden');
+      gameScreen.classList.remove('hidden');
+      
+      document.getElementById('game-song-title').innerText = currentSong.title;
+      document.getElementById('game-song-artist').innerText = currentSong.artist;
+      document.getElementById('game-album-art').src = currentSong.image_url;
+      
+      audio.src = currentSong.audio_url;
+      audio.play().catch(e => console.log("Autoplay blocked, waiting for user click"));
+      
+      accuracyDisplay.innerText = '0%';
+      renderLyrics();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    audio.onplay = () => {
+      playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+      playerVisual.classList.add('playing');
+      startProgressLoop();
+    };
+
+    audio.onpause = () => {
+      playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      playerVisual.classList.remove('playing');
+      stopProgressLoop();
+    };
+
+    function startProgressLoop() {
+      stopProgressLoop();
+      progressInterval = setInterval(() => {
+        if (!audio.paused) {
+          const curr = audio.currentTime;
+          const dur = audio.duration;
+          if (dur > 0) {
+            const prog = (curr / dur) * 100;
+            progressBar.style.width = prog + '%';
+            timeCurrent.innerText = formatTime(curr);
+            timeTotal.innerText = formatTime(dur);
+          }
+        }
+      }, 500);
+    }
+
+    function stopProgressLoop() {
+      if (progressInterval) clearInterval(progressInterval);
+    }
+
+    function renderLyrics() {
+      lyricsContainer.innerHTML = '';
+      if (!currentSong || !currentSong.lyrics) return;
+      
+      const answerLabel = translations['bt.answer'] || "Answer";
+      const meaningLabel = translations['bt.meaning'] || "Meaning";
+
+      currentSong.lyrics.forEach(line => {
+        const p = document.createElement('p');
+        p.className = 'lyric-line mb-4';
+        if (line.blank) {
+          const parts = line.text.split(line.blank);
+          const firstPart = parts[0];
+          const restPart = line.text.substring(firstPart.length + line.blank.length);
+          
+          const meaning = line.meaning || "Try again!";
+          
+          p.innerHTML = `${firstPart}<span class="relative inline-block">
+              <input type="text" class="lyric-blank" data-answer="${line.blank}" placeholder="..." spellcheck="false" autocomplete="off" oninput="this.classList.remove('wrong')"/>
+              <div class="feedback-tooltip">
+                 ${answerLabel}: <span class="answer-highlight">${line.blank}</span><br/>
+                 ${meaningLabel}: <span class="meaning-highlight">"${meaning}"</span>
+              </div>
+            </span>${restPart}`;
+        } else {
+          p.innerText = line.text;
+        }
+        lyricsContainer.appendChild(p);
+      });
+    }
+
+    playBtn.onclick = () => {
+      if (audio.paused) audio.play();
+      else audio.pause();
+    };
+
+    progressContainer.onclick = (e) => {
+       const rect = progressContainer.getBoundingClientRect();
+       const pos = (e.clientX - rect.left) / rect.width;
+       audio.currentTime = pos * audio.duration;
+    };
+
+    function formatTime(s) {
+      if (isNaN(s)) return "0:00";
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${m}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    document.getElementById('check-ans-btn').onclick = () => {
+      const inputs = document.querySelectorAll('.lyric-blank');
+      let correct = 0;
+      inputs.forEach(input => {
+        if (input.value.trim().toLowerCase() === input.dataset.answer.toLowerCase()) {
+          input.classList.add('correct');
+          input.classList.remove('wrong');
+          correct++;
+        } else {
+          input.classList.add('wrong');
+          input.classList.remove('correct');
+        }
+      });
+      
+      const acc = Math.round((correct / inputs.length) * 100);
+      animateAccuracy(acc);
+      
+      if (acc === 100) {
+        fireConfetti();
+        if (window.ToastManager) {
+            ToastManager.success(translations['bt.perfect'] || 'Perfect Score! You are a K-Pop Pro! 🌟');
+        }
+      }
+    };
+    
+    function animateAccuracy(target) {
+        let current = parseInt(accuracyDisplay.innerText) || 0;
+        const step = target > current ? 1 : -1;
+        
+        clearInterval(window.accInterval);
+        window.accInterval = setInterval(() => {
+            if (current === target) {
+                clearInterval(window.accInterval);
+                return;
+            }
+            current += step;
+            accuracyDisplay.innerText = current + '%';
+            
+            if (current === 100) accuracyDisplay.style.color = '#4ade80';
+            else if (current > 50) accuracyDisplay.style.color = '#fb923c';
+            else accuracyDisplay.style.color = 'white';
+        }, 15);
+    }
+    
+    function fireConfetti() {
+        if (typeof confetti === 'function') {
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#f97316', '#ec4899', '#3b82f6', '#10b981']
+            });
+        }
+    }
+
+    document.getElementById('btn-back-lobby').onclick = () => {
+      audio.pause();
+      gameScreen.classList.add('hidden');
+      lobbyScreen.classList.remove('hidden');
+    };
+
+    fetchSongs();
+  });
 </script>
 {% endblock %}

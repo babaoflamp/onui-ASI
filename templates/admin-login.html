@@ -14,13 +14,13 @@ endblock %} {% block content %}
         >
           Admin Access
         </p>
-        <h1 class="text-3xl font-bold text-gray-900 mt-2">관리자 로그인</h1>
-        <p class="text-gray-600 mt-2">관리자만 접근 가능한 영역입니다.</p>
+        <h1 class="text-3xl font-bold text-gray-900 mt-2" data-i18n="adm.admin_login">Admin Login</h1>
+        <p class="text-gray-600 mt-2" data-i18n="adm.admin_only">Restricted area for administrators only.</p>
       </div>
 
       <form id="adminLoginForm" class="space-y-5">
         <div class="space-y-2">
-          <label class="text-sm font-semibold text-gray-800">이메일</label>
+          <label class="text-sm font-semibold text-gray-800" data-i18n="log.email">Email</label>
           <input
             id="emailInput"
             name="email"
@@ -33,7 +33,7 @@ endblock %} {% block content %}
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-semibold text-gray-800">비밀번호</label>
+          <label class="text-sm font-semibold text-gray-800" data-i18n="log.password">Password</label>
           <input
             id="passwordInput"
             name="password"
@@ -49,17 +49,19 @@ endblock %} {% block content %}
           id="adminLoginBtn"
           type="submit"
           class="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold py-3 rounded-lg shadow-lg hover:from-orange-600 hover:to-pink-600 transition-all duration-200 active:scale-95"
+          data-i18n="adm.admin_login"
         >
-          관리자 로그인
+          Admin Login
         </button>
       </form>
 
       <div class="mt-6 text-center text-sm text-gray-500">
-        <p>일반 사용자 계정으로는 접근할 수 없습니다.</p>
+        <p data-i18n="adm.no_user_access">Regular user accounts cannot access this area.</p>
         <a
           href="/login"
           class="text-orange-600 font-semibold hover:text-orange-700"
-          >일반 로그인으로 이동 →</a
+          data-i18n="adm.go_regular_login"
+          >Go to regular login →</a
         >
       </div>
     </div>
@@ -91,23 +93,23 @@ endblock %} {% block content %}
       let hasErrors = false;
 
       if (!FormValidator.isRequired(emailInput.value)) {
-        FormValidator.showFieldError(emailInput, "이메일은 필수입니다.");
+        FormValidator.showFieldError(emailInput, "Email is required.");
         hasErrors = true;
       } else if (!FormValidator.isValidEmail(emailInput.value)) {
         FormValidator.showFieldError(
           emailInput,
-          "유효한 이메일을 입력해주세요.",
+          "Please enter a valid email.",
         );
         hasErrors = true;
       }
 
       if (!FormValidator.isRequired(passwordInput.value)) {
-        FormValidator.showFieldError(passwordInput, "비밀번호는 필수입니다.");
+        FormValidator.showFieldError(passwordInput, "Password is required.");
         hasErrors = true;
       }
 
       if (hasErrors) {
-        ToastManager.error("입력 정보를 확인해주세요.");
+        ToastManager.error(translations['toast.fill_all'] || "Please check your input.");
         return;
       }
 
@@ -116,7 +118,7 @@ endblock %} {% block content %}
         password: passwordInput.value,
       };
 
-      LoadingManager.setButtonLoading(adminLoginBtn, "로그인 중...");
+      LoadingManager.setButtonLoading(adminLoginBtn, "Signing in...");
 
       try {
         const res = await fetch("/api/login", {
@@ -128,15 +130,15 @@ endblock %} {% block content %}
         if (!res.ok) {
           const error = await res
             .json()
-            .catch(() => ({ detail: "로그인 실패" }));
-          throw new Error(error.detail || "로그인에 실패했습니다.");
+            .catch(() => ({ detail: "Login failed" }));
+          throw new Error(error.detail || "Login failed.");
         }
 
         const data = await res.json();
         const role = data.role || "";
         const allowed = ["instructor", "system_admin"];
         if (!allowed.includes(role)) {
-          throw new Error("접근 권한이 없습니다.");
+          throw new Error("Access denied.");
         }
 
         localStorage.setItem("auth_token", data.token);
@@ -150,7 +152,7 @@ endblock %} {% block content %}
         localStorage.removeItem("is_guest");
 
         LoadingManager.clearButtonLoading(adminLoginBtn);
-        ToastManager.success(`${data.nickname}님 환영합니다!`);
+        ToastManager.success(`Welcome, ${data.nickname}!`);
 
         setTimeout(() => {
           if (role === "instructor") {

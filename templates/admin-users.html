@@ -6,8 +6,8 @@ block content %}
       <p class="text-xs font-semibold text-blue-600 uppercase tracking-widest">
         User Management
       </p>
-      <h1 class="text-3xl font-bold text-gray-900 mt-1">사용자 관리</h1>
-      <p class="text-gray-600 mt-2">모든 사용자 계정, 권한, 활동 확인</p>
+      <h1 class="text-3xl font-bold text-gray-900 mt-1" data-i18n="adm.users">User Management</h1>
+      <p class="text-gray-600 mt-2" data-i18n="adm.users_desc">Manage all user accounts, permissions, and activities.</p>
     </div>
   </div>
 
@@ -20,23 +20,25 @@ block content %}
       <input
         id="searchKeyword"
         type="text"
-        placeholder="이메일 또는 닉네임 검색..."
+        placeholder="Search by email or nickname..."
+        data-i18n="adm.search_placeholder"
         class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400 md:col-span-2"
       />
       <select
         id="filterRole"
         class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
       >
-        <option value="">모든 역할</option>
-        <option value="system_admin">시스템관리자</option>
-        <option value="instructor">교수</option>
-        <option value="learner">학습자</option>
+        <option value="" data-i18n="adm.all_roles">All Roles</option>
+        <option value="system_admin" data-i18n="adm.role_admin">System Admin</option>
+        <option value="instructor" data-i18n="adm.role_instructor">Instructor</option>
+        <option value="learner" data-i18n="adm.role_learner">Learner</option>
       </select>
       <button
         onclick="loadUsers()"
         class="px-4 py-2 rounded-lg bg-blue-500 text-white font-semibold hover:bg-blue-600 transition-colors"
+        data-i18n="adm.search_refresh"
       >
-        🔍 검색 및 새로고침
+        🔍 Search & Refresh
       </button>
     </div>
   </div>
@@ -49,27 +51,27 @@ block content %}
       <table class="min-w-full divide-y divide-gray-200 text-sm">
         <thead class="bg-gray-50">
           <tr>
-            <th class="px-4 py-3 text-left font-semibold text-gray-700">
-              이메일
+            <th class="px-4 py-3 text-left font-semibold text-gray-700" data-i18n="adm.email">
+              Email
             </th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-700">
-              닉네임
+            <th class="px-4 py-3 text-left font-semibold text-gray-700" data-i18n="adm.nickname">
+              Nickname
             </th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-700">
-              역할
+            <th class="px-4 py-3 text-left font-semibold text-gray-700" data-i18n="adm.role">
+              Role
             </th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-700">
-              가입일
+            <th class="px-4 py-3 text-left font-semibold text-gray-700" data-i18n="adm.signup_date">
+              Signup Date
             </th>
-            <th class="px-4 py-3 text-center font-semibold text-gray-700">
-              액션
+            <th class="px-4 py-3 text-center font-semibold text-gray-700" data-i18n="adm.actions">
+              Actions
             </th>
           </tr>
         </thead>
         <tbody id="usersTbody" class="divide-y divide-gray-100 bg-white">
           <tr>
-            <td class="px-4 py-8 text-gray-500 text-center" colspan="5">
-              데이터를 불러오는 중입니다...
+            <td class="px-4 py-8 text-gray-500 text-center" colspan="5" data-i18n="adm.loading_users">
+              Loading users...
             </td>
           </tr>
         </tbody>
@@ -86,9 +88,9 @@ block content %}
     const filterEl = document.getElementById("filterRole");
 
     const roleLabelMap = {
-      learner: "학습자",
-      instructor: "교수",
-      system_admin: "시스템관리자",
+      learner: translations['adm.role_learner'] || "Learner",
+      instructor: translations['adm.role_instructor'] || "Instructor",
+      system_admin: translations['adm.role_admin'] || "System Admin",
     };
 
     function getAuthContext() {
@@ -105,8 +107,8 @@ block content %}
 
       if (!token || !allowedRoles.includes(role)) {
         AlertManager.error(
-          "접근 권한이 없습니다.",
-          "권한 오류",
+          "Access denied.",
+          "Permission Error",
           alertsContainer,
         );
         setTimeout(() => (window.location.href = "/login"), 1500);
@@ -114,7 +116,7 @@ block content %}
       }
 
       try {
-        LoadingManager.show("사용자 목록을 불러오는 중...");
+        LoadingManager.show(translations['adm.loading_users'] || "Loading users...");
         const res = await fetch("/api/admin/users?limit=200", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -143,10 +145,12 @@ block content %}
         if (roleFilter) {
           users = users.filter((u) => u.role === roleFilter);
         }
+if (users.length === 0) {
+  const noMatch = translations['adm.no_match'] || "No matching users found.";
+  tbody.innerHTML = `<tr><td class="px-4 py-8 text-gray-500 text-center" colspan="5">${noMatch}</td></tr>`;
+  return;
+}
 
-        if (users.length === 0) {
-          tbody.innerHTML = `<tr><td class="px-4 py-8 text-gray-500 text-center" colspan="5">일치하는 사용자가 없습니다.</td></tr>`;
-        } else {
           const canManage = role === "system_admin";
           tbody.innerHTML = users
             .map((user) => {

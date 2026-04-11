@@ -7,12 +7,13 @@
     <button
       id="chatbot-toggle"
       class="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110"
-      aria-label="챗봇"
-      title="챗봇"
+      aria-label="Chatbot"
+      data-i18n="float.chatbot"
+      title="Chatbot"
     >
       <img
         src="/static/tiger_chatbot.svg"
-        alt="호랑이 챗봇"
+        alt="Tiger Chatbot"
         class="w-12 h-12"
       />
     </button>
@@ -27,8 +28,9 @@
         id="mail-toggle"
         class="w-16 h-16 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 border-2 border-blue-400 relative"
         onclick="toggleMailNotification()"
-        aria-label="메일함"
-        title="메일함"
+        aria-label="Mailbox"
+        data-i18n="float.mailbox"
+        title="Mailbox"
       >
         <span class="text-4xl leading-none select-none" aria-hidden="true"
           >📬</span
@@ -47,8 +49,9 @@
         id="krdict-toggle"
         type="button"
         class="w-16 h-16 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center hover:scale-110 border-2 border-emerald-400"
-        aria-label="사전 검색"
-        title="사전 검색"
+        aria-label="Dictionary Search"
+        data-i18n="float.dictionary"
+        title="Dictionary Search"
       >
         <span class="text-4xl leading-none select-none" aria-hidden="true"
           >📖</span
@@ -69,13 +72,13 @@
     >
       <div class="flex items-center gap-2">
         <span class="text-lg" aria-hidden="true">📖</span>
-        <div class="font-semibold">사전 검색</div>
+        <div class="font-semibold" data-i18n="dict.title">Dictionary Search</div>
       </div>
       <button
         id="krdict-close"
         type="button"
         class="text-white hover:bg-white/20 rounded-full p-1"
-        aria-label="닫기"
+        aria-label="Close"
       >
         <svg
           class="w-6 h-6"
@@ -102,7 +105,8 @@
         <input
           type="text"
           id="krdict-widget-query"
-          placeholder="예) 나무, 나무라다"
+          placeholder="e.g. tree, to scold"
+          data-i18n="dict.placeholder"
           class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-400"
           autocomplete="off"
         />
@@ -110,46 +114,47 @@
           id="krdict-widget-submit"
           type="submit"
           class="px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition disabled:opacity-60"
+          data-i18n="dict.btn_search"
         >
-          검색
+          Search
         </button>
       </div>
 
       <div class="grid grid-cols-3 gap-2">
         <div>
-          <label for="krdict-widget-part" class="sr-only">검색 대상</label>
+          <label for="krdict-widget-part" class="sr-only">Search Target</label>
           <select
             id="krdict-widget-part"
             class="w-full rounded-xl border border-gray-200 px-2 py-2 text-xs bg-white"
           >
-            <option value="">전체</option>
-            <option value="word">어휘</option>
-            <option value="ip">관용구/속담</option>
-            <option value="dfn">뜻풀이</option>
-            <option value="exam">용례</option>
+            <option value="" data-i18n="dict.all">All</option>
+            <option value="word" data-i18n="dict.word">Vocabulary</option>
+            <option value="ip" data-i18n="dict.idiom">Idiom/Proverb</option>
+            <option value="dfn" data-i18n="dict.definition">Definition</option>
+            <option value="exam" data-i18n="dict.example">Example</option>
           </select>
         </div>
         <div>
-          <label for="krdict-widget-method" class="sr-only">검색 방식</label>
+          <label for="krdict-widget-method" class="sr-only">Search Method</label>
           <select
             id="krdict-widget-method"
             class="w-full rounded-xl border border-gray-200 px-2 py-2 text-xs bg-white"
           >
-            <option value="">일치</option>
-            <option value="include">포함</option>
-            <option value="start">시작</option>
-            <option value="end">끝</option>
+            <option value="" data-i18n="dict.match">Exact</option>
+            <option value="include" data-i18n="dict.include">Include</option>
+            <option value="start" data-i18n="dict.start">Start</option>
+            <option value="end" data-i18n="dict.end">End</option>
           </select>
         </div>
         <div>
-          <label for="krdict-widget-num" class="sr-only">출력 건수</label>
+          <label for="krdict-widget-num" class="sr-only">Result Count</label>
           <select
             id="krdict-widget-num"
             class="w-full rounded-xl border border-gray-200 px-2 py-2 text-xs bg-white"
           >
-            <option value="10">10개</option>
-            <option value="20">20개</option>
-            <option value="30">30개</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="30">30</option>
           </select>
         </div>
       </div>
@@ -164,8 +169,8 @@
       id="krdict-widget-results"
       class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50"
     >
-      <div class="text-sm text-gray-500">
-        검색어를 입력하고 Enter를 눌러보세요.
+      <div class="text-sm text-gray-500" data-i18n="dict.hint">
+        Enter a word and press Enter.
       </div>
     </div>
 
@@ -176,10 +181,11 @@
       <a
         href="/krdict"
         class="text-xs text-emerald-700 hover:text-emerald-600 font-semibold"
+        data-i18n="dict.open_full"
       >
-        전체 페이지로 열기 →
+        Open in full page →
       </a>
-      <div class="text-[11px] text-gray-400">한국어기초사전(Open API)</div>
+      <div class="text-[11px] text-gray-400">KRDict (Open API)</div>
     </div>
   </div>
 
@@ -190,11 +196,11 @@
     style="z-index: 48"
   >
     <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-      <h3 class="font-bold text-gray-900">📬 메일함</h3>
+      <h3 class="font-bold text-gray-900" data-i18n="mail.title">📬 Mailbox</h3>
       <button
         onclick="toggleMailNotification()"
         class="text-gray-400 hover:text-gray-600 transition-colors p-1"
-        title="닫기"
+        title="Close"
       >
         <svg
           class="w-5 h-5"
@@ -212,8 +218,8 @@
       </button>
     </div>
     <div id="mail-list" class="max-h-80 overflow-y-auto">
-      <div class="p-4 text-center text-gray-500 text-sm">
-        새 메일이 없습니다.
+      <div class="p-4 text-center text-gray-500 text-sm" data-i18n="mail.empty">
+        No new messages.
       </div>
     </div>
   </div>
@@ -238,7 +244,7 @@
             id="mail-modal-title"
             class="text-xl font-bold text-gray-900 truncate"
           >
-            메일 제목
+            Mail Title
           </h2>
         </div>
         <button
@@ -267,7 +273,7 @@
           id="mail-modal-message"
           class="text-gray-700 leading-relaxed whitespace-pre-wrap"
         >
-          메일 내용
+          Mail Message
         </p>
       </div>
 
@@ -276,8 +282,9 @@
         <button
           onclick="closeMail()"
           class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+          data-i18n="pop.confirm"
         >
-          확인
+          Confirm
         </button>
       </div>
     </div>
@@ -295,16 +302,16 @@
       <div class="flex items-center gap-2">
         <img
           src="/static/tiger_chatbot.svg"
-          alt="호랑이 챗봇"
+          alt="Tiger Chatbot"
           class="w-8 h-8"
         />
-        <div class="font-semibold">AI 한국어 호랭이 튜터</div>
+        <div class="font-semibold" data-i18n="chat.title">AI Korean Tiger Tutor</div>
       </div>
       <button
         id="chatbot-close"
         type="button"
         class="text-white hover:bg-white/20 rounded-full p-1"
-        aria-label="닫기"
+        aria-label="Close"
       >
         <svg
           class="w-6 h-6"
@@ -342,10 +349,10 @@
             <div
               class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100"
             >
-              <p class="text-gray-800">
-                안녕하세요! 👋<br />
-                저는 한국어 학습을 도와드리는 AI 튜터입니다.<br />
-                발음, 문법, 단어, 문화 등 무엇이든 편하게 질문해주세요!
+              <p class="text-gray-800" data-i18n="chat.welcome">
+                Hello! 👋<br />
+                I am an AI tutor helping you learn Korean.<br />
+                Feel free to ask anything about pronunciation, grammar, vocabulary, or culture!
               </p>
             </div>
           </div>
@@ -358,32 +365,37 @@
           <input
             type="text"
             id="user-input"
-            placeholder="메시지를 입력하세요..."
+            placeholder="Type your message..."
+            data-i18n="chat.placeholder"
             class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             autocomplete="off"
           />
           <button
             id="send-button"
             class="px-4 py-2 text-sm bg-[#FF8C1A] border-2 border-[#FF8C1A] text-white font-semibold rounded-full hover:bg-[#e67a15] focus:outline-none focus:ring-2 focus:ring-[#FF8C1A] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            data-i18n="chat.btn_send"
           >
-            전송
+            Send
           </button>
         </div>
         <div class="mt-1 flex flex-wrap gap-1">
           <button
             class="suggestion-btn px-3 py-1 text-xs bg-[#FFE6BF] border-2 border-[#FF8C1A] text-gray-800 rounded-full hover:bg-[#FF8C1A] hover:text-white transition font-semibold"
+            data-i18n="chat.suggest1"
           >
-            발음 연습 방법 알려줘
+            How to practice pronunciation
           </button>
           <button
             class="suggestion-btn px-3 py-1 text-xs bg-[#FFE6BF] border-2 border-[#FF8C1A] text-gray-800 rounded-full hover:bg-[#FF8C1A] hover:text-white transition font-semibold"
+            data-i18n="chat.suggest2"
           >
-            받침 발음이 어려워요
+            Struggling with final consonants
           </button>
           <button
             class="suggestion-btn px-3 py-1 text-xs bg-[#FFE6BF] border-2 border-[#FF8C1A] text-gray-800 rounded-full hover:bg-[#FF8C1A] hover:text-white transition font-semibold"
+            data-i18n="chat.suggest3"
           >
-            존댓말 사용법
+            Honorifics usage
           </button>
         </div>
       </div>

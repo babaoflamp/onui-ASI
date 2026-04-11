@@ -74,6 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
       )
       .join("");
 
+    const detailLabel = (typeof translations !== 'undefined' && translations['dict.open_full']) || "Open in full page →";
     return `
       <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
         <div class="flex justify-between items-start mb-2">
@@ -83,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${sensesHtml}
         ${
           item.link
-            ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-xs text-emerald-700 hover:text-emerald-600 font-semibold">사전 상세 보기 →</a>`
+            ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-xs text-emerald-700 hover:text-emerald-600 font-semibold">${detailLabel}</a>`
             : ""
         }
       </div>
@@ -91,12 +92,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function fetchKrdictResults(query) {
-    setKrdictStatus("검색 중...");
+    const searchingText = "Searching...";
+    setKrdictStatus(searchingText);
     if (krdictResults) {
       krdictResults.innerHTML = `
         <div class="text-center py-4 text-gray-500">
           <div class="spinner"></div>
-          <p>검색 중...</p>
+          <p>${searchingText}</p>
         </div>
       `;
     }
@@ -116,8 +118,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!response.ok) {
         const message = result.error
-          ? result.error.message || "알 수 없는 오류"
-          : "검색 요청 실패";
+          ? result.error.message || "Unknown error"
+          : "Search request failed";
         setKrdictStatus(message);
         if (krdictResults) {
           krdictResults.innerHTML = `
@@ -131,12 +133,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const items = result.items || [];
       if (items.length === 0) {
-        setKrdictStatus("검색 결과가 없습니다.");
+        const noResults = "No results found.";
+        setKrdictStatus(noResults);
         if (krdictResults) {
           krdictResults.innerHTML = `
             <div class="text-center py-4 text-gray-500">
-              <p>검색 결과가 없습니다.</p>
-              <p class="text-xs mt-1">다른 검색어나 검색 방식을 사용해 보세요.</p>
+              <p>${noResults}</p>
+              <p class="text-xs mt-1">Try a different word or search method.</p>
             </div>
           `;
         }
@@ -148,12 +151,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } catch (error) {
       console.error("KRDIC search error:", error);
-      setKrdictStatus("검색 요청을 처리하지 못했습니다.");
+      const errorMsg = "Failed to process search request.";
+      setKrdictStatus(errorMsg);
       if (krdictResults) {
         krdictResults.innerHTML = `
           <div class="text-center py-4 text-red-500">
-            <p>검색 요청을 처리하지 못했습니다.</p>
-            <p class="text-xs mt-1">네트워크 문제이거나 서버 오류일 수 있습니다.</p>
+            <p>${errorMsg}</p>
+            <p class="text-xs mt-1">Check your network or server.</p>
           </div>
         `;
       }
@@ -199,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="flex-shrink-0">
         <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white font-bold">
-          나
+          Me
         </div>
       </div>
     `;
@@ -293,7 +297,8 @@ document.addEventListener("DOMContentLoaded", () => {
       addAIMessage(data.response);
     } catch (error) {
       console.error("Error sending message:", error);
-      addAIMessage("죄송합니다. 메시지를 처리하는 중에 오류가 발생했습니다.");
+      const errMsg = (typeof translations !== 'undefined' && translations['toast.fetch_failed']) || "Sorry, an error occurred while processing your message.";
+      addAIMessage(errMsg);
     } finally {
       removeTypingIndicator();
       sendButton.disabled = false;
@@ -320,7 +325,8 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const query = (krdictQuery?.value || "").trim();
       if (!query) {
-        setKrdictStatus("검색어를 입력해주세요.");
+        const alertMsg = (typeof translations !== 'undefined' && translations['toast.fill_all']) || "Please enter a search word.";
+        setKrdictStatus(alertMsg);
         return;
       }
       saveKrdictWidgetPreferences();

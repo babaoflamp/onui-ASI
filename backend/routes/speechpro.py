@@ -1,4 +1,5 @@
 import logging
+
 logger = logging.getLogger(__name__)
 import os
 import tempfile
@@ -49,7 +50,7 @@ def _cleanup_old_audio_uploads(upload_dir: Path, days: int = 30) -> None:
 class SpeechProFeedbackRequest(BaseModel):
     text: str
     score: dict
-    ui_lang: Optional[str] = "ko"
+    ui_lang: Optional[str] = "en"
 
 
 def _get_state(request: Request, name: str):
@@ -66,39 +67,15 @@ def _redirect_if_unauthenticated(request: Request):
 @router.get("/speechpro-practice")
 def speechpro_practice_page(request: Request):
     """SpeechPro 발음 정확도 평가"""
-    logger.info(f"[API_CALL] endpoint={request.url.path} method={request.method} params={dict(request.query_params)}")
+    logger.info(
+        f"[API_CALL] endpoint={request.url.path} method={request.method} params={dict(request.query_params)}"
+    )
     templates = _get_state(request, "templates")
     if templates is None:
-        return JSONResponse(status_code=500, content={"error": "Templates not configured"})
+        return JSONResponse(
+            status_code=500, content={"error": "Templates not configured"}
+        )
     return templates.TemplateResponse("speechpro-practice.html", {"request": request})
-
-
-@router.get("/speechpro-practice-words")
-def speechpro_practice_words_page(request: Request):
-    """SpeechPro 단어 발음 연습 페이지"""
-    logger.info(f"[API_CALL] endpoint={request.url.path} method={request.method} params={dict(request.query_params)}")
-    templates = _get_state(request, "templates")
-    if templates is None:
-        return JSONResponse(status_code=500, content={"error": "Templates not configured"})
-    return templates.TemplateResponse("speechpro-word-practice.html", {"request": request})
-
-
-@router.get("/sentence-evaluation")
-def sentence_evaluation_page(request: Request):
-    """AI 자율 학습 - 문장 직접 입력 발음 평가 페이지"""
-    templates = _get_state(request, "templates")
-    if templates is None:
-        return JSONResponse(status_code=500, content={"error": "Templates not configured"})
-    return templates.TemplateResponse("sentence-evaluation.html", {"request": request})
-
-
-@router.get("/speechpro-batch")
-def speechpro_batch_page(request: Request):
-    """SpeechPro 다중 파일 배치 평가 페이지"""
-    templates = _get_state(request, "templates")
-    if templates is None:
-        return JSONResponse(status_code=500, content={"error": "Templates not configured"})
-    return templates.TemplateResponse("speechpro-batch.html", {"request": request})
 
 
 # ==========================================
@@ -114,7 +91,8 @@ async def get_speechpro_sentences(
     load_precomputed = _get_state(request, "load_speechpro_precomputed_sentences")
     if not callable(load_precomputed):
         return JSONResponse(
-            status_code=500, content={"error": "SpeechPro sentences loader not configured"}
+            status_code=500,
+            content={"error": "SpeechPro sentences loader not configured"},
         )
     try:
         precomputed = load_precomputed()
@@ -152,7 +130,10 @@ async def get_speechpro_sentence(request: Request, sentence_id: int):
     """Get a specific SpeechPro evaluation sentence by ID"""
     load_precomputed = _get_state(request, "load_speechpro_precomputed_sentences")
     if not callable(load_precomputed):
-        return JSONResponse(status_code=500, content={"error": "SpeechPro sentences loader not configured"})
+        return JSONResponse(
+            status_code=500,
+            content={"error": "SpeechPro sentences loader not configured"},
+        )
     try:
         sentences = load_precomputed()
         sentence = next((s for s in sentences if s.get("id") == sentence_id), None)
@@ -171,7 +152,10 @@ async def get_speechpro_sentences_by_level(request: Request, level: str):
     """Get SpeechPro evaluation sentences by level (A1, A2, B1, etc.)"""
     load_precomputed = _get_state(request, "load_speechpro_precomputed_sentences")
     if not callable(load_precomputed):
-        return JSONResponse(status_code=500, content={"error": "SpeechPro sentences loader not configured"})
+        return JSONResponse(
+            status_code=500,
+            content={"error": "SpeechPro sentences loader not configured"},
+        )
     try:
         sentences = load_precomputed()
         if level.lower() == "all":
@@ -240,7 +224,9 @@ async def speechpro_gtp(data: dict = None):
     except RuntimeError as e:
         return JSONResponse(status_code=503, content={"error": str(e)})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": f"GTP processing failed: {str(e)}"})
+        return JSONResponse(
+            status_code=500, content={"error": f"GTP processing failed: {str(e)}"}
+        )
 
 
 @router.post("/api/speechpro/model")
@@ -258,7 +244,10 @@ async def speechpro_model(data: dict = None):
         syll_phns = data.get("syll_phns", "").strip()
 
         if not all([text, syll_ltrs, syll_phns]):
-            return JSONResponse(status_code=400, content={"error": "text, syll_ltrs, syll_phns are required"})
+            return JSONResponse(
+                status_code=400,
+                content={"error": "text, syll_ltrs, syll_phns are required"},
+            )
 
         result = call_speechpro_model(text, syll_ltrs, syll_phns)
         return JSONResponse(content=result.to_dict())
@@ -267,7 +256,9 @@ async def speechpro_model(data: dict = None):
     except RuntimeError as e:
         return JSONResponse(status_code=503, content={"error": str(e)})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": f"Model processing failed: {str(e)}"})
+        return JSONResponse(
+            status_code=500, content={"error": f"Model processing failed: {str(e)}"}
+        )
 
 
 @router.post("/api/speechpro/score")
@@ -283,20 +274,28 @@ async def speechpro_score(
     Score JSON API - 발음 평가
     사용자의 음성 데이터를 전송하여 발음 정확도를 평가합니다.
     """
-    logger.info(f"[API_CALL] endpoint={request.url.path} method={request.method} params={{'text': text, 'syll_ltrs': syll_ltrs, 'syll_phns': syll_phns, 'fst': fst, 'audio_filename': audio.filename}}")
+    logger.info(
+        f"[API_CALL] endpoint={request.url.path} method={request.method} params={{'text': text, 'syll_ltrs': syll_ltrs, 'syll_phns': syll_phns, 'fst': fst, 'audio_filename': audio.filename}}"
+    )
     try:
         audio_content_raw = await audio.read()
         if not audio_content_raw:
-            return JSONResponse(status_code=400, content={"error": "audio file is required"})
+            return JSONResponse(
+                status_code=400, content={"error": "audio file is required"}
+            )
 
         convert_audio = _get_state(request, "convert_audio_bytes_to_wav16")
         if not callable(convert_audio):
-            return JSONResponse(status_code=500, content={"error": "audio convert not configured"})
+            return JSONResponse(
+                status_code=500, content={"error": "audio convert not configured"}
+            )
 
         try:
             audio_content = convert_audio(audio_content_raw)
         except Exception as conv_err:
-            return JSONResponse(status_code=400, content={"error": f"audio convert failed: {conv_err}"})
+            return JSONResponse(
+                status_code=400, content={"error": f"audio convert failed: {conv_err}"}
+            )
 
         text = text.strip()
         if not all([text, syll_ltrs, syll_phns, fst]):
@@ -312,7 +311,9 @@ async def speechpro_score(
     except RuntimeError as e:
         return JSONResponse(status_code=503, content={"error": str(e)})
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": f"Score processing failed: {str(e)}"})
+        return JSONResponse(
+            status_code=500, content={"error": f"Score processing failed: {str(e)}"}
+        )
 
 
 @router.post("/api/speechpro/evaluate")
@@ -357,8 +358,15 @@ async def speechpro_evaluate(
     find_preset = _get_state(request, "find_precomputed_sentence")
     generate_feedback = _get_state(request, "generate_pronunciation_feedback")
 
-    if not callable(convert_audio) or not callable(find_preset) or not callable(generate_feedback):
-        return JSONResponse(status_code=500, content={"error": "SpeechPro helpers not configured", "success": False})
+    if (
+        not callable(convert_audio)
+        or not callable(find_preset)
+        or not callable(generate_feedback)
+    ):
+        return JSONResponse(
+            status_code=500,
+            content={"error": "SpeechPro helpers not configured", "success": False},
+        )
 
     try:
         upload_dir = _ensure_audio_upload_dir()
@@ -370,7 +378,9 @@ async def speechpro_evaluate(
         if not text:
             return JSONResponse(status_code=400, content={"error": "text is required"})
         if not audio_content_raw:
-            return JSONResponse(status_code=400, content={"error": "audio file is required"})
+            return JSONResponse(
+                status_code=400, content={"error": "audio file is required"}
+            )
 
         saved_audio_path = None
         saved_meta_path = None
@@ -392,7 +402,9 @@ async def speechpro_evaluate(
         try:
             audio_content = convert_audio(audio_content_raw)
         except Exception as conv_err:
-            return JSONResponse(status_code=400, content={"error": f"audio convert failed: {conv_err}"})
+            return JSONResponse(
+                status_code=400, content={"error": f"audio convert failed: {conv_err}"}
+            )
 
         recognized_text = None
 
@@ -402,7 +414,9 @@ async def speechpro_evaluate(
             tmp_path = None
             try:
                 tmp_dir = str(app_tmp_dir) if app_tmp_dir else None
-                with tempfile.NamedTemporaryFile(suffix=".wav", delete=False, dir=tmp_dir) as tmp:
+                with tempfile.NamedTemporaryFile(
+                    suffix=".wav", delete=False, dir=tmp_dir
+                ) as tmp:
                     tmp.write(audio_content_raw)
                     tmp_path = tmp.name
                 with open(tmp_path, "rb") as f:
@@ -412,8 +426,7 @@ async def speechpro_evaluate(
                         language="ko",
                     )
                 recognized_text = (
-                    getattr(transcript, "text", None)
-                    or transcript.get("text")
+                    getattr(transcript, "text", None) or transcript.get("text")
                     if isinstance(transcript, dict)
                     else None
                 )
@@ -428,7 +441,12 @@ async def speechpro_evaluate(
                         pass
 
         # 2) Google STT fallback
-        if recognized_text is None and google_speech_available and callable(get_google_speech_client) and google_speech_module:
+        if (
+            recognized_text is None
+            and google_speech_available
+            and callable(get_google_speech_client)
+            and google_speech_module
+        ):
             try:
                 google_client = get_google_speech_client()
             except Exception as stt_err:
@@ -449,7 +467,9 @@ async def speechpro_evaluate(
                         if result.alternatives:
                             recognized_text = result.alternatives[0].transcript
                             break
-                    logger.info("[STT] backend=google success=%s", bool(recognized_text))
+                    logger.info(
+                        "[STT] backend=google success=%s", bool(recognized_text)
+                    )
                 except Exception as stt_err:
                     logger.warning("[STT] backend=google failed: %s", stt_err)
             else:
@@ -573,14 +593,19 @@ async def speechpro_evaluate(
                     if lms_user and db_path:
                         import sqlite3 as _sqlite3
                         from datetime import datetime as _dt, timezone as _tz
+
                         _now = _dt.now(_tz.utc).strftime("%Y-%m-%d %H:%M:%S")
                         _score_val = float(response_data.get("overall_score") or 0)
                         _score_dict = response_data.get("score") or {}
                         _details = _score_dict.get("details") or {}
                         _fluency = _details.get("fluency") or {}
                         _accuracy = float(_score_dict.get("accuracy_percentage") or 0)
-                        _completeness = float(_score_dict.get("completeness_percentage") or 0)
-                        _fluency_acc = float(_fluency.get("correct_syllable_count") or 0)
+                        _completeness = float(
+                            _score_dict.get("completeness_percentage") or 0
+                        )
+                        _fluency_acc = float(
+                            _fluency.get("correct_syllable_count") or 0
+                        )
                         _sentence_id = str(preset_id) if preset_id else "unknown"
                         _conn = _sqlite3.connect(db_path)
                         _cur = _conn.cursor()
@@ -603,11 +628,20 @@ async def speechpro_evaluate(
                                 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,'2026-1',?,?)
                                 """,
                                 (
-                                    lms_user["id"], _sentence_id, text, "",
-                                    _score_val, _score_val, _score_val,
-                                    _accuracy, _accuracy, _accuracy,
-                                    _completeness, _fluency_acc,
-                                    _now, _now,
+                                    lms_user["id"],
+                                    _sentence_id,
+                                    text,
+                                    "",
+                                    _score_val,
+                                    _score_val,
+                                    _score_val,
+                                    _accuracy,
+                                    _accuracy,
+                                    _accuracy,
+                                    _completeness,
+                                    _fluency_acc,
+                                    _now,
+                                    _now,
                                 ),
                             )
                         else:
@@ -624,14 +658,28 @@ async def speechpro_evaluate(
                                     last_attempted_at = ?
                                 WHERE user_id = ? AND sentence_id = ?
                                 """,
-                                (_new_best, _score_val, _accuracy, _accuracy,
-                                 _completeness, _fluency_acc, (_row[2] or 1) + 1,
-                                 _now, lms_user["id"], _sentence_id),
+                                (
+                                    _new_best,
+                                    _score_val,
+                                    _accuracy,
+                                    _accuracy,
+                                    _completeness,
+                                    _fluency_acc,
+                                    (_row[2] or 1) + 1,
+                                    _now,
+                                    lms_user["id"],
+                                    _sentence_id,
+                                ),
                             )
                         # 추가: 음성 녹음 기록 저장
                         _cur.execute(
                             "INSERT INTO user_voice_recordings (user_id, sentence_id, file_path, score) VALUES (?, ?, ?, ?)",
-                            (str(lms_user["id"]), str(_sentence_id), str(saved_audio_path) if saved_audio_path else "", float(_score_val))
+                            (
+                                str(lms_user["id"]),
+                                str(_sentence_id),
+                                str(saved_audio_path) if saved_audio_path else "",
+                                float(_score_val),
+                            ),
                         )
                         _conn.commit()
                         _conn.close()
@@ -645,7 +693,11 @@ async def speechpro_evaluate(
         result = speechpro_full_workflow(text, audio_content)
         if recognized_text:
             result["recognized_text"] = recognized_text
-        if include_ai_feedback and result.get("success") and model_backend in ("ollama", "openai", "gemini"):
+        if (
+            include_ai_feedback
+            and result.get("success")
+            and model_backend in ("ollama", "openai", "gemini")
+        ):
             try:
                 score_dict = result.get("score") or {}
                 score_result = ScoreResult(
@@ -657,7 +709,9 @@ async def speechpro_evaluate(
                 if ai_feedback:
                     result["ai_feedback"] = ai_feedback
             except Exception as fb_err:
-                logger.warning("[Evaluate] AI feedback failed (full workflow): %s", fb_err)
+                logger.warning(
+                    "[Evaluate] AI feedback failed (full workflow): %s", fb_err
+                )
 
         try:
             if saved_audio_path:
@@ -672,7 +726,8 @@ async def speechpro_evaluate(
                     "overall_score": result.get("overall_score"),
                     "success": bool(result.get("success")),
                     "source": result.get("source"),
-                    "request_id": result.get("model", {}).get("id") or result.get("score", {}).get("id"),
+                    "request_id": result.get("model", {}).get("id")
+                    or result.get("score", {}).get("id"),
                 }
                 with open(saved_meta_path, "w", encoding="utf-8") as mf:
                     import json
@@ -691,19 +746,26 @@ async def speechpro_evaluate(
         # ------------------------------------------------------------------
         try:
             require_auth = _get_state(request, "require_authenticated_user")
-            if callable(require_auth) and result.get("success") and result.get("overall_score"):
+            if (
+                callable(require_auth)
+                and result.get("success")
+                and result.get("overall_score")
+            ):
                 lms_user = require_auth(request)
                 db_path = _get_state(request, "db_path")
                 if lms_user and db_path:
                     import sqlite3 as _sqlite3
                     from datetime import datetime as _dt, timezone as _tz
+
                     _now = _dt.now(_tz.utc).strftime("%Y-%m-%d %H:%M:%S")
                     _score_val = float(result.get("overall_score") or 0)
                     _score_dict = result.get("score") or {}
                     _details = _score_dict.get("details") or {}
                     _fluency = _details.get("fluency") or {}
                     _accuracy = float(_score_dict.get("accuracy_percentage") or 0)
-                    _completeness = float(_score_dict.get("completeness_percentage") or 0)
+                    _completeness = float(
+                        _score_dict.get("completeness_percentage") or 0
+                    )
                     _conn = _sqlite3.connect(db_path)
                     _cur = _conn.cursor()
                     _cur.execute(
@@ -725,11 +787,20 @@ async def speechpro_evaluate(
                             ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,'2026-1',?,?)
                             """,
                             (
-                                lms_user["id"], "full_workflow", text, "",
-                                _score_val, _score_val, _score_val,
-                                _accuracy, _accuracy, _accuracy,
-                                _completeness, 0,
-                                _now, _now,
+                                lms_user["id"],
+                                "full_workflow",
+                                text,
+                                "",
+                                _score_val,
+                                _score_val,
+                                _score_val,
+                                _accuracy,
+                                _accuracy,
+                                _accuracy,
+                                _completeness,
+                                0,
+                                _now,
+                                _now,
                             ),
                         )
                     else:
@@ -745,14 +816,26 @@ async def speechpro_evaluate(
                                 last_attempted_at = ?
                             WHERE user_id = ? AND sentence_id = 'full_workflow'
                             """,
-                            (_new_best, _score_val, _accuracy, _accuracy,
-                             _completeness, (_row[2] or 1) + 1,
-                             _now, lms_user["id"]),
+                            (
+                                _new_best,
+                                _score_val,
+                                _accuracy,
+                                _accuracy,
+                                _completeness,
+                                (_row[2] or 1) + 1,
+                                _now,
+                                lms_user["id"],
+                            ),
                         )
                     # 추가: 음성 녹음 기록 저장
                     _cur.execute(
                         "INSERT INTO user_voice_recordings (user_id, sentence_id, file_path, score) VALUES (?, ?, ?, ?)",
-                        (str(lms_user["id"]), "full_workflow", str(saved_audio_path) if saved_audio_path else "", float(_score_val))
+                        (
+                            str(lms_user["id"]),
+                            "full_workflow",
+                            str(saved_audio_path) if saved_audio_path else "",
+                            float(_score_val),
+                        ),
                     )
                     _conn.commit()
                     _conn.close()
@@ -763,11 +846,18 @@ async def speechpro_evaluate(
         return JSONResponse(content=result)
 
     except ValueError as e:
-        return JSONResponse(status_code=400, content={"error": str(e), "success": False})
+        return JSONResponse(
+            status_code=400, content={"error": str(e), "success": False}
+        )
     except RuntimeError as e:
-        return JSONResponse(status_code=503, content={"error": str(e), "success": False})
+        return JSONResponse(
+            status_code=503, content={"error": str(e), "success": False}
+        )
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": f"Evaluation failed: {str(e)}", "success": False})
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Evaluation failed: {str(e)}", "success": False},
+        )
 
 
 @router.post("/api/speechpro/feedback")
@@ -775,7 +865,7 @@ async def speechpro_feedback(request: Request, payload: SpeechProFeedbackRequest
     """Generate AI feedback based on SpeechPro score result."""
     text = (payload.text or "").strip()
     score_dict = payload.score or {}
-    ui_lang = payload.ui_lang or "ko"
+    ui_lang = payload.ui_lang or "en"
     if not text:
         return JSONResponse(status_code=400, content={"error": "text is required"})
     if not score_dict:
@@ -784,7 +874,10 @@ async def speechpro_feedback(request: Request, payload: SpeechProFeedbackRequest
     model_backend = _get_state(request, "model_backend")
     generate_feedback = _get_state(request, "generate_pronunciation_feedback")
     if not callable(generate_feedback):
-        return JSONResponse(status_code=500, content={"error": "AI feedback generator not configured", "success": False})
+        return JSONResponse(
+            status_code=500,
+            content={"error": "AI feedback generator not configured", "success": False},
+        )
 
     try:
         score_result = ScoreResult(
@@ -827,6 +920,7 @@ async def speechpro_batch_evaluate(
     if text_map:
         try:
             import json
+
             parsed = json.loads(text_map)
             if isinstance(parsed, list):
                 for item in parsed:
@@ -854,21 +948,38 @@ async def speechpro_batch_evaluate(
                                 "fst": val.get("fst", ""),
                             }
                         else:
-                            preset_lookup[str(fname)] = {"text": str(val), "syll_ltrs": "", "syll_phns": "", "fst": ""}
+                            preset_lookup[str(fname)] = {
+                                "text": str(val),
+                                "syll_ltrs": "",
+                                "syll_phns": "",
+                                "fst": "",
+                            }
         except Exception:
-            return JSONResponse(status_code=400, content={"error": "text_map must be valid JSON"})
+            return JSONResponse(
+                status_code=400, content={"error": "text_map must be valid JSON"}
+            )
 
     if not files:
         return JSONResponse(status_code=400, content={"error": "files are required"})
 
     max_files = 3
     if len(files) > max_files:
-        return JSONResponse(status_code=400, content={"error": f"too many files (demo limit {max_files})"})
+        return JSONResponse(
+            status_code=400,
+            content={"error": f"too many files (demo limit {max_files})"},
+        )
 
     max_size_bytes = 5 * 1024 * 1024  # 5MB per file
     max_total_bytes = 50 * 1024 * 1024  # 50MB overall guard
     total_bytes = 0
-    allowed_mimes = {"audio/wav", "audio/webm", "audio/mpeg", "audio/mp3", "audio/ogg", "audio/x-wav"}
+    allowed_mimes = {
+        "audio/wav",
+        "audio/webm",
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/ogg",
+        "audio/x-wav",
+    }
     allowed_exts = {".wav", ".webm", ".mp3", ".ogg", ".mpeg"}
     results = []
     success_count = 0
@@ -877,15 +988,17 @@ async def speechpro_batch_evaluate(
     model_backend = _get_state(request, "model_backend")
 
     import logging
+
     logger = logging.getLogger("batch-evaluate")
     for upload in files:
         filename = upload.filename or "unnamed"
         entry: Dict[str, Any] = {"filename": filename}
 
-
         try:
             audio_bytes = await upload.read()
-            logger.info(f"[BATCH] 파일 업로드: {filename}, 크기: {len(audio_bytes) if audio_bytes else 0} bytes")
+            logger.info(
+                f"[BATCH] 파일 업로드: {filename}, 크기: {len(audio_bytes) if audio_bytes else 0} bytes"
+            )
             if not audio_bytes:
                 entry.update({"success": False, "error": "empty file"})
                 logger.error(f"[BATCH] 파일 비어있음: {filename}")
@@ -900,7 +1013,9 @@ async def speechpro_batch_evaluate(
 
             total_bytes += len(audio_bytes)
             if total_bytes > max_total_bytes:
-                entry.update({"success": False, "error": "total upload size exceeds 50MB"})
+                entry.update(
+                    {"success": False, "error": "total upload size exceeds 50MB"}
+                )
                 logger.error(f"[BATCH] 전체 업로드 용량 초과: {filename}")
                 results.append(entry)
                 continue
@@ -909,7 +1024,9 @@ async def speechpro_batch_evaluate(
             ext_ok = any(filename.lower().endswith(ext) for ext in allowed_exts)
             if not (mime_ok or ext_ok):
                 entry.update({"success": False, "error": "unsupported audio format"})
-                logger.error(f"[BATCH] 지원하지 않는 포맷: {filename}, content_type={upload.content_type}")
+                logger.error(
+                    f"[BATCH] 지원하지 않는 포맷: {filename}, content_type={upload.content_type}"
+                )
                 results.append(entry)
                 continue
 
@@ -919,9 +1036,13 @@ async def speechpro_batch_evaluate(
             syll_ltrs = preset_info.get("syll_ltrs", "").strip()
             syll_phns = preset_info.get("syll_phns", "").strip()
             fst = preset_info.get("fst", "").strip()
-            logger.info(f"[BATCH] 평가 문장: {text} (파일: {filename}), syll_ltrs: {syll_ltrs}, syll_phns: {syll_phns}, fst: {fst}")
+            logger.info(
+                f"[BATCH] 평가 문장: {text} (파일: {filename}), syll_ltrs: {syll_ltrs}, syll_phns: {syll_phns}, fst: {fst}"
+            )
             if not text:
-                entry.update({"success": False, "error": "text is required for each file"})
+                entry.update(
+                    {"success": False, "error": "text is required for each file"}
+                )
                 logger.error(f"[BATCH] 문장 미입력: {filename}")
                 results.append(entry)
                 continue
@@ -930,6 +1051,7 @@ async def speechpro_batch_evaluate(
             loop = asyncio.get_event_loop()
             if syll_ltrs and syll_phns and fst:
                 from backend.services.speechpro_service import call_speechpro_score
+
                 def run_score():
                     return call_speechpro_score(
                         text=text,
@@ -939,29 +1061,38 @@ async def speechpro_batch_evaluate(
                         audio_data=audio_bytes,
                         request_id=None,
                     ).to_dict()
+
                 with ThreadPoolExecutor() as executor:
                     workflow_result = await loop.run_in_executor(executor, run_score)
-                logger.info(f"[BATCH] call_speechpro_score 결과: {filename}, 결과: {workflow_result}")
+                logger.info(
+                    f"[BATCH] call_speechpro_score 결과: {filename}, 결과: {workflow_result}"
+                )
             else:
                 with ThreadPoolExecutor() as executor:
                     workflow_result = await loop.run_in_executor(
-                        executor,
-                        speechpro_full_workflow,
-                        text,
-                        audio_bytes
+                        executor, speechpro_full_workflow, text, audio_bytes
                     )
-                logger.info(f"[BATCH] 워크플로우 결과: {filename}, 결과: {workflow_result}")
-            entry.update({
-                "success": bool(workflow_result.get("success", True)),
-                "overall_score": workflow_result.get("overall_score", 0),
-                "score": workflow_result.get("score", {}),
-                "text": text,
-                "syll_ltrs": syll_ltrs,
-                "syll_phns": syll_phns,
-                "fst": fst,
-            })
+                logger.info(
+                    f"[BATCH] 워크플로우 결과: {filename}, 결과: {workflow_result}"
+                )
+            entry.update(
+                {
+                    "success": bool(workflow_result.get("success", True)),
+                    "overall_score": workflow_result.get("overall_score", 0),
+                    "score": workflow_result.get("score", {}),
+                    "text": text,
+                    "syll_ltrs": syll_ltrs,
+                    "syll_phns": syll_phns,
+                    "fst": fst,
+                }
+            )
 
-            if include_ai_feedback_flag and entry["success"] and callable(generate_feedback) and model_backend in ("ollama", "openai", "gemini"):
+            if (
+                include_ai_feedback_flag
+                and entry["success"]
+                and callable(generate_feedback)
+                and model_backend in ("ollama", "openai", "gemini")
+            ):
                 try:
                     score_dict = entry.get("score") or {}
                     score_result = ScoreResult(
@@ -975,7 +1106,9 @@ async def speechpro_batch_evaluate(
                     logger.info(f"[BATCH] AI 피드백 생성 성공: {filename}")
                 except Exception as fb_err:
                     entry["ai_feedback_error"] = str(fb_err)
-                    logger.error(f"[BATCH] AI 피드백 생성 실패: {filename}, 에러: {fb_err}")
+                    logger.error(
+                        f"[BATCH] AI 피드백 생성 실패: {filename}, 에러: {fb_err}"
+                    )
 
             success_count += 1 if entry.get("success") else 0
 
@@ -987,6 +1120,7 @@ async def speechpro_batch_evaluate(
             logger.error(f"[BATCH] API 호출 실패: {filename}, 에러: {re}")
         except Exception as e:
             import traceback
+
             error_detail = f"{str(e)}\n{traceback.format_exc()}"
             print(f"[BATCH_ERROR] File: {filename}, Error: {error_detail}")
             logger.error(f"[BATCH] 처리 실패: {filename}, 에러: {error_detail}")
@@ -1003,4 +1137,3 @@ async def speechpro_batch_evaluate(
             "failed": len(results) - success_count,
         }
     )
-

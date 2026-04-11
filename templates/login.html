@@ -101,6 +101,7 @@ endblock %} {% block extra_css %}
       <div class="space-y-2">
         <label
           class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-1"
+          data-i18n="sig.name"
           >Nickname</label
         >
         <input
@@ -116,6 +117,7 @@ endblock %} {% block extra_css %}
       <div class="space-y-2">
         <label
           class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-1"
+          data-i18n="log.password"
           >Password</label
         >
         <input
@@ -129,10 +131,10 @@ endblock %} {% block extra_css %}
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 mt-4">
-        <button id="loginBtn" type="submit" class="flex-1 btn-login">
+        <button id="loginBtn" type="submit" class="flex-1 btn-login" data-i18n="log.btn">
           SIGN IN
         </button>
-        <a href="/signup" class="flex-1 btn-login-secondary flex items-center justify-center">
+        <a href="/signup" class="flex-1 btn-login-secondary flex items-center justify-center" data-i18n="auth.signup">
           SIGN UP
         </a>
       </div>
@@ -174,7 +176,7 @@ endblock %} {% block extra_css %}
       };
 
       if (!payload.nickname || !payload.password) {
-        ToastManager.error("정보를 모두 입력해주세요.");
+        ToastManager.error(translations['toast.fill_all'] || "Please fill in all fields.");
         return;
       }
 
@@ -190,7 +192,7 @@ endblock %} {% block extra_css %}
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || "로그인에 실패했습니다.");
+        if (!res.ok) throw new Error(data.detail || "Login failed.");
 
         localStorage.setItem("auth_token", data.token);
         localStorage.setItem("user_nickname", data.nickname);

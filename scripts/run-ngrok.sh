@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/scottk/Projects/onui-ai
+cd /home/scottk/Projects/onui-ASI
 
 # 0. 환경변수(.env) 로드 (안전 파싱)
 if [ -f ".env" ]; then

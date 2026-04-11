@@ -16,13 +16,16 @@
     border-radius: 50%;
     object-fit: cover;
     box-shadow: 0 0 60px rgba(255,255,255,0.1);
-    animation: float 6s ease-in-out infinite;
   }
-  @keyframes float {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
-    100% { transform: translateY(0); }
+  .caller-avatar.speaking {
+    animation: pulse 1s ease-in-out infinite;
   }
+  @keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 60px rgba(249, 115, 22, 0.1); }
+    50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(249, 115, 22, 0.4); }
+    100% { transform: scale(1); box-shadow: 0 0 60px rgba(249, 115, 22, 0.1); }
+  }
+  
   .wave-ring {
     position: absolute;
     top: 50%; left: 50%;
@@ -32,7 +35,9 @@
     border: 2px solid rgba(249, 115, 22, 0.5);
     animation: ripple 2s linear infinite;
     pointer-events: none;
+    opacity: 0;
   }
+  .wave-ring.active { opacity: 1; }
   .wave-ring:nth-child(2) { animation-delay: 0.6s; }
   .wave-ring:nth-child(3) { animation-delay: 1.2s; }
   
@@ -40,53 +45,306 @@
     0% { width: 200px; height: 200px; opacity: 1; }
     100% { width: 400px; height: 400px; opacity: 0; }
   }
+
+  .status-badge {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: rgba(0,0,0,0.5);
+    padding: 8px 16px;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="h-full flex items-center justify-center pb-12">
-  <div class="call-container w-full max-w-md h-[700px] flex flex-col items-center py-12">
-    <!-- Header -->
+<div class="max-w-4xl mx-auto px-4 py-12">
+  <!-- Premium Header Section -->
+  <div class="mb-12 animate-in fade-in slide-in-from-top-8 duration-700 flex flex-col md:flex-row items-center justify-between bg-white/5 border border-white/10 p-8 rounded-[40px] relative overflow-hidden group">
+    <!-- Background Glows -->
+    <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-all duration-700"></div>
+    <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-slate-500/20 blur-[80px] rounded-full group-hover:bg-slate-500/30 transition-all duration-700"></div>
+
+    <div class="md:w-3/5 relative z-10 text-center md:text-left mb-6 md:mb-0">
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-white/80 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 backdrop-blur-md" data-i18n="vc.interaction">
+        <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+        Voice Interaction
+      </div>
+      <h1 class="text-3xl md:text-5xl font-black text-white mb-2 tracking-tighter leading-tight">
+        AI <span class="bg-gradient-to-r from-orange-400 to-slate-400 bg-clip-text text-transparent italic pb-2 pr-2">Voice Call</span>
+      </h1>
+      <p class="text-white/60 text-base font-medium leading-relaxed max-w-md" data-i18n="vc.desc">
+        Practice your speaking skills with real-time voice conversations. Talk to AI tutors in various everyday scenarios.
+      </p>
+    </div>
+
+    <div class="md:w-2/5 relative z-10 flex justify-center md:justify-end">
+        <div class="relative w-32 h-32 md:w-44 md:h-44 rounded-[40px] overflow-hidden border-4 border-white/10 shadow-2xl rotate-3 group-hover:rotate-0 transition-all duration-700">
+            <img src="/static/images/onui-idol-staff.png" alt="Voice Call AI" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+        </div>
+    </div>
+  </div>
+
+  <div class="h-full flex items-center justify-center pb-12">
+  <div id="lobby" class="w-full max-w-6xl bg-white/5 border border-white/10 p-10 md:p-16 rounded-[48px] backdrop-blur-xl relative overflow-hidden">
+    <!-- Decorative background elements for lobby -->
+    <div class="absolute -top-24 -left-24 w-64 h-64 bg-orange-500/10 blur-[100px] rounded-full"></div>
+    <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-slate-500/10 blur-[100px] rounded-full"></div>
+
+    <div class="relative z-10">
+      <div class="text-center mb-12">
+        <h2 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter" data-i18n="vc.choose_scenario">Choose a Scenario</h2>
+        <p class="text-white/40 font-medium" data-i18n="vc.select_situation">Select a situation to start your AI voice conversation</p>
+      </div>
+
+      <div id="scenario-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="col-span-full py-20 text-center">
+           <div class="text-white/20 font-black uppercase tracking-[0.3em] animate-pulse" data-i18n="vc.loading_scenarios">Loading Scenarios...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="call-screen" class="call-container w-full max-w-md h-[750px] flex flex-col items-center py-12 hidden">
+    <div class="status-badge" id="status-text" data-i18n="vc.connecting">Connecting...</div>
+    
     <div class="text-center mb-16 z-10">
-      <h2 class="text-3xl font-black text-white">채원 (AI Tutor)</h2>
+      <h2 class="text-3xl font-black text-white" id="tutor-name">AI Tutor</h2>
       <p class="text-orange-400 font-mono mt-2" id="call-timer">00:00</p>
     </div>
 
-    <!-- Avatar Center -->
     <div class="relative w-full flex justify-center items-center flex-1">
-      <div class="wave-ring"></div>
-      <div class="wave-ring"></div>
-      <div class="wave-ring"></div>
-      <img src="/static/images/onui-pure-idol.png" class="caller-avatar z-10" />
+      <div class="wave-ring" id="wave-1"></div>
+      <div class="wave-ring" id="wave-2"></div>
+      <div class="wave-ring" id="wave-3"></div>
+      <img id="tutor-avatar" src="/static/images/onui-pure-idol.png" class="caller-avatar z-10" />
     </div>
     
-    <!-- AI Speaking Transcript -->
     <div class="w-3/4 text-center mt-8 z-10 min-h-[60px]">
-      <p class="text-white/80 font-medium text-lg leading-snug">"오늘 스타벅스에서 어떤 음료를 주문하시겠어요?"</p>
+      <p id="transcript-text" class="text-white/80 font-medium text-lg leading-snug" data-i18n="vc.initial_hint">"Please say hello when you're ready!"</p>
     </div>
 
-    <!-- Controls -->
-    <div class="flex gap-6 mt-12 z-10">
-      <button class="w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-        <span class="text-2xl">🎙️</span>
-      </button>
-      <button class="w-16 h-16 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
-        <span class="text-2xl">📹</span>
-      </button>
-      <button class="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-colors shadow-[0_0_30px_rgba(239,68,68,0.4)]" onclick="window.history.back()">
-        <span class="text-2xl transform rotate-135">📞</span>
-      </button>
+    <div class="flex flex-col items-center gap-8 mt-12 z-10 w-full px-12">
+      <div id="user-transcript" class="text-orange-400 text-sm italic h-6 text-center"></div>
+      
+      <div class="flex gap-8">
+        <button id="record-btn" class="w-20 h-20 rounded-full bg-white text-black flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+          <span class="text-3xl" id="record-icon">🎙️</span>
+        </button>
+        
+        <button id="end-call-btn" class="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+          <span class="text-3xl transform rotate-[135deg]">📞</span>
+        </button>
+      </div>
+      
+      <p class="text-white/30 text-xs font-bold uppercase tracking-widest" data-i18n="vc.hold_to_speak">Hold to Speak</p>
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-  let seconds = 0;
-  setInterval(() => {
-    seconds++;
-    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-    const s = String(seconds % 60).padStart(2, '0');
-    document.getElementById('call-timer').innerText = `${m}:${s}`;
-  }, 1000);
+  document.addEventListener("DOMContentLoaded", () => {
+    let scenarios = [];
+    let currentScenario = null;
+    let history = [];
+    let timerInterval;
+    let seconds = 0;
+    
+    const lobby = document.getElementById('lobby');
+    const callScreen = document.getElementById('call-screen');
+    const scenarioList = document.getElementById('scenario-list');
+    const transcriptText = document.getElementById('transcript-text');
+    const userTranscript = document.getElementById('user-transcript');
+    const recordBtn = document.getElementById('record-btn');
+    const recordIcon = document.getElementById('record-icon');
+    const tutorAvatar = document.getElementById('tutor-avatar');
+    const statusText = document.getElementById('status-text');
+
+    async function loadScenarios() {
+      try {
+        const resp = await fetch('/api/voice-call/scenarios');
+        const data = await resp.json();
+        if (data.success) {
+          scenarios = data.scenarios;
+          renderScenarios();
+        }
+      } catch (err) {
+        if (window.ToastManager) ToastManager.error('Failed to load scenarios.');
+      }
+    }
+
+    function renderScenarios() {
+      scenarioList.innerHTML = '';
+      const callWithLabel = translations['vc.call_with'] || "Call with";
+      scenarios.forEach(s => {
+        const btn = document.createElement('button');
+        btn.className = 'group relative w-full aspect-square md:aspect-auto md:h-64 p-8 bg-white/5 border border-white/10 rounded-[40px] flex flex-col items-center justify-center gap-6 hover:bg-white/10 hover:border-orange-500/50 hover:shadow-[0_20px_60px_rgba(249,115,22,0.15)] transition-all duration-500 text-center overflow-hidden';
+        
+        btn.innerHTML = `
+          <!-- Hover Effect Background -->
+          <div class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+          
+          <div class="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-orange-500/30 transition-all duration-700 shadow-2xl">
+            <img src="${s.avatar_url}" class="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" />
+          </div>
+          
+          <div class="relative">
+            <h4 class="text-xl md:text-2xl font-black text-white mb-2 group-hover:text-orange-400 transition-colors duration-500 line-clamp-1">${s.title}</h4>
+            <p class="text-white/40 text-xs font-bold uppercase tracking-widest italic group-hover:text-white/60 transition-colors duration-500">${callWithLabel} ${s.tutor_name}</p>
+          </div>
+          
+          <div class="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 transition-all duration-500">
+            <span class="text-2xl text-orange-500">▶️</span>
+          </div>
+        `;
+        btn.onclick = () => startCall(s);
+        scenarioList.appendChild(btn);
+      });
+    }
+
+    function startCall(s) {
+      // "Unlock" audio context for mobile/strict browsers immediately on user click
+      const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==");
+      silentAudio.play().catch(e => console.warn("Audio unlock failed:", e));
+
+      currentScenario = s;
+      lobby.classList.add('hidden');
+      callScreen.classList.remove('hidden');
+      document.getElementById('tutor-name').innerText = s.tutor_name;
+      document.getElementById('tutor-avatar').src = s.avatar_url;
+      
+      startTimer();
+      speakAI(s.initial_message);
+    }
+
+    function startTimer() {
+      seconds = 0;
+      timerInterval = setInterval(() => {
+        seconds++;
+        const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+        document.getElementById('call-timer').innerText = `${m}:${s}`;
+      }, 1000);
+    }
+
+    async function speakAI(text) {
+      if (!text) return;
+      console.log("[VoiceCall] speakAI:", text);
+      
+      transcriptText.innerText = `"${text}"`;
+      tutorAvatar.classList.add('speaking');
+      document.querySelectorAll('.wave-ring').forEach(r => r.classList.add('active'));
+      statusText.innerText = translations['vc.ai_speaking'] || 'AI is speaking...';
+
+      try {
+        const resp = await fetch('/api/tts/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text, language_code: 'ko' })
+        });
+        
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData.details || 'TTS generation failed');
+        }
+
+        const blob = await resp.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        
+        audio.onended = () => {
+          tutorAvatar.classList.remove('speaking');
+          document.querySelectorAll('.wave-ring').forEach(r => r.classList.remove('active'));
+          statusText.innerText = translations['vc.listening'] || 'Listening...';
+          URL.revokeObjectURL(url);
+        };
+
+        audio.onerror = (e) => {
+          console.error("Audio playback error:", e);
+          tutorAvatar.classList.remove('speaking');
+          statusText.innerText = translations['vc.playback_error'] || 'Playback Error';
+        };
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error("Playback blocked or failed:", error);
+            statusText.innerText = translations['vc.playback_blocked'] || 'Playback Blocked';
+          });
+        }
+        
+        history.push({ role: 'assistant', content: text });
+      } catch (err) {
+        console.error('TTS Error:', err);
+        tutorAvatar.classList.remove('speaking');
+        statusText.innerText = translations['vc.tts_error'] || 'TTS Error';
+        if (window.ToastManager) ToastManager.error(err.message);
+      }
+    }
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'ko-KR';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onresult = (e) => {
+      const text = Array.from(e.results).map(r => r[0].transcript).join('');
+      userTranscript.innerText = text;
+    };
+
+    recognition.onend = async () => {
+      const text = userTranscript.innerText;
+      if (!text) {
+        recordIcon.innerText = '🎙️';
+        return;
+      }
+      
+      statusText.innerText = translations['vc.processing'] || 'Processing...';
+      try {
+        const resp = await fetch('/api/voice-call/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            scenario_id: currentScenario.id,
+            history: history
+          })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          history.push({ role: 'user', content: text });
+          speakAI(data.reply);
+        }
+      } catch (err) {
+        if (window.ToastManager) ToastManager.error('Failed to get AI response.');
+      }
+      
+      recordIcon.innerText = '🎙️';
+      userTranscript.innerText = '';
+    };
+
+    recordBtn.addEventListener('mousedown', () => {
+      recognition.start();
+      recordIcon.innerText = '🟠';
+    });
+
+    recordBtn.addEventListener('mouseup', () => {
+      recognition.stop();
+    });
+
+    document.getElementById('end-call-btn').onclick = () => {
+      clearInterval(timerInterval);
+      location.reload();
+    };
+
+    loadScenarios();
+  });
 </script>
 {% endblock %}

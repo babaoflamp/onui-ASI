@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}오늘의 한국어 표현 - 오누이 한국어{%
+{% extends "base.html" %} {% block title %}Daily Korean Phrase - Onui Korean{%
 endblock %} {% block extra_css %}
 <link rel="stylesheet" href="/static/css/daily-expression.css" />
 {% endblock %} {% block content %}
@@ -12,10 +12,10 @@ endblock %} {% block extra_css %}
       ONUI · Daily Expression
     </div>
     <h1 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
-      오늘의 <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-500">한국어 표현</span>
+      Daily <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-500">Korean Phrase</span>
     </h1>
     <p class="text-lg text-white/50 font-medium">
-      매일 한 장씩 넘겨 보면서, 자연스럽게 표현과 문화를 같이 익혀 보세요.
+      Swipe through a card every day to naturally learn phrases and Korean culture together.
     </p>
   </header>
 
@@ -29,15 +29,15 @@ endblock %} {% block extra_css %}
     <!-- Card Slider -->
     <section class="slider-wrapper">
       <div class="slider-header">
-        <div class="slider-title">오늘의 표현</div>
+        <div class="slider-title">Phrase of the Day</div>
         <div class="slider-caption" id="sliderCaption">1 / 5</div>
       </div>
 
       <div class="slider-frame">
-        <button class="nav-btn left" id="prevBtn" aria-label="이전 표현">
+        <button class="nav-btn left" id="prevBtn" aria-label="Previous">
           &lt;
         </button>
-        <button class="nav-btn right" id="nextBtn" aria-label="다음 표현">
+        <button class="nav-btn right" id="nextBtn" aria-label="Next">
           &gt;
         </button>
 
@@ -59,7 +59,7 @@ endblock %} {% block extra_css %}
             class="sentence-kr text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter"
             id="sentenceKr"
           >
-            표현을 불러오는 중...
+            Loading phrase...
           </div>
           <div
             class="sentence-en text-lg md:text-xl text-white/40 font-bold mb-10 tracking-tight"
@@ -89,12 +89,12 @@ endblock %} {% block extra_css %}
       <div
         class="text-xs font-black text-white/40 uppercase tracking-widest mb-2"
       >
-        💡 학습 팁
+        💡 Learning Tips
       </div>
       <div class="text-base text-white/70 space-y-1">
-        <p>• 좌우 화살표 버튼 또는 하단 점을 클릭하여 카드를 넘겨보세요</p>
-        <p>• 각 표현의 문화 노트를 읽고 한국 문화를 이해해보세요</p>
-        <p>• 매일 새로운 표현을 확인하여 일상 한국어 실력을 향상시키세요</p>
+        <p>• Click the arrows or dots to navigate through cards</p>
+        <p>• Read the culture notes to better understand Korean culture</p>
+        <p>• Check back daily to improve your conversational Korean</p>
       </div>
     </section>
   </div>

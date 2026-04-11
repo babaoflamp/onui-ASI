@@ -12,7 +12,7 @@ const LoadingManager = {
    * 전체 화면 로딩 오버레이 표시
    * @param {string} message - 표시할 메시지
    */
-  show: function (message = "처리 중...") {
+  show: function (message = "Processing...") {
     let overlay = document.getElementById("global-loading-overlay");
     if (!overlay) {
       overlay = document.createElement("div");
@@ -46,7 +46,7 @@ const LoadingManager = {
    * @param {HTMLElement} button - 대상 버튼 엘리먼트
    * @param {string} loadingText - 로딩 중 표시 텍스트
    */
-  setButtonLoading: function (button, loadingText = "처리 중...") {
+  setButtonLoading: function (button, loadingText = "Processing...") {
     button.disabled = true;
     button.dataset.originalText = button.textContent;
     button.innerHTML = `<span class="loading-spinner sm"></span> ${loadingText}`;
@@ -114,28 +114,28 @@ const AlertManager = {
   /**
    * 성공 메시지
    */
-  success: function (message, title = "성공") {
+  success: function (message, title = "Success") {
     return this.show(message, "success", title);
   },
 
   /**
    * 에러 메시지
    */
-  error: function (message, title = "오류") {
+  error: function (message, title = "Error") {
     return this.show(message, "error", title);
   },
 
   /**
    * 경고 메시지
    */
-  warning: function (message, title = "경고") {
+  warning: function (message, title = "Warning") {
     return this.show(message, "warning", title);
   },
 
   /**
    * 정보 메시지
    */
-  info: function (message, title = "알림") {
+  info: function (message, title = "Info") {
     return this.show(message, "info", title);
   },
 };
@@ -357,7 +357,7 @@ const APIClient = {
 
       // 에러 처리
       if (!response.ok) {
-        const error = new Error(data?.message || data?.error || "요청 실패");
+        const error = new Error(data?.message || data?.error || "Request failed");
         error.status = response.status;
         error.data = data;
         throw error;
@@ -365,7 +365,7 @@ const APIClient = {
 
       return data;
     } catch (error) {
-      console.error("API 요청 오류:", error);
+      console.error("API request error:", error);
       throw error;
     }
   },
@@ -398,10 +398,12 @@ function copyToClipboard(text) {
   navigator.clipboard
     .writeText(text)
     .then(() => {
-      ToastManager.success("복사되었습니다!");
+      const msg = (typeof translations !== 'undefined' && translations['toast.copied']) || "Copied to clipboard!";
+      ToastManager.success(msg);
     })
     .catch((err) => {
-      ToastManager.error("복사에 실패했습니다.");
+      const msg = (typeof translations !== 'undefined' && translations['toast.copy_failed']) || "Failed to copy.";
+      ToastManager.error(msg);
       console.error("Copy failed:", err);
     });
 }

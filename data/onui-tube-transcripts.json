@@ -1,0 +1,59 @@
+{
+  "sejong_hobby": [
+    {
+      "start": 4.5,
+      "end": 8.0,
+      "trans": "What kind of exercise do you like?",
+      "words": [
+        {"label": "어떤", "mean": "What kind / which", "pos": "Adjective"},
+        {"label": "운동을", "mean": "exercise (object)", "pos": "Noun + Particle"},
+        {"label": "좋아해요", "mean": "do you like?", "pos": "Verb"}
+      ]
+    },
+    {
+      "start": 8.5,
+      "end": 12.0,
+      "trans": "I like swimming.",
+      "words": [
+        {"label": "저는", "mean": "I (polite)", "pos": "Pronoun + Particle"},
+        {"label": "수영을", "mean": "swimming (object)", "pos": "Noun + Particle"},
+        {"label": "좋아해요", "mean": "like", "pos": "Verb"}
+      ]
+    }
+  ],
+  "sejong_intro": [
+    {
+      "start": 5.0,
+      "end": 8.5,
+      "trans": "Hello, my name is Minsoo.",
+      "words": [
+        {"label": "안녕하세요", "mean": "Hello", "pos": "Greeting"},
+        {"label": "제", "mean": "My", "pos": "Pronoun"},
+        {"label": "이름은", "mean": "name is", "pos": "Noun + Particle"},
+        {"label": "민수예요", "mean": "is Minsoo", "pos": "Proper Noun + Verb"}
+      ]
+    },
+    {
+      "start": 9.0,
+      "end": 12.5,
+      "trans": "Nice to meet you.",
+      "words": [
+        {"label": "만나서", "mean": "Meet and...", "pos": "Verb"},
+        {"label": "반가워요", "mean": "Glad / Nice", "pos": "Adjective"}
+      ]
+    }
+  ],
+  "sejong_food": [
+    {
+      "start": 4.5,
+      "end": 8.0,
+      "trans": "Excuse me, one bibimbap please.",
+      "words": [
+        {"label": "저기요", "mean": "Excuse me", "pos": "Expression"},
+        {"label": "비빔밥", "mean": "Bibimbap", "pos": "Noun"},
+        {"label": "하나", "mean": "one", "pos": "Number"},
+        {"label": "주세요", "mean": "please give", "pos": "Verb"}
+      ]
+    }
+  ]
+}

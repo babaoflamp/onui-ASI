@@ -18,13 +18,13 @@
       if (vocabList.length > 0) {
         renderFlowers();
       } else {
-        flowerGrid.innerHTML =
-          '<p class="text-gray-500">단어 데이터가 없습니다.</p>';
+        const noData = (typeof translations !== 'undefined' && translations['vg.no_data']) || "No vocabulary data available.";
+        flowerGrid.innerHTML = `<p class="text-gray-500">${noData}</p>`;
       }
     } catch (error) {
       console.error("Error loading vocabulary:", error);
-      flowerGrid.innerHTML =
-        '<p class="text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</p>';
+      const errorMsg = (typeof translations !== 'undefined' && translations['dash.error_loading']) || "An error occurred while loading data.";
+      flowerGrid.innerHTML = `<p class="text-red-500">${errorMsg}</p>`;
     }
   }
 
@@ -114,12 +114,16 @@
     const sentEn = detailsBox.querySelector(".sentence-en");
 
     if (mainWord) mainWord.textContent = item.word;
-    if (roman)
+    if (roman) {
+      const romanLabel = (typeof translations !== 'undefined' && translations['vg.pronunciation']) || "Pronunciation";
       roman.textContent = item.roman
-        ? `발음 (romanization): ${item.roman}`
+        ? `${romanLabel}: ${item.roman}`
         : "";
-    if (meaning)
-      meaning.textContent = `뜻: ${item.meaningKo} (${item.meaningEn})`;
+    }
+    if (meaning) {
+      const meanLabel = (typeof translations !== 'undefined' && translations['vg.meaning']) || "Meaning";
+      meaning.textContent = `${meanLabel}: ${item.meaningKo} (${item.meaningEn})`;
+    }
 
     // Tags
     if (tagWrap) {
@@ -142,14 +146,17 @@
     if (sentKr) sentKr.textContent = item.sentenceKr || "";
     if (sentEn) sentEn.textContent = item.sentenceEn || "";
 
-    if (infoCaption)
-      infoCaption.textContent = `"${item.word}" 단어가 선택되었습니다.`;
+    if (infoCaption) {
+      const selectedMsg = (typeof translations !== 'undefined' && translations['vg.selected']) || "is selected.";
+      infoCaption.textContent = `"${item.word}" ${selectedMsg}`;
+    }
   }
 
   // Play word pronunciation using MzTTS
   window.playWord = async function() {
     if (!currentItem) {
-      alert('먼저 단어를 선택하세요.');
+      const selectWord = (typeof translations !== 'undefined' && translations['vg.select_first']) || "Please select a word first.";
+      alert(selectWord);
       return;
     }
 
@@ -189,7 +196,8 @@
 
     } catch (error) {
       console.error('Error playing word:', error);
-      alert('음성 재생 중 오류가 발생했습니다.');
+      const playError = (typeof translations !== 'undefined' && translations['vg.play_error']) || "An error occurred during audio playback.";
+      alert(playError);
     } finally {
       btn.disabled = false;
     }
@@ -198,7 +206,8 @@
   // Play sentence pronunciation using MzTTS
   window.playSentence = async function() {
     if (!currentItem || !currentItem.sentenceKr) {
-      alert('예문이 없습니다.');
+      const noExample = (typeof translations !== 'undefined' && translations['vg.no_example']) || "No example sentence available.";
+      alert(noExample);
       return;
     }
 
@@ -238,7 +247,8 @@
 
     } catch (error) {
       console.error('Error playing sentence:', error);
-      alert('음성 재생 중 오류가 발생했습니다.');
+      const playError = (typeof translations !== 'undefined' && translations['vg.play_error']) || "An error occurred during audio playback.";
+      alert(playError);
     } finally {
       btn.disabled = false;
     }

@@ -49,6 +49,7 @@ async def roleplay_chat(request: Request, payload: ChatRequest):
     3. 학습자가 대화를 이어갈 수 있도록 질문을 포함하세요.
     4. 학습자가 잘못된 표현을 쓰면 아주 친절하게 짧게 교정해 줄 수도 있습니다.
     5. 현재 상황의 목표들({', '.join(scenario['goals'])})을 달성할 수 있도록 유도하세요.
+    6. 대화 도중 관련 한국 문화(예: 식사 예절, 높임말 관습 등)를 자연스럽게 언급하며 팁을 주면 좋습니다.
     """
 
     messages = [{"role": "system", "content": system_prompt}] + payload.messages

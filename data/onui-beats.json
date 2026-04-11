@@ -1,0 +1,90 @@
+[
+  {
+    "id": "edu_arirang",
+    "title": "Arirang (아리랑)",
+    "artist": "Korean Traditional Folk Song",
+    "audio_url": "/static/audio/arirang.ogg",
+    "image_url": "/static/images/arirang-cover.svg",
+    "lyrics": [
+      { "text": "아리랑 아리랑 아라리요", "blank": "아리랑", "meaning": "Arirang (Traditional Korean folk song title)" },
+      { "text": "아리랑 고개를 넘어간다", "blank": "고개를", "meaning": "Pass / Hill" },
+      { "text": "나를 버리고 가시는 님은", "blank": "버리고", "meaning": "Abandon / Leave behind" },
+      { "text": "십리도 못 가서 발병 난다", "blank": "발병", "meaning": "Foot disease / Blister" }
+    ]
+  },
+  {
+    "id": "edu_threebears",
+    "title": "Three Bears (곰 세 마리)",
+    "artist": "Children's Song",
+    "audio_url": "/static/audio/threebears.mp3",
+    "image_url": "/static/images/threebears-cover.svg",
+    "lyrics": [
+      { "text": "곰 세 마리가 한 집에 있어", "blank": "세 마리", "meaning": "Three (animals)" },
+      { "text": "아빠 곰 엄마 곰 애기 곰", "blank": "애기", "meaning": "Baby" },
+      { "text": "아빠 곰은 뚱뚱해", "blank": "뚱뚱해", "meaning": "Fat / Chubby" },
+      { "text": "엄마 곰은 날씬해", "blank": "날씬해", "meaning": "Slim / Thin" },
+      { "text": "애기 곰은 너무 귀여워", "blank": "귀여워", "meaning": "Cute" },
+      { "text": "으쓱으쓱 잘한다", "blank": "으쓱으쓱", "meaning": "Shrugging shoulders (happy motion)" }
+    ]
+  },
+  {
+    "id": "edu_mountainrabbit",
+    "title": "Mountain Rabbit (산토끼)",
+    "artist": "Children's Song",
+    "audio_url": "/static/audio/mountainrabbit.mp3",
+    "image_url": "/static/images/mountainrabbit-cover.svg",
+    "lyrics": [
+      { "text": "산토끼 토끼야 어디를 가느냐", "blank": "어디를", "meaning": "Where" },
+      { "text": "깡충깡충 뛰면서 어디를 가느냐", "blank": "깡충깡충", "meaning": "Hopping / Jumping" },
+      { "text": "산 고개 고개를 나 혼자 넘어서", "blank": "혼자", "meaning": "Alone" },
+      { "text": "토실토실 알밤을 주워 올 테야", "blank": "알밤", "meaning": "Chestnut" }
+    ]
+  },
+  {
+    "id": "edu_schoolbell",
+    "title": "School Bell (학교종)",
+    "artist": "Children's Song",
+    "audio_url": "/static/audio/schoolbell.mp3",
+    "image_url": "/static/images/schoolbell-cover.svg",
+    "lyrics": [
+      { "text": "학교종이 땡땡땡 어서 모이자", "blank": "학교종이", "meaning": "School bell" },
+      { "text": "선생님이 우리를 기다리신다", "blank": "선생님", "meaning": "Teacher" },
+      { "text": "학교종이 땡땡땡 어서 모이자", "blank": "모이자", "meaning": "Let's gather" },
+      { "text": "사이좋게 오늘도 공부 잘하자", "blank": "사이좋게", "meaning": "Amicably / Getting along" }
+    ]
+  },
+  {
+    "id": "edu_doraji",
+    "title": "Doraji (도라지 타령)",
+    "artist": "Korean Traditional Folk Song",
+    "audio_url": "/static/audio/doraji.mp3",
+    "image_url": "/static/images/doraji-cover.svg",
+    "lyrics": [
+      { "text": "도라지 도라지 백도라지", "blank": "도라지", "meaning": "Bellflower (root)" },
+      { "text": "심심산천에 백도라지", "blank": "심심산천", "meaning": "Deep mountain" },
+      { "text": "한 두 뿌리만 캐어도", "blank": "뿌리", "meaning": "Root" },
+      { "text": "대바구니에 철철 넘친다", "blank": "넘친다", "meaning": "Overflow" }
+    ]
+  },
+  {
+    "id": "edu_ollegil",
+    "title": "Olle Gil (올레길)",
+    "description": "Traditional Jeju folk song about the Olle path.",
+    "artist": "Korean Traditional Folk Song",
+    "audio_url": "/static/audio/ollegil.mp3",
+    "image_url": "/static/images/ollegil-cover.svg",
+    "lyrics": [
+      { "text": "올레질은 좋은 질", "blank": "올레", "meaning": "Olle (Jeju hiking trail)" },
+      { "text": "조미있는 질", "blank": "좋은", "meaning": "Good / Nice" },
+      { "text": "산새 들새 벗되영 반겨주는 질", "blank": "산새", "meaning": "Mountain birds" },
+      { "text": "생이추룩 놀고싶엉", "blank": "달고", "meaning": "Want to fly" },
+      { "text": "두폴 벨기민 산들 보름 개뿐이 밀려줍니다", "blank": "두팔", "meaning": "Two arms" },
+      { "text": "올레 질은 좋은 질 정이 드는 질", "blank": "정이", "meaning": "Affection / Love" },
+      { "text": "고장덜이 도투멍 인사 호는 질", "blank": "인사", "meaning": "Greeting" },
+      { "text": "꽃들처럼 예쁘게 하하 웃으민 메아리도 정답게 따라합니다", "blank": "메아리", "meaning": "Echo" },
+      { "text": "올레 질은 좋은 질 도틈어신 질", "blank": "다툼", "meaning": "Dispute / Conflict" },
+      { "text": "놀멍 쉬멍 걸어도 꼴등 어신 질", "blank": "꼴등", "meaning": "Last place" },
+      { "text": "대자연의 숨소리 풀말축놀래 아름다운 노을만 품엉옵니다", "blank": "노을", "meaning": "Sunset" }
+    ]
+  }
+]

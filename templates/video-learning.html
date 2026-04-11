@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}OnuiTube - AI Video Learning{% endblock %}
+{% block title %}Onui YouTube - AI Video Learning{% endblock %}
 {% block extra_css %}
 <style>
   .suno-card {
@@ -19,14 +19,21 @@
     background: #000;
   }
 
-  /* Captions Layer */
+  #youtube-player-element {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
   .captions-layer {
     position: absolute;
     bottom: 10%;
     left: 0;
     width: 100%;
     text-align: center;
-    z-index: 10;
+    z-index: 20;
     pointer-events: none;
   }
 
@@ -38,7 +45,6 @@
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     pointer-events: auto;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .caption-word {
@@ -53,9 +59,7 @@
   }
 
   .caption-word:hover {
-    background: rgba(249, 115, 22, 0.5); /* Orange hover */
-    color: #fff;
-    transform: translateY(-2px);
+    background: rgba(249, 115, 22, 0.5);
   }
 
   .caption-translation {
@@ -63,17 +67,8 @@
     color: #fb923c;
     font-weight: 600;
     margin-top: 4px;
-    opacity: 0.9;
   }
 
-  /* Sidebar Dictionary / Progress */
-  .vocab-panel {
-    height: 100%;
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
-  }
-  
-  /* Tooltip logic */
   .word-tooltip {
     position: absolute;
     bottom: calc(100% + 15px);
@@ -99,33 +94,121 @@
     pointer-events: auto;
   }
   
-  /* Custom Scrollbar */
   .custom-scrollbar::-webkit-scrollbar { width: 6px; }
   .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  .scenario-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    border-radius: 32px;
+    overflow: hidden;
+  }
+  .scenario-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="h-full grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12">
-  
-  <!-- Left Header & Video Section -->
+<div id="tube-lobby" class="max-w-4xl mx-auto py-12 px-4">
+  <!-- Premium Header Section -->
+  <div class="mb-12 animate-in fade-in slide-in-from-top-8 duration-700 flex flex-col md:flex-row items-center justify-between bg-white/5 border border-white/10 p-8 rounded-[40px] relative overflow-hidden group">
+    <!-- Background Glows -->
+    <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-all duration-700"></div>
+    <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-pink-500/20 blur-[80px] rounded-full group-hover:bg-pink-500/30 transition-all duration-700"></div>
+
+    <div class="md:w-3/5 relative z-10 text-center md:text-left mb-6 md:mb-0">
+      <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 text-white/80 border border-white/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 backdrop-blur-md">
+        <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+        Interactive Media
+      </div>
+      <h1 class="text-3xl md:text-5xl font-black text-white mb-2 tracking-tighter leading-tight">
+        Onui<span class="bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent italic pb-2 pr-2">Tube</span>
+      </h1>
+      <p class="text-white/60 text-base font-medium leading-relaxed max-w-md" data-i18n="yt.desc">
+        Immersive Korean learning with dual captions and clickable dictionary. Explore CC-licensed educational content.
+      </p>
+    </div>
+
+    <div class="md:w-2/5 relative z-10 flex justify-center md:justify-end">
+      <div class="relative w-32 h-32 md:w-44 md:h-44 rounded-[32px] overflow-hidden border-4 border-white/10 shadow-2xl rotate-3 group-hover:rotate-0 transition-all duration-700 bg-gradient-to-br from-[#FF0000] to-[#b91c1c] flex items-center justify-center p-6">
+        <!-- High-quality YouTube SVG Icon -->
+        <svg class="w-full h-full text-white drop-shadow-2xl" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.377.505 9.377.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+        <div class="absolute bottom-3 left-5 text-white font-black text-lg italic tracking-tighter">K-VOD</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Local Search Form -->
+  <div class="mb-12 p-8 suno-card relative overflow-hidden group">
+    <div class="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    <h3 class="text-xl font-black text-white mb-6 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <svg class="w-6 h-6 text-orange-500" fill="currentColor" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <span data-i18n="yt.search_title">Search Recommended Content</span>
+      </div>
+    </h3>
+    <form id="youtube-search-form" class="flex flex-col gap-4 relative z-10">
+      <div class="flex flex-col md:flex-row gap-4">
+        <input type="text" id="youtube-search-query" class="flex-grow bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-medium focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all" placeholder="Search by title, description, or level (e.g., K-pop, Vlog, Food)" data-i18n="yt.search_placeholder" value="">
+        <button type="submit" class="px-10 py-4 bg-gradient-to-r from-orange-600 to-pink-600 text-white font-black rounded-2xl hover:scale-105 transition-all shadow-lg shadow-orange-900/20 active:scale-95 flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <span data-i18n="yt.btn_find">Find Videos</span>
+        </button>
+      </div>
+      
+      <!-- Recommended Search Tags -->
+      <div class="flex flex-wrap items-center gap-2 mt-2">
+        <span class="text-xs font-bold text-white/40 uppercase tracking-widest mr-2" data-i18n="yt.try_searching">Try searching:</span>
+        <button type="button" onclick="document.getElementById('youtube-search-query').value='K-Pop'; document.getElementById('youtube-search-form').dispatchEvent(new Event('submit'));" class="px-3 py-1.5 bg-white/5 hover:bg-orange-500/20 border border-white/10 hover:border-orange-500/50 rounded-lg text-xs font-medium text-white/60 hover:text-orange-400 transition-all cursor-pointer">🎵 K-Pop</button>
+        <button type="button" onclick="document.getElementById('youtube-search-query').value='Vlog'; document.getElementById('youtube-search-form').dispatchEvent(new Event('submit'));" class="px-3 py-1.5 bg-white/5 hover:bg-orange-500/20 border border-white/10 hover:border-orange-500/50 rounded-lg text-xs font-medium text-white/60 hover:text-orange-400 transition-all cursor-pointer">📹 Vlog</button>
+        <button type="button" onclick="document.getElementById('youtube-search-query').value='세종학당'; document.getElementById('youtube-search-form').dispatchEvent(new Event('submit'));" class="px-3 py-1.5 bg-white/5 hover:bg-orange-500/20 border border-white/10 hover:border-orange-500/50 rounded-lg text-xs font-medium text-white/60 hover:text-orange-400 transition-all cursor-pointer">🏫 <span data-i18n="yt.sejong">Sejong</span></button>
+        <button type="button" onclick="document.getElementById('youtube-search-query').value='Grammar'; document.getElementById('youtube-search-form').dispatchEvent(new Event('submit'));" class="px-3 py-1.5 bg-white/5 hover:bg-orange-500/20 border border-white/10 hover:border-orange-500/50 rounded-lg text-xs font-medium text-white/60 hover:text-orange-400 transition-all cursor-pointer">📝 <span data-i18n="yt.grammar">Grammar</span></button>
+        <button type="button" onclick="document.getElementById('youtube-search-query').value='Level 1'; document.getElementById('youtube-search-form').dispatchEvent(new Event('submit'));" class="px-3 py-1.5 bg-white/5 hover:bg-orange-500/20 border border-white/10 hover:border-orange-500/50 rounded-lg text-xs font-medium text-white/60 hover:text-orange-400 transition-all cursor-pointer">⭐ <span data-i18n="yt.beginner">Beginner</span> (Lv.1)</button>
+        <button type="button" onclick="document.getElementById('youtube-search-query').value=''; document.getElementById('youtube-search-form').dispatchEvent(new Event('submit'));" class="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/30 rounded-lg text-xs font-bold text-white/80 transition-all cursor-pointer ml-auto" data-i18n="yt.show_all">Show All</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Explore Section (Always shown with default search) -->
+  <div id="explore-section">
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-2xl font-black text-white flex items-center gap-3">
+          <span class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl text-lg shadow-lg">🌐</span>
+          <span data-i18n="yt.explore_lessons">Explore Korean Lessons</span>
+        </h2>
+        <div class="h-[1px] flex-1 bg-white/10 ml-6 hidden md:block"></div>
+      </div>
+      <div id="explore-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="col-span-full py-20 text-center text-white/20 font-black uppercase tracking-widest animate-pulse">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+<div id="player-screen" class="h-full grid grid-cols-1 lg:grid-cols-12 gap-6 pb-12 hidden">
   <div class="lg:col-span-8 flex flex-col gap-6">
-    <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
         <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest mb-3">
           <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse blur-[1px]"></span>
-          <span class="text-orange-400">OnuiTube Premiere</span>
+          <span class="text-orange-400">Onui YouTube Premiere</span>
         </div>
-        <h1 class="text-3xl font-black text-white tracking-tight">K-Pop Interview (Level 2)</h1>
-        <p class="text-white/40 text-sm mt-1">이중 자막과 클릭 사전으로 몰입형 학습을 경험하세요.</p>
+        <h1 id="player-title" class="text-3xl font-black text-white tracking-tight">Loading...</h1>
+        <p id="player-desc" class="text-white/40 text-sm mt-1">...</p>
       </div>
       
-      <!-- Auto Pause Toggle -->
       <label class="flex items-center gap-3 cursor-pointer group">
-        <span class="text-sm font-bold text-white/50 group-hover:text-white transition-colors">문장 끝 자동 일시정지</span>
+        <span class="text-sm font-bold text-white/50 group-hover:text-white transition-colors">Auto-pause at sentence end</span>
         <div class="relative">
           <input type="checkbox" id="auto-pause-toggle" class="peer sr-only" checked />
           <div class="block w-12 h-6 rounded-full bg-white/10 border border-white/10 peer-checked:bg-orange-500 transition-all"></div>
@@ -134,205 +217,326 @@
       </label>
     </div>
 
-    <!-- Video Player Container -->
     <div class="suno-card video-container group/player">
-      <!-- HTML5 Video Mock. Using Sintel as a placeholder -->
-      <video id="learning-video" class="w-full h-full object-cover" poster="/static/images/onui-pure-idol.png" playsinline loop>
-        <source src="https://vjs.zencdn.net/v/oceans.mp4" type="video/mp4" />
-      </video>
-
-      <!-- Video Controls Overlay -->
-      <div id="video-overlay-play" class="absolute inset-0 bg-black/40 flex items-center justify-center cursor-pointer transition-opacity group-hover/player:bg-black/20">
-        <div class="w-20 h-20 bg-orange-500 rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(249,115,22,0.4)] transition-transform hover:scale-110">
-          <svg class="w-10 h-10 text-white ml-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </div>
-      </div>
-
-      <!-- Captions Layer -->
-      <div class="captions-layer" id="captions-container">
-        <!-- Rendered by JS -->
-      </div>
+      <div id="youtube-player-element"></div>
+      <div class="captions-layer" id="captions-container"></div>
     </div>
     
-    <!-- Controls under Video -->
     <div class="flex items-center justify-between p-4 suno-card mt-[-10px]">
-      <button id="btn-rewind-sentence" class="p-3 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="현재 문장 다시듣기">
+      <button id="btn-rewind-sentence" class="p-3 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Repeat current sentence">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
       </button>
 
-      <button id="btn-shadowing" class="group flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-black text-white hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] transition-all active:scale-95">
-        <svg class="w-5 h-5 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-        <span>따라 말하기 (Shadowing)</span>
+      <button id="btn-back-lobby" class="px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all">
+        Back to Lobby
       </button>
       
-      <button class="p-3 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="재생 속도 (1.0x)">
-        <span class="font-black">1.0x</span>
+      <button id="btn-playback-speed" class="p-3 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all" title="Playback Speed">
+        <span class="font-black" id="speed-label">1.0x</span>
       </button>
     </div>
   </div>
 
-  <!-- Right Sidebar - My Vocabulary & Info -->
   <div class="lg:col-span-4 h-full flex flex-col gap-6">
     <div class="suno-card flex-1 flex flex-col p-6 max-h-[800px]">
       <div class="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
         <h2 class="text-xl font-black text-white flex items-center gap-2">
-          <span>📚</span> 내 단어장 (Flashcards)
+          <span>📚</span> My Vocabulary
         </h2>
         <span class="text-xs font-bold bg-white/10 text-white/70 px-2 py-1 rounded-md" id="vocab-count">0 words</span>
       </div>
 
       <div id="vocab-list" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pr-2">
-        <!-- Empty State -->
         <div id="vocab-empty" class="h-full flex flex-col items-center justify-center text-center opacity-50 py-10">
           <span class="text-4xl mb-3">🖱️</span>
-          <p class="text-sm font-bold text-white">영상 자막에서 모르는<br/>단어를 클릭해보세요!</p>
-          <p class="text-xs text-white/50 mt-2">클릭한 단어가 여기에 자동 저장됩니다.</p>
+          <p class="text-sm font-bold text-white">Click any word in subtitles<br/>to see meaning!</p>
+          <p class="text-xs text-white/50 mt-2">Saved words will appear here.</p>
         </div>
-        <!-- Vocab items injected by JS -->
       </div>
-      
-      <button class="mt-4 w-full py-4 text-sm font-black text-white/50 border-2 border-dashed border-white/10 rounded-xl hover:text-white hover:border-orange-500/50 hover:bg-orange-500/10 transition-all">
-        플래시카드로 복습하기
-      </button>
     </div>
   </div>
 </div>
+{% endblock %}
 
-<!-- Scripts for Video Learning Logic -->
+{% block extra_js %}
 <script>
+  // 1. YouTube API Initialization (Global Scope)
+  window.isApiReady = false;
+  window.onYouTubeIframeAPIReady = function() {
+    console.log("Onui YouTube: YouTube API Loaded Successfully.");
+    window.isApiReady = true;
+  };
+
+  // Load YouTube API Script Dynamically
+  (function() {
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  })();
+
+  // 2. Main Logic
   document.addEventListener("DOMContentLoaded", () => {
-    const video = document.getElementById('learning-video');
-    const playOverlay = document.getElementById('video-overlay-play');
+    let player;
+    let transcripts = [];
+    let currentSubtitleIndex = -1;
+    let timeUpdateInterval;
+    let savedVocab = [];
+    let recommendedVideos = []; // Store loaded videos globally for filtering
+
     const captionsContainer = document.getElementById('captions-container');
     const vocabList = document.getElementById('vocab-list');
     const vocabEmpty = document.getElementById('vocab-empty');
     const vocabCountBtn = document.getElementById('vocab-count');
     const autoPauseToggle = document.getElementById('auto-pause-toggle');
     const btnRewind = document.getElementById('btn-rewind-sentence');
-    
-    let isPlaying = false;
-    let savedVocab = [];
+    const lobby = document.getElementById('tube-lobby');
+    const exploreGrid = document.getElementById('explore-grid');
+    const playerScreen = document.getElementById('player-screen');
+    const btnBack = document.getElementById('btn-back-lobby');
+    const btnSpeed = document.getElementById('btn-playback-speed');
+    const speedLabel = document.getElementById('speed-label');
+    const searchForm = document.getElementById('youtube-search-form');
 
-    // Mock Timeline Transcripts
-    const transcripts = [
-      { start: 0.5, end: 3.5, id: 0, text: "안녕하세요, 저는 르세라핌의 채원입니다.", trans: "Hello, I am Chaewon from LE SSERAFIM.", words: [
-        { label: "안녕하세요,", mean: "Hello,", pos: "Greeting" },
-        { label: "저는", mean: "I am", pos: "Pronoun" },
-        { label: "르세라핌의", mean: "LE SSERAFIM's", pos: "Noun" },
-        { label: "채원입니다.", mean: "Chaewon.", pos: "Noun" }
-      ]},
-      { start: 3.8, end: 6.5, id: 1, text: "지금부터 여러분의 한국어 실력을 쑥쑥 키워드릴게요.", trans: "From now on, I will quickly improve your Korean skills.", words: [
-        { label: "지금부터", mean: "From now on", pos: "Adverb" },
-        { label: "여러분의", mean: "Your", pos: "Pronoun" },
-        { label: "한국어", mean: "Korean (language)", pos: "Noun" },
-        { label: "실력을", mean: "Skills", pos: "Noun" },
-        { label: "쑥쑥", mean: "Rapidly (growing)", pos: "Adverb" },
-        { label: "키워드릴게요.", mean: "I will improve (grow) it.", pos: "Verb" }
-      ]},
-      { start: 7.0, end: 12.0, id: 2, text: "단어를 누르면 재생이 멈추고 뜻이 나와요!", trans: "If you click a word, playback pauses and the meaning appears!", words: [
-        { label: "단어를", mean: "Words", pos: "Noun" },
-        { label: "누르면", mean: "If you click", pos: "Verb" },
-        { label: "재생이", mean: "Playback", pos: "Noun" },
-        { label: "멈추고", mean: "Pauses and", pos: "Verb" },
-        { label: "뜻이", mean: "Meaning", pos: "Noun" },
-        { label: "나와요!", mean: "Appears!", pos: "Verb" }
-      ]}
-    ];
-
-    let currentSubtitleIndex = -1;
-
-    // Toggle Play/Pause
-    function togglePlay() {
-      if (video.paused) {
-        video.play();
-      } else {
-        video.pause();
+    async function loadLobby() {
+      try {
+        const resp = await fetch('/api/tube/videos');
+        const data = await resp.json();
+        if (data.success && data.videos && data.videos.length > 0) {
+          recommendedVideos = data.videos;
+          renderLocalVideos(recommendedVideos);
+        } else {
+          exploreGrid.innerHTML = '<div class="col-span-full py-20 text-center text-white/50 font-black uppercase">No videos found in database.</div>';
+        }
+      } catch(e) {
+        console.error('Failed to load recommended videos:', e);
+        exploreGrid.innerHTML = '<div class="col-span-full py-20 text-center text-red-400 font-bold uppercase">Server Connection Error.</div>';
       }
     }
 
-    playOverlay.addEventListener('click', togglePlay);
-    video.addEventListener('click', togglePlay);
-
-    video.addEventListener('play', () => {
-      playOverlay.classList.add('opacity-0');
-      // Hide active tooltip
-      const activeWord = document.querySelector('.caption-word.active');
-      if (activeWord) activeWord.classList.remove('active');
-    });
-
-    video.addEventListener('pause', () => {
-      playOverlay.classList.remove('opacity-0');
-    });
-
-    // Time Update & Captions Rendering
-    video.addEventListener('timeupdate', () => {
-      const time = video.currentTime;
+    function renderLocalVideos(videosToRender, isSearchResult = false) {
+      exploreGrid.innerHTML = '';
+      if (videosToRender.length === 0) {
+        exploreGrid.innerHTML = '<div class="col-span-full py-20 text-center text-white/50 font-black uppercase">No matching videos found.</div>';
+        return;
+      }
       
-      // Auto pause at the end of the current sentence if enabled
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'col-span-full mb-4 border-b border-white/10 pb-2';
+      titleDiv.innerHTML = `<h3 class="text-orange-400 font-bold text-sm tracking-widest uppercase">${isSearchResult ? '🔍 Search Results' : '✨ Recommended Content'}</h3>`;
+      exploreGrid.appendChild(titleDiv);
+      
+      videosToRender.forEach((v, idx) => {
+        const card = document.createElement('div');
+        card.className = 'scenario-card flex flex-col group cursor-pointer animate-in fade-in slide-in-from-bottom-8 duration-700';
+        card.style.animationDelay = `${idx * 0.05}s`;
+        card.innerHTML = `
+          <div class="relative w-full aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/10 mb-5">
+             <img src="${v.poster_url}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Video">
+             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-500">
+                <div class="w-16 h-16 bg-gradient-to-r from-orange-600 to-pink-600 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(234,88,12,0.6)]">
+                  <svg class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+             </div>
+             <div class="absolute top-3 left-3 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_10px_#f97316]"></span>
+                <span class="text-[10px] font-black text-white tracking-widest uppercase">AI Captions Ready</span>
+             </div>
+          </div>
+          <div class="flex flex-col gap-2">
+             <h3 class="text-xl font-bold text-white leading-snug group-hover:text-orange-400 transition-colors line-clamp-2">${v.title}</h3>
+             <p class="text-sm font-medium text-white/50 line-clamp-2">${v.description}</p>
+             <div class="flex items-center gap-3 mt-2">
+                <span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-white/40 tracking-widest uppercase">TOPIK Lv.${v.level}</span>
+             </div>
+          </div>
+        `;
+        card.onclick = () => initPlayer(v);
+        exploreGrid.appendChild(card);
+      });
+    }
+
+    async function handleYouTubeSearch(event) {
+      if (event && event.preventDefault) event.preventDefault();
+      const query = document.getElementById('youtube-search-query').value.trim().toLowerCase();
+      
+      if (!query) {
+        // If empty, show all
+        renderLocalVideos(recommendedVideos, false);
+        return;
+      }
+
+      // Filter locally
+      const filtered = recommendedVideos.filter(v => {
+        return (v.title && v.title.toLowerCase().includes(query)) ||
+               (v.description && v.description.toLowerCase().includes(query)) ||
+               (v.level && v.level.toLowerCase() === query);
+      });
+      
+      renderLocalVideos(filtered, true);
+    }
+
+    async function handleAddVideoClick(event) {
+        if (!event.target.classList.contains('add-to-library-btn')) return;
+
+        const button = event.target;
+        const video = {
+            id: `yt_${button.dataset.videoId}`, // Create a unique ID
+            title: button.dataset.title,
+            description: button.dataset.description,
+            level: "1", // Default level
+            youtube_id: button.dataset.videoId
+        };
+
+        button.disabled = true;
+        button.innerText = 'Adding...';
+
+        try {
+            const resp = await fetch('/api/tube/videos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(video)
+            });
+
+            const result = await resp.json();
+
+            if (resp.ok && result.success) {
+                button.innerText = 'Added!';
+                button.classList.remove('bg-green-600', 'hover:bg-green-500');
+                button.classList.add('bg-gray-500');
+            } else {
+                throw new Error(result.error || 'Failed to add video.');
+            }
+        } catch (err) {
+            alert(`Error adding video: ${err.message}`);
+            button.disabled = false;
+            button.innerText = '+ Add to My Videos';
+        }
+    }
+
+    function initPlayer(v) {
+      if (!window.isApiReady || typeof YT === 'undefined' || !YT.Player) {
+        console.warn("YouTube API not ready. Retrying...");
+        setTimeout(() => initPlayer(v), 500);
+        return;
+      }
+
+      document.getElementById('player-title').innerText = v.title;
+      document.getElementById('player-desc').innerText = v.description;
+      
+      if (player) {
+        try { player.destroy(); } catch(e) {}
+        player = null;
+      }
+
+      const videoContainer = document.querySelector('.video-container');
+      videoContainer.innerHTML = '<div id="youtube-player-element"></div><div class="captions-layer" id="captions-container"></div>';
+
+      const videoId = v.youtube_id || (v.video_url && v.video_url.includes('v=') ? v.video_url.split('v=')[1].split('&')[0] : null);
+
+      if (!videoId) {
+        alert('Invalid Video ID');
+        return;
+      }
+
+      player = new YT.Player('youtube-player-element', {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          'autoplay': 0, 'controls': 1, 'modestbranding': 1, 'rel': 0, 'enablejsapi': 1, 'origin': window.location.origin
+        },
+        events: {
+          'onReady': () => startTimeUpdate(),
+          'onStateChange': onPlayerStateChange
+        }
+      });
+      
+      fetch(`/api/tube/transcripts/${v.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            transcripts = data.transcripts;
+            lobby.classList.add('hidden');
+            playerScreen.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            // If no transcript, just show the player without captions
+            transcripts = [];
+            lobby.classList.add('hidden');
+            playerScreen.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            console.warn(`No transcript found for video ID: ${v.id}`);
+          }
+        });
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data == YT.PlayerState.PLAYING) startTimeUpdate();
+      else stopTimeUpdate();
+    }
+
+    function startTimeUpdate() {
+      if (timeUpdateInterval) clearInterval(timeUpdateInterval);
+      timeUpdateInterval = setInterval(() => {
+        if (player && player.getCurrentTime) handleTimeUpdate(player.getCurrentTime());
+      }, 100);
+    }
+
+    function stopTimeUpdate() {
+      clearInterval(timeUpdateInterval);
+    }
+
+    function handleTimeUpdate(time) {
+      if (!transcripts || transcripts.length === 0) return;
+
       if (currentSubtitleIndex !== -1 && autoPauseToggle.checked) {
         const curLine = transcripts[currentSubtitleIndex];
-        // If we just crossed the end threshold of the current line
         if (time >= curLine.end && time < curLine.end + 0.3) {
-           video.pause();
-           video.currentTime = curLine.end + 0.05; // bump slightly ahead
+           player.pauseVideo();
+           player.seekTo(curLine.end, true);
            return;
         }
       }
-
-      // Find the active transcript
+      
       let activeIndex = transcripts.findIndex(s => time >= s.start && time <= s.end);
-
       if (activeIndex !== currentSubtitleIndex) {
         currentSubtitleIndex = activeIndex;
         renderCaptions(activeIndex);
       }
-    });
+    }
 
-    // Render HTML for the active subtitle
     function renderCaptions(index) {
-      captionsContainer.innerHTML = '';
-      if (index === -1) return; // No caps to show
-      
+      const container = document.getElementById('captions-container');
+      if (!container) return;
+      container.innerHTML = '';
+      if (index === -1) return;
       const line = transcripts[index];
       const box = document.createElement('div');
       box.className = 'caption-box shadow-2xl';
-
       const lineWrapper = document.createElement('div');
 
       line.words.forEach((wordObj) => {
         const span = document.createElement('span');
         span.className = 'caption-word relative';
         span.innerText = wordObj.label;
-        
-        // Tooltip DOM
         const tooltip = document.createElement('div');
         tooltip.className = 'word-tooltip flex flex-col items-start text-left z-50';
+        const addToVocabLabel = translations['yt.add_to_vocab'] || "+ Add to Vocabulary";
         tooltip.innerHTML = `
           <div class="text-[10px] uppercase font-black text-orange-500 mb-1 tracking-widest">${wordObj.pos}</div>
           <div class="text-xl font-bold text-white mb-2 leading-tight">${wordObj.label}</div>
           <div class="text-sm font-medium text-white/80">${wordObj.mean}</div>
           <button class="mt-3 w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-lg transition-colors save-vocab-btn">
-            + 단어장 추가
+            ${addToVocabLabel}
           </button>
         `;
-
         span.appendChild(tooltip);
-
-        // Click interaction
         span.addEventListener('click', (e) => {
           e.stopPropagation();
-          // Pause video immediately
-          video.pause();
-          
-          // Hide others
-          document.querySelectorAll('.caption-word.active').forEach(el => {
-            if (el !== span) el.classList.remove('active');
-          });
-
-          // Toggle visibility
+          player.pauseVideo();
+          document.querySelectorAll('.caption-word.active').forEach(el => { if (el !== span) el.classList.remove('active'); });
           span.classList.toggle('active');
-
-          // Hook save button
           const saveBtn = tooltip.querySelector('.save-vocab-btn');
           saveBtn.onclick = (event) => {
             event.stopPropagation();
@@ -340,33 +544,39 @@
             span.classList.remove('active');
           };
         });
-
         lineWrapper.appendChild(span);
-        // Add space
         lineWrapper.appendChild(document.createTextNode(' '));
       });
-
       const transEl = document.createElement('div');
       transEl.className = 'caption-translation';
       transEl.innerText = line.trans;
-
       box.appendChild(lineWrapper);
       box.appendChild(transEl);
-      captionsContainer.appendChild(box);
+      container.appendChild(box);
     }
 
-    // Hide tooltip when clicking elsewhere
-    document.addEventListener('click', () => {
-      document.querySelectorAll('.caption-word.active').forEach(el => el.classList.remove('active'));
-    });
+    btnBack.onclick = () => {
+      if (player) player.pauseVideo();
+      playerScreen.classList.add('hidden');
+      lobby.classList.remove('hidden');
+      loadLobby();
+    };
 
-    // Add to Vocabulary Sidebar
+    btnSpeed.onclick = () => {
+      if (!player) return;
+      const speeds = [0.5, 0.75, 1.0, 1.25, 1.5];
+      const currentSpeed = player.getPlaybackRate();
+      let nextIndex = speeds.indexOf(currentSpeed) + 1;
+      if (nextIndex >= speeds.length) nextIndex = 0;
+      const nextSpeed = speeds[nextIndex];
+      player.setPlaybackRate(nextSpeed);
+      speedLabel.innerText = `${nextSpeed}x`;
+    };
+
     function addToVocab(wordObj) {
-      if (savedVocab.find(w => w.label === wordObj.label)) return; // Prevents dupes
-      
+      if (savedVocab.find(w => w.label === wordObj.label)) return;
       savedVocab.push(wordObj);
       vocabEmpty.style.display = 'none';
-
       const card = document.createElement('div');
       card.className = 'bg-white/5 border border-white/10 rounded-xl p-4 flex justify-between items-start animate-in fade-in slide-in-from-right-4 hover:bg-white/10 transition-colors group cursor-pointer';
       card.innerHTML = `
@@ -374,37 +584,32 @@
           <h4 class="text-lg font-black text-white mb-1 group-hover:text-orange-400 transition-colors">${wordObj.label}</h4>
           <p class="text-sm text-white/60 font-medium">${wordObj.mean}</p>
         </div>
-        <button class="text-white/20 hover:text-orange-500 transition-colors p-2" title="단어 듣기 (TTS)">🔊</button>
+        <button class="text-white/20 hover:text-orange-500 transition-colors p-2">🔊</button>
       `;
-
-      // Insert at top
-      if (vocabList.firstChild) {
-        vocabList.insertBefore(card, vocabList.firstChild);
-      } else {
-        vocabList.appendChild(card);
-      }
-
-      vocabCountBtn.innerText = `${savedVocab.length} words`;
-      ToastManager.success(`단어장에 저장되었습니다: ${wordObj.label}`);
+      if (vocabList.firstChild) vocabList.insertBefore(card, vocabList.firstChild);
+      else vocabList.appendChild(card);
+      const wordsCountLabel = translations['yt.words_count'] || "words";
+      vocabCountBtn.innerText = `${savedVocab.length} ${wordsCountLabel}`;
     }
 
-    // Rewind Sentence
     btnRewind.addEventListener('click', () => {
-      const time = video.currentTime;
-      // Find current or just passed sentence
+      if (!player) return;
+      const time = player.getCurrentTime();
+      if (!transcripts || transcripts.length === 0) return;
       let lastLine = null;
-      for (const t of transcripts) {
-        if (t.end + 1 >= time) {
-          lastLine = t;
-          break;
-        }
-      }
-      if (lastLine) {
-        video.currentTime = lastLine.start;
-        video.play();
+      for (const t of transcripts) { if (t.end + 1 >= time) { lastLine = t; break; } }
+      if (lastLine) { 
+        player.seekTo(lastLine.start, true);
+        player.playVideo(); 
       }
     });
 
+    searchForm.addEventListener('submit', handleYouTubeSearch);
+    
+    // Add event delegation for "Add to Library" buttons in the explore grid
+    exploreGrid.addEventListener('click', handleAddVideoClick);
+
+    loadLobby();
   });
 </script>
 {% endblock %}

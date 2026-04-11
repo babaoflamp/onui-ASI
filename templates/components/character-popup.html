@@ -28,7 +28,7 @@
             id="popup-header"
             class="text-sm text-gray-700 mb-4 pb-3 border-b-2 border-yellow-900"
           >
-            <div id="popup-sender" class="font-semibold">오빠로부터</div>
+            <div id="popup-sender" class="font-semibold" data-i18n="pop.from_oppa">From Oppa</div>
             <div id="popup-date" class="text-xs text-gray-500"></div>
           </div>
 
@@ -44,8 +44,9 @@
           <div
             id="popup-signature"
             class="text-right text-sm text-gray-700 italic"
+            data-i18n="pop.signature"
           >
-            — 너의 한국어 학습 도우미 —
+            — Your Korean Learning Helper —
           </div>
         </div>
       </div>
@@ -57,14 +58,16 @@
         <button
           onclick="dismissCharacterPopup()"
           class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
+          data-i18n="pop.dismiss"
         >
-          다음에 보기
+          Later
         </button>
         <button
           onclick="closeCharacterPopup()"
           class="px-6 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700 transition font-semibold"
+          data-i18n="pop.confirm"
         >
-          확인했어요!
+          Got it!
         </button>
       </div>
     </div>

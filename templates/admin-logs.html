@@ -8,13 +8,14 @@
       >
         Activity Logs
       </p>
-      <h1 class="text-3xl font-bold text-gray-900 mt-1">로그 모니터링</h1>
-      <p class="text-gray-600 mt-2">사용자 활동, API 오류, 시스템 이벤트</p>
+      <h1 class="text-3xl font-bold text-gray-900 mt-1" data-i18n="adm.logs">System Logs</h1>
+      <p class="text-gray-600 mt-2" data-i18n="adm.logs_desc">User activity, API errors, and system events.</p>
     </div>
     <a
       href="/admin/dashboard"
       class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-      >← 대시보드</a
+      data-i18n="adm.back_dashboard"
+      >← Dashboard</a
     >
   </div>
 
@@ -25,28 +26,31 @@
         id="filterLevel"
         class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400"
       >
-        <option value="">모든 로그</option>
-        <option value="INFO">정보</option>
-        <option value="WARNING">경고</option>
-        <option value="ERROR">오류</option>
+        <option value="" data-i18n="adm.all_logs">All Logs</option>
+        <option value="INFO" data-i18n="adm.log_info">Info</option>
+        <option value="WARNING" data-i18n="adm.log_warning">Warning</option>
+        <option value="ERROR" data-i18n="adm.log_error">Error</option>
       </select>
       <input
         id="searchUser"
         type="text"
-        placeholder="사용자명으로 검색..."
+        placeholder="Search by user..."
+        data-i18n="adm.search_user"
         class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400"
       />
       <input
         id="searchAction"
         type="text"
-        placeholder="액션으로 검색..."
+        placeholder="Search by action..."
+        data-i18n="adm.search_action"
         class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-purple-400"
       />
       <button
         onclick="loadLogs()"
         class="px-4 py-2 rounded-lg bg-purple-500 text-white font-semibold hover:bg-purple-600"
+        data-i18n="adm.btn_search"
       >
-        🔍 검색
+        🔍 Search
       </button>
     </div>
   </div>
@@ -57,30 +61,30 @@
   >
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-50">
+        <thead class="bg-slate-50">
           <tr>
-            <th class="px-4 py-3 text-left font-semibold text-gray-700">
-              시간
+            <th class="px-4 py-3 text-left font-semibold text-gray-700" data-i18n="adm.time">
+              Time
             </th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-700">
-              레벨
+            <th class="px-4 py-3 text-left font-semibold text-gray-700" data-i18n="adm.level">
+              Level
             </th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-700">
-              메시지
+            <th class="px-4 py-3 text-left font-semibold text-gray-700" data-i18n="adm.message">
+              Message
             </th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-700">
-              상세
+            <th class="px-4 py-3 text-left font-semibold text-gray-700" data-i18n="adm.details">
+              Details
             </th>
           </tr>
         </thead>
         <tbody id="logsTbody" class="divide-y divide-gray-100 bg-white">
           <tr>
             <td
-              class="px-4 py-3 text-gray-500"
+              class="px-4 py-3 text-gray-500 text-center"
               colspan="4"
-              style="text-align: center"
+              data-i18n="adm.loading_logs"
             >
-              로그를 불러오는 중...
+              Loading logs...
             </td>
           </tr>
         </tbody>
@@ -92,8 +96,7 @@
     class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800"
   >
     <p>
-      <strong>💡 정보:</strong> 로그는 <code>logs/detailed.log</code> 파일에서
-      실시간으로 수집됩니다. 최근 100개 항목만 표시됩니다.
+      <strong data-i18n="adm.info_label">💡 Info:</strong> <span data-i18n="adm.logs_info_text">Logs are collected in real-time from the <code>logs/detailed.log</code> file. Only the most recent 100 entries are displayed.</span>
     </p>
   </div>
 </div>

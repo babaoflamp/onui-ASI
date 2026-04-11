@@ -19,6 +19,7 @@ router = APIRouter()
 # 헬퍼
 # ──────────────────────────────────────────────
 
+
 def _get_state(request: Request, key: str):
     return getattr(request.app.state, key, None)
 
@@ -41,7 +42,12 @@ def _require_user(request: Request) -> dict:
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d %Human:%M:%S").replace("Human:", "H").replace("H", "")
+    return (
+        datetime.now(timezone.utc)
+        .strftime("%Y-%m-%d %Human:%M:%S")
+        .replace("Human:", "H")
+        .replace("H", "")
+    )
 
 
 def _utcnow() -> str:
@@ -51,6 +57,7 @@ def _utcnow() -> str:
 # ══════════════════════════════════════════════
 # 1. 문장별 성적 (sentence_scores)
 # ══════════════════════════════════════════════
+
 
 @router.post("/api/lms/scores/sentence")
 async def save_sentence_score(request: Request):
@@ -65,16 +72,16 @@ async def save_sentence_score(request: Request):
 
     payload = await request.json()
 
-    sentence_id   = str(payload.get("sentence_id", ""))
+    sentence_id = str(payload.get("sentence_id", ""))
     sentence_text = payload.get("sentence_text", "")
-    level         = payload.get("level", "")
-    score         = float(payload.get("score", 0))
-    accuracy      = float(payload.get("accuracy", 0))
-    completeness  = float(payload.get("completeness", 0))
-    fluency_acc   = float(payload.get("fluency_accuracy", 0))
-    term_id       = payload.get("term_id", "2026-1")
-    device_type   = payload.get("device_type", "pc")
-    ui_lang       = payload.get("ui_lang", "ko")
+    level = payload.get("level", "")
+    score = float(payload.get("score", 0))
+    accuracy = float(payload.get("accuracy", 0))
+    completeness = float(payload.get("completeness", 0))
+    fluency_acc = float(payload.get("fluency_accuracy", 0))
+    term_id = payload.get("term_id", "2026-1")
+    device_type = payload.get("device_type", "pc")
+    ui_lang = payload.get("ui_lang", "en")
 
     if not sentence_id:
         return JSONResponse(status_code=400, content={"error": "sentence_id required"})
@@ -108,12 +115,23 @@ async def save_sentence_score(request: Request):
                 ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1,?,?,?,?,?)
                 """,
                 (
-                    user_id, sentence_id, sentence_text, level,
-                    score, score, score,
-                    accuracy, accuracy, accuracy,
-                    completeness, fluency_acc,
-                    term_id, device_type, ui_lang,
-                    now, now,
+                    user_id,
+                    sentence_id,
+                    sentence_text,
+                    level,
+                    score,
+                    score,
+                    score,
+                    accuracy,
+                    accuracy,
+                    accuracy,
+                    completeness,
+                    fluency_acc,
+                    term_id,
+                    device_type,
+                    ui_lang,
+                    now,
+                    now,
                 ),
             )
         else:
@@ -132,13 +150,16 @@ async def save_sentence_score(request: Request):
                 WHERE user_id = ? AND sentence_id = ?
                 """,
                 (
-                    new_best, score,
-                    accuracy, accuracy,
+                    new_best,
+                    score,
+                    accuracy,
+                    accuracy,
                     completeness,
                     fluency_acc,
                     new_count,
                     now,
-                    user_id, sentence_id,
+                    user_id,
+                    sentence_id,
                 ),
             )
         conn.commit()
@@ -149,7 +170,9 @@ async def save_sentence_score(request: Request):
 
 
 @router.get("/api/lms/scores/sentence/{user_id}")
-async def get_sentence_scores(request: Request, user_id: int, level: Optional[str] = None, limit: int = 100):
+async def get_sentence_scores(
+    request: Request, user_id: int, level: Optional[str] = None, limit: int = 100
+):
     """학생의 문장별 성적 목록 조회 (선생님/관리자 또는 본인)."""
     try:
         me = _require_user(request)
@@ -159,7 +182,11 @@ async def get_sentence_scores(request: Request, user_id: int, level: Optional[st
     normalize_role = _get_state(request, "normalize_role")
     role_instructor = _get_state(request, "role_instructor")
     role_admin = _get_state(request, "role_system_admin")
-    my_role = normalize_role(me.get("role"), me.get("is_admin")) if callable(normalize_role) else "learner"
+    my_role = (
+        normalize_role(me.get("role"), me.get("is_admin"))
+        if callable(normalize_role)
+        else "learner"
+    )
 
     # 본인이거나 선생님/관리자만 조회 가능
     if me["id"] != user_id and my_role not in {role_instructor, role_admin}:
@@ -198,7 +225,11 @@ async def get_sentence_score_summary(request: Request, user_id: int):
     normalize_role = _get_state(request, "normalize_role")
     role_instructor = _get_state(request, "role_instructor")
     role_admin = _get_state(request, "role_system_admin")
-    my_role = normalize_role(me.get("role"), me.get("is_admin")) if callable(normalize_role) else "learner"
+    my_role = (
+        normalize_role(me.get("role"), me.get("is_admin"))
+        if callable(normalize_role)
+        else "learner"
+    )
 
     if me["id"] != user_id and my_role not in {role_instructor, role_admin}:
         return JSONResponse(status_code=403, content={"error": "권한이 없습니다"})
@@ -255,12 +286,14 @@ async def get_sentence_score_summary(request: Request, user_id: int):
         recent = [dict(r) for r in cur.fetchall()]
 
         conn.close()
-        return JSONResponse(content={
-            "user_id": user_id,
-            "overall": overall,
-            "by_level": by_level,
-            "recent": recent,
-        })
+        return JSONResponse(
+            content={
+                "user_id": user_id,
+                "overall": overall,
+                "by_level": by_level,
+                "recent": recent,
+            }
+        )
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -268,6 +301,7 @@ async def get_sentence_score_summary(request: Request, user_id: int):
 # ══════════════════════════════════════════════
 # 2. 강의 출결 (lecture_attendance)
 # ══════════════════════════════════════════════
+
 
 @router.post("/api/lms/attendance/video")
 async def record_video_attendance(request: Request):
@@ -278,12 +312,12 @@ async def record_video_attendance(request: Request):
     """
     payload = await request.json()
 
-    user_id     = payload.get("user_id")
-    video_id    = payload.get("video_id", "")
+    user_id = payload.get("user_id")
+    video_id = payload.get("video_id", "")
     watched_pct = float(payload.get("watched_pct", 0))
-    study_secs  = int(payload.get("study_seconds", 0))
-    week        = payload.get("week")
-    term_id     = payload.get("term_id", "2026-1")
+    study_secs = int(payload.get("study_seconds", 0))
+    week = payload.get("week")
+    term_id = payload.get("term_id", "2026-1")
 
     # user_id가 숫자가 아니면(게스트) 무시
     try:
@@ -317,18 +351,31 @@ async def record_video_attendance(request: Request):
                                      THEN excluded.attended_at
                                      ELSE lecture_attendance.attended_at END
             """,
-            (user_id, video_id, week, status, watched_pct, study_secs,
-             now if status == "present" else None, term_id, now),
+            (
+                user_id,
+                video_id,
+                week,
+                status,
+                watched_pct,
+                study_secs,
+                now if status == "present" else None,
+                term_id,
+                now,
+            ),
         )
         conn.commit()
         conn.close()
-        return JSONResponse(content={"success": True, "status": status, "watched_pct": watched_pct})
+        return JSONResponse(
+            content={"success": True, "status": status, "watched_pct": watched_pct}
+        )
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @router.get("/api/lms/attendance/summary/{user_id}")
-async def get_attendance_summary(request: Request, user_id: int, term_id: str = "2026-1"):
+async def get_attendance_summary(
+    request: Request, user_id: int, term_id: str = "2026-1"
+):
     """학생의 출석률 요약 (주차별 + 전체)."""
     try:
         me = _require_user(request)
@@ -338,7 +385,11 @@ async def get_attendance_summary(request: Request, user_id: int, term_id: str = 
     normalize_role = _get_state(request, "normalize_role")
     role_instructor = _get_state(request, "role_instructor")
     role_admin = _get_state(request, "role_system_admin")
-    my_role = normalize_role(me.get("role"), me.get("is_admin")) if callable(normalize_role) else "learner"
+    my_role = (
+        normalize_role(me.get("role"), me.get("is_admin"))
+        if callable(normalize_role)
+        else "learner"
+    )
 
     if me["id"] != user_id and my_role not in {role_instructor, role_admin}:
         return JSONResponse(status_code=403, content={"error": "권한이 없습니다"})
@@ -375,14 +426,16 @@ async def get_attendance_summary(request: Request, user_id: int, term_id: str = 
         by_week_raw = [dict(r) for r in cur.fetchall()]
 
         conn.close()
-        return JSONResponse(content={
-            "user_id": user_id,
-            "term_id": term_id,
-            "total_lectures": total,
-            "present_count": present,
-            "attendance_rate": rate,
-            "by_lecture": by_week_raw,
-        })
+        return JSONResponse(
+            content={
+                "user_id": user_id,
+                "term_id": term_id,
+                "total_lectures": total,
+                "present_count": present,
+                "attendance_rate": rate,
+                "by_lecture": by_week_raw,
+            }
+        )
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -398,18 +451,27 @@ async def manual_attendance_update(request: Request):
     normalize_role = _get_state(request, "normalize_role")
     role_instructor = _get_state(request, "role_instructor")
     role_admin = _get_state(request, "role_system_admin")
-    my_role = normalize_role(me.get("role"), me.get("is_admin")) if callable(normalize_role) else "learner"
+    my_role = (
+        normalize_role(me.get("role"), me.get("is_admin"))
+        if callable(normalize_role)
+        else "learner"
+    )
 
     if my_role not in {role_instructor, role_admin}:
-        return JSONResponse(status_code=403, content={"error": "선생님/관리자만 수정 가능합니다"})
+        return JSONResponse(
+            status_code=403, content={"error": "선생님/관리자만 수정 가능합니다"}
+        )
 
     payload = await request.json()
     target_user_id = payload.get("user_id")
-    video_id       = payload.get("video_id", "")
-    new_status     = payload.get("status", "")  # 'present' or 'absent'
+    video_id = payload.get("video_id", "")
+    new_status = payload.get("status", "")  # 'present' or 'absent'
 
     if not target_user_id or not video_id or new_status not in ("present", "absent"):
-        return JSONResponse(status_code=400, content={"error": "user_id, video_id, status(present/absent) required"})
+        return JSONResponse(
+            status_code=400,
+            content={"error": "user_id, video_id, status(present/absent) required"},
+        )
 
     now = _utcnow()
     logger = _get_state(request, "logger")
@@ -432,7 +494,10 @@ async def manual_attendance_update(request: Request):
         if logger:
             logger.info(
                 "[LMS_ATTENDANCE_MANUAL] modifier=%s target_user=%s video_id=%s new_status=%s",
-                me.get("email"), target_user_id, video_id, new_status,
+                me.get("email"),
+                target_user_id,
+                video_id,
+                new_status,
             )
 
         return JSONResponse(content={"success": True, "affected": affected})
@@ -444,6 +509,7 @@ async def manual_attendance_update(request: Request):
 # 3. 체류 시간 (study_sessions)
 # ══════════════════════════════════════════════
 
+
 @router.post("/api/lms/study-session")
 async def save_study_session(request: Request):
     """
@@ -452,13 +518,15 @@ async def save_study_session(request: Request):
     """
     payload = await request.json()
 
-    user_id  = payload.get("user_id")
-    page     = payload.get("page", "")
-    page_type = payload.get("page_type", "other")   # lecture / pronunciation / quiz / other
+    user_id = payload.get("user_id")
+    page = payload.get("page", "")
+    page_type = payload.get(
+        "page_type", "other"
+    )  # lecture / pronunciation / quiz / other
     duration = int(payload.get("duration_seconds", 0))
-    term_id  = payload.get("term_id", "2026-1")
+    term_id = payload.get("term_id", "2026-1")
     device_type = payload.get("device_type", "pc")
-    ui_lang  = payload.get("ui_lang", "ko")
+    ui_lang = payload.get("ui_lang", "en")
 
     # 게스트 건너뜀
     try:
@@ -468,7 +536,9 @@ async def save_study_session(request: Request):
 
     # 60초 미만 미집계
     if duration < 60:
-        return JSONResponse(content={"success": False, "reason": "too_short", "duration": duration})
+        return JSONResponse(
+            content={"success": False, "reason": "too_short", "duration": duration}
+        )
 
     try:
         conn = _db(request)
@@ -478,11 +548,20 @@ async def save_study_session(request: Request):
                 (user_id, page, page_type, duration_seconds, term_id, device_type, ui_lang, created_at)
             VALUES (?,?,?,?,?,?,?,?)
             """,
-            (user_id, page, page_type, duration, term_id, device_type, ui_lang, _utcnow()),
+            (
+                user_id,
+                page,
+                page_type,
+                duration,
+                term_id,
+                device_type,
+                ui_lang,
+                _utcnow(),
+            ),
         )
         conn.commit()
         conn.close()
-        
+
         # 통합 학습 진도(total_learning_time) 업데이트 (60초 이상일 때 분 단위로 누적)
         learning_service = _get_state(request, "learning_service")
         if learning_service and duration >= 60:
@@ -494,7 +573,9 @@ async def save_study_session(request: Request):
 
 
 @router.get("/api/lms/study-session/summary/{user_id}")
-async def get_study_session_summary(request: Request, user_id: int, term_id: str = "2026-1"):
+async def get_study_session_summary(
+    request: Request, user_id: int, term_id: str = "2026-1"
+):
     """학생의 총 학습 시간 + 페이지 유형별 분류 요약."""
     try:
         me = _require_user(request)
@@ -504,7 +585,11 @@ async def get_study_session_summary(request: Request, user_id: int, term_id: str
     normalize_role = _get_state(request, "normalize_role")
     role_instructor = _get_state(request, "role_instructor")
     role_admin = _get_state(request, "role_system_admin")
-    my_role = normalize_role(me.get("role"), me.get("is_admin")) if callable(normalize_role) else "learner"
+    my_role = (
+        normalize_role(me.get("role"), me.get("is_admin"))
+        if callable(normalize_role)
+        else "learner"
+    )
 
     if me["id"] != user_id and my_role not in {role_instructor, role_admin}:
         return JSONResponse(status_code=403, content={"error": "권한이 없습니다"})
@@ -519,7 +604,7 @@ async def get_study_session_summary(request: Request, user_id: int, term_id: str
             "WHERE user_id = ? AND term_id = ?",
             (user_id, term_id),
         )
-        total_secs = (cur.fetchone()["total_seconds"] or 0)
+        total_secs = cur.fetchone()["total_seconds"] or 0
 
         # 페이지 유형별 시간
         cur.execute(
@@ -552,14 +637,16 @@ async def get_study_session_summary(request: Request, user_id: int, term_id: str
         daily = [dict(r) for r in cur.fetchall()]
 
         conn.close()
-        return JSONResponse(content={
-            "user_id": user_id,
-            "term_id": term_id,
-            "total_seconds": total_secs,
-            "total_minutes": round(total_secs / 60, 1),
-            "by_page_type": by_type,
-            "daily_last_7days": daily,
-        })
+        return JSONResponse(
+            content={
+                "user_id": user_id,
+                "term_id": term_id,
+                "total_seconds": total_secs,
+                "total_minutes": round(total_secs / 60, 1),
+                "by_page_type": by_type,
+                "daily_last_7days": daily,
+            }
+        )
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -567,6 +654,7 @@ async def get_study_session_summary(request: Request, user_id: int, term_id: str
 # ══════════════════════════════════════════════
 # 4. 반 전체 통계 (선생님/관리자용)
 # ══════════════════════════════════════════════
+
 
 @router.get("/api/lms/stats/class")
 async def get_class_stats(request: Request, term_id: str = "2026-1"):
@@ -579,10 +667,16 @@ async def get_class_stats(request: Request, term_id: str = "2026-1"):
     normalize_role = _get_state(request, "normalize_role")
     role_instructor = _get_state(request, "role_instructor")
     role_admin = _get_state(request, "role_system_admin")
-    my_role = normalize_role(me.get("role"), me.get("is_admin")) if callable(normalize_role) else "learner"
+    my_role = (
+        normalize_role(me.get("role"), me.get("is_admin"))
+        if callable(normalize_role)
+        else "learner"
+    )
 
     if my_role not in {role_instructor, role_admin}:
-        return JSONResponse(status_code=403, content={"error": "선생님/관리자만 접근 가능합니다"})
+        return JSONResponse(
+            status_code=403, content={"error": "선생님/관리자만 접근 가능합니다"}
+        )
 
     try:
         conn = _db(request)
@@ -651,13 +745,15 @@ async def get_class_stats(request: Request, term_id: str = "2026-1"):
         total_students = cur.fetchone()[0]
 
         conn.close()
-        return JSONResponse(content={
-            "term_id": term_id,
-            "class_avg_score": class_avg.get("class_avg_score"),
-            "score_ranking": score_ranking,
-            "attendance": attendance_list,
-            "study_sessions": study_sessions,
-            "total_students": total_students,
-        })
+        return JSONResponse(
+            content={
+                "term_id": term_id,
+                "class_avg_score": class_avg.get("class_avg_score"),
+                "score_ranking": score_ranking,
+                "attendance": attendance_list,
+                "study_sessions": study_sessions,
+                "total_students": total_students,
+            }
+        )
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

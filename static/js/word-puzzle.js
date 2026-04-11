@@ -40,11 +40,13 @@
         resetTimer();
         requestAnimationFrame(updateTimer);
       } else {
-        wordsRow.innerHTML = '<p class="text-gray-500">문장 데이터가 없습니다.</p>';
+        const noData = (typeof translations !== 'undefined' && translations['wp.no_data']) || "No sentence data available.";
+        wordsRow.innerHTML = `<p class="text-gray-500">${noData}</p>`;
       }
     } catch (error) {
       console.error('Error loading sentences:', error);
-      wordsRow.innerHTML = '<p class="text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</p>';
+      const errorMsg = (typeof translations !== 'undefined' && translations['dash.error_loading']) || "An error occurred while loading data.";
+      wordsRow.innerHTML = `<p class="text-red-500">${errorMsg}</p>`;
     }
   }
 
@@ -67,12 +69,18 @@
     if (!sentences.length) return;
 
     const data = sentences[currentIndex];
-    puzzleTitle.textContent = `문장 ${currentIndex + 1} / ${sentences.length}`;
-    puzzleMeta.textContent = `레벨: ${data.level} · 어순 연습`;
+    const sentenceLabel = (typeof translations !== 'undefined' && translations['wp.sentence']) || "Sentence";
+    puzzleTitle.textContent = `${sentenceLabel} ${currentIndex + 1} / ${sentences.length}`;
+    
+    const levelLabel = (typeof translations !== 'undefined' && translations['adm.role']) || "Level";
+    const orderLabel = (typeof translations !== 'undefined' && translations['wp.order_practice']) || "Word Order Practice";
+    puzzleMeta.textContent = `${levelLabel}: ${data.level} · ${orderLabel}`;
+    
     sentenceHint.textContent = `${data.situation} — ${data.hint}`;
     translationText.textContent = data.translation;
 
-    feedback.textContent = "카드를 드래그하거나 클릭해서 순서를 바꿔 보세요.";
+    const dragHint = (typeof translations !== 'undefined' && translations['wp.drag_hint']) || "Drag or click cards to change the order.";
+    feedback.textContent = dragHint;
     feedback.className = "feedback";
     wordsRow.classList.remove("correct", "incorrect");
     selectedCard = null;
@@ -165,12 +173,14 @@
     if (current.join(" ") === correct.join(" ")) {
       wordsRow.classList.remove("incorrect");
       wordsRow.classList.add("correct");
-      feedback.textContent = "정답입니다! 아주 잘하셨어요. 👏";
+      const correctMsg = (typeof translations !== 'undefined' && translations['wp.correct']) || "Correct! Well done. 👏";
+      feedback.textContent = correctMsg;
       feedback.className = "feedback good";
     } else {
       wordsRow.classList.remove("correct");
       wordsRow.classList.add("incorrect");
-      feedback.textContent = "조금 더 생각해 보세요. 어순을 다시 한 번 확인해 보세요.";
+      const tryAgain = (typeof translations !== 'undefined' && translations['wp.try_again']) || "Think a bit more. Check the word order again.";
+      feedback.textContent = tryAgain;
       feedback.className = "feedback bad";
       setTimeout(() => {
         wordsRow.classList.remove("incorrect");
@@ -189,8 +199,9 @@
       shuffled.forEach((w, i) => {
         if (cards[i]) cards[i].textContent = w;
       });
-      feedback.textContent = "다시 섞었습니다. 올바른 순서를 맞춰 보세요.";
       feedback.className = "feedback";
+      const reshuffled = (typeof translations !== 'undefined' && translations['wp.reshuffled']) || "Reshuffled. Try matching the correct order.";
+      feedback.textContent = reshuffled;
       wordsRow.classList.remove("correct", "incorrect");
       selectedCard = null;
       resetTimer();

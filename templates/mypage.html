@@ -76,13 +76,13 @@
         Personal Studio
       </div>
       <h1 class="text-4xl font-black text-white mb-2 tracking-tighter">
-        내 <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-500">프로필</span>
+        My <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-pink-500">Profile</span>
       </h1>
-      <p class="text-white/50 font-medium">학습 설정과 개인 정보를 관리하는 공간입니다.</p>
+      <p class="text-white/50 font-medium" data-i18n="my.desc">Manage your learning settings and personal information.</p>
     </div>
     
     <a href="/change-password" class="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold hover:bg-white/10 transition-all text-sm">
-      🔐 비밀번호 변경
+      🔐 <span data-i18n="my.change_pw">Change Password</span>
     </a>
   </div>
 
@@ -94,7 +94,7 @@
   <!-- Error State -->
   <div id="errorState" class="hidden p-8 glass-main-card rounded-[32px] text-center">
     <p class="text-red-400 font-bold mb-4" id="errorMsg"></p>
-    <a href="/" class="text-orange-500 font-bold hover:underline">홈으로 돌아가기</a>
+    <a href="/" class="text-orange-500 font-bold hover:underline" data-i18n="my.back_home">Back to Home</a>
   </div>
 
   <!-- Profile Content -->
@@ -154,7 +154,7 @@
     <div class="glass-main-card rounded-[40px] p-10 border-orange-500/20">
       <h3 class="text-xl font-black text-white mb-8 tracking-tight flex items-center gap-3">
           <span class="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center text-sm">✏️</span>
-          프로필 수정
+          <span data-i18n="my.edit_profile">Edit Profile</span>
       </h3>
 
       <form id="editProfileForm" class="space-y-8">
@@ -178,7 +178,10 @@
             <label class="label-text ml-1">Study Time</label>
             <select name="time_pref" class="w-full input-dark outline-none cursor-pointer">
               <option value="">Select</option>
-              <option>아침</option><option>점심</option><option>저녁</option><option>주말</option>
+              <option value="Morning">Morning</option>
+              <option value="Afternoon">Afternoon</option>
+              <option value="Evening">Evening</option>
+              <option value="Weekend">Weekend</option>
             </select>
           </div>
         </div>
@@ -186,10 +189,10 @@
         <div class="space-y-4">
           <label class="label-text ml-1">Interests</label>
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            {% for it in ["음식", "K-Pop", "영화", "드라마", "여행", "비즈니스"] %}
+            {% for it in [("Food", "음식"), ("K-Pop", "K-Pop"), ("Movie", "영화"), ("Drama", "드라마"), ("Travel", "여행"), ("Business", "비즈니스")] %}
             <label class="glass-sub-card p-3 rounded-xl flex items-center gap-3 cursor-pointer hover:border-orange-500/50 transition-all">
-              <input type="checkbox" name="interests" value="{{ it }}" class="accent-orange-500 w-4 h-4" />
-              <span class="text-sm font-bold text-white/70">{{ it }}</span>
+              <input type="checkbox" name="interests" value="{{ it[1] }}" class="accent-orange-500 w-4 h-4" />
+              <span class="text-sm font-bold text-white/70">{{ it[0] }}</span>
             </label>
             {% endfor %}
           </div>
@@ -197,7 +200,7 @@
 
         <div class="flex justify-end gap-3 pt-6 border-t border-white/5">
           <button type="button" id="cancelEditBtn" class="px-8 py-3 bg-white/5 text-white/40 font-bold rounded-xl hover:bg-white/10">CANCEL</button>
-          <button type="submit" id="saveProfileBtn" class="px-10 py-3 btn-suno-primary">SAVE CHANGES</button>
+          <button type="submit" id="saveProfileBtn" class="px-10 py-3 btn-suno-primary" data-i18n="my.save_changes">SAVE CHANGES</button>
         </div>
       </form>
     </div>
@@ -281,12 +284,12 @@
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(payload)
           });
-          if (!res.ok) throw new Error("저장 실패");
-          ToastManager.success("프로필이 업데이트되었습니다!");
+          if (!res.ok) throw new Error("Save failed");
+          ToastManager.success(translations['toast.profile_updated'] || "Profile updated!");
           setTimeout(() => location.reload(), 800);
         } catch (err) {
           ToastManager.error(err.message);
-          btn.innerHTML = "SAVE CHANGES"; btn.disabled = false;
+          btn.innerHTML = translations['my.save_changes'] || "SAVE CHANGES"; btn.disabled = false;
         }
       });
       document.getElementById("cancelEditBtn").onclick = () => location.reload();

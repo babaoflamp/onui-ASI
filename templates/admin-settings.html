@@ -6,41 +6,42 @@ content %}
       <p class="text-xs font-semibold text-gray-600 uppercase tracking-widest">
         Administration
       </p>
-      <h1 class="text-3xl font-bold text-gray-900 mt-1">관리자 설정</h1>
-      <p class="text-gray-600 mt-2">모델, API, 로그 설정</p>
+      <h1 class="text-3xl font-bold text-gray-900 mt-1" data-i18n="adm.settings">Admin Settings</h1>
+      <p class="text-gray-600 mt-2" data-i18n="adm.settings_desc">Model, API, and log configuration.</p>
     </div>
     <a
       href="/admin/dashboard"
       class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-      >← 대시보드</a
+      data-i18n="adm.back_dashboard"
+      >← Dashboard</a
     >
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- AI Model Settings -->
     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">🤖 AI 모델 설정</h2>
+      <h2 class="text-lg font-semibold text-gray-900 mb-4" data-i18n="adm.model_settings">🤖 AI Model Settings</h2>
       <div class="space-y-4">
         <div>
-          <label class="text-xs font-semibold text-gray-600 block mb-2"
-            >백엔드 선택</label
+          <label class="text-xs font-semibold text-gray-600 block mb-2" data-i18n="adm.select_backend"
+            >Select Backend</label
           >
           <select
             id="modelBackend"
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
           >
-            <option value="ollama">Ollama (로컬)</option>
-            <option value="gemini">Google Gemini</option>
-            <option value="openai">OpenAI</option>
+            <option value="ollama" data-i18n="adm.ollama_local">Ollama (Local)</option>
+            <option value="gemini" data-i18n="adm.google_gemini">Google Gemini</option>
+            <option value="openai" data-i18n="adm.openai">OpenAI</option>
           </select>
           <p class="text-xs text-gray-500 mt-2">
-            현재 설정: <code id="currentBackend" class="font-mono">ollama</code>
+            <span data-i18n="adm.current_setting">Current:</span> <code id="currentBackend" class="font-mono">ollama</code>
           </p>
         </div>
 
         <div>
-          <label class="text-xs font-semibold text-gray-600 block mb-2"
-            >Ollama 모델</label
+          <label class="text-xs font-semibold text-gray-600 block mb-2" data-i18n="adm.ollama_model"
+            >Ollama Model</label
           >
           <input
             id="ollamaModel"
@@ -49,12 +50,12 @@ content %}
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
           />
           <p class="text-xs text-gray-500 mt-2">
-            현재 모델: <code id="currentModel" class="font-mono">exaone</code>
+            <span data-i18n="adm.current_model">Current Model:</span> <code id="currentModel" class="font-mono">exaone</code>
           </p>
         </div>
 
         <div>
-          <label class="text-xs font-semibold text-gray-600 block mb-2"
+          <label class="text-xs font-semibold text-gray-600 block mb-2" data-i18n="adm.ollama_url"
             >Ollama URL</label
           >
           <input
@@ -64,7 +65,7 @@ content %}
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
           />
           <p class="text-xs text-gray-500 mt-2">
-            현재 URL:
+            <span data-i18n="adm.current_url">Current URL:</span>
             <code id="currentUrl" class="font-mono"
               >http://localhost:11434</code
             >
@@ -75,7 +76,7 @@ content %}
 
     <!-- TTS & STT Settings -->
     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">🎤 TTS/STT 설정</h2>
+      <h2 class="text-lg font-semibold text-gray-900 mb-4" data-i18n="adm.voice_settings">🎤 TTS/STT Settings</h2>
       <div class="space-y-4">
         <div>
           <label class="text-xs font-semibold text-gray-600 block mb-2"
@@ -88,7 +89,7 @@ content %}
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
           />
           <p class="text-xs text-gray-500 mt-2">
-            현재 URL:
+            <span data-i18n="adm.current_url">Current URL:</span>
             <code id="currentMztts" class="font-mono"
               >http://112.220.79.218:56014</code
             >
@@ -96,18 +97,18 @@ content %}
         </div>
 
         <div>
-          <label class="text-xs font-semibold text-gray-600 block mb-2"
-            >로컬 STT 엔진</label
+          <label class="text-xs font-semibold text-gray-600 block mb-2" data-i18n="adm.local_stt"
+            >Local STT Engine</label
           >
           <select
             id="localStt"
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
           >
-            <option value="none">비활성화</option>
+            <option value="none" data-i18n="adm.disabled">Disabled</option>
             <option value="vosk">VOSK</option>
           </select>
           <p class="text-xs text-gray-500 mt-2">
-            VOSK 모델 경로:
+            VOSK Model Path:
             <code id="voskPath" class="font-mono">/path/to/vosk-model</code>
           </p>
         </div>
@@ -116,23 +117,23 @@ content %}
 
     <!-- Romanization Settings -->
     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">
-        📝 로마자 표기 설정
+      <h2 class="text-lg font-semibold text-gray-900 mb-4" data-i18n="adm.roman_settings">
+        📝 Romanization Settings
       </h2>
       <div class="space-y-4">
         <div>
-          <label class="text-xs font-semibold text-gray-600 block mb-2"
-            >로마자 모드</label
+          <label class="text-xs font-semibold text-gray-600 block mb-2" data-i18n="adm.roman_mode"
+            >Romanization Mode</label
           >
           <select
             id="romanizeMode"
             class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-400"
           >
-            <option value="force">Force (항상 로마자 변환)</option>
-            <option value="prefer">Prefer (유효한 것 유지, 없으면 변환)</option>
+            <option value="force" data-i18n="adm.roman_force">Force (Always convert)</option>
+            <option value="prefer" data-i18n="adm.roman_prefer">Prefer (Keep valid, convert if missing)</option>
           </select>
           <p class="text-xs text-gray-500 mt-2">
-            현재 모드: <code id="currentRomanize" class="font-mono">force</code>
+            <span data-i18n="adm.current_mode">Current Mode:</span> <code id="currentRomanize" class="font-mono">force</code>
           </p>
         </div>
 
@@ -140,7 +141,7 @@ content %}
           class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800"
         >
           <p>
-            <strong>정보:</strong> 한국어 발음을 라틴 문자로 자동 변환합니다.
+            <strong data-i18n="adm.info_label">Info:</strong> <span data-i18n="adm.roman_info_text">Automatically convert Korean pronunciation to Latin script.</span>
           </p>
         </div>
       </div>
@@ -148,11 +149,11 @@ content %}
 
     <!-- Logging Settings -->
     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">📋 로깅 설정</h2>
+      <h2 class="text-lg font-semibold text-gray-900 mb-4" data-i18n="adm.logging_settings">📋 Logging Settings</h2>
       <div class="space-y-4">
         <div>
-          <label class="text-xs font-semibold text-gray-600 block mb-2"
-            >로그 레벨</label
+          <label class="text-xs font-semibold text-gray-600 block mb-2" data-i18n="adm.log_level"
+            >Log Level</label
           >
           <select
             id="logLevel"
@@ -166,15 +167,16 @@ content %}
         </div>
 
         <div>
-          <label class="text-xs font-semibold text-gray-600 block mb-2"
-            >로그 파일</label
+          <label class="text-xs font-semibold text-gray-600 block mb-2" data-i18n="adm.log_file"
+            >Log File</label
           >
           <p class="text-xs text-gray-600 font-mono">logs/detailed.log</p>
           <button
             onclick="downloadLogs()"
             class="mt-2 px-3 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all"
+            data-i18n="adm.download_logs"
           >
-            📥 로그 다운로드
+            📥 Download Logs
           </button>
         </div>
       </div>
@@ -186,8 +188,9 @@ content %}
     <button
       onclick="saveSettings()"
       class="px-8 py-3 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-white font-semibold hover:from-orange-600 hover:to-pink-600 transition-all shadow-lg"
+      data-i18n="adm.save_settings"
     >
-      💾 설정 저장
+      💾 Save Settings
     </button>
   </div>
 

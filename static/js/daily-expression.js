@@ -29,11 +29,11 @@
         createDots();
         renderCard();
       } else {
-        card.innerHTML = '<p class="text-gray-500">표현 데이터가 없습니다.</p>';
+        card.innerHTML = '<p class="text-gray-500">No expression data found.</p>';
       }
     } catch (error) {
       console.error('Error loading expressions:', error);
-      card.innerHTML = '<p class="text-red-500">데이터를 불러오는 중 오류가 발생했습니다.</p>';
+      card.innerHTML = '<p class="text-red-500">Error loading data.</p>';
     }
   }
 
@@ -57,13 +57,22 @@
     if (!expressions.length) return;
 
     const data = expressions[currentIndex];
+    const lang = localStorage.getItem("app_lang") || "en";
 
     sentenceKrEl.textContent = data.sentenceKr;
     sentenceEnEl.textContent = data.sentenceEn;
-    cultureNoteEl.textContent = data.cultureNote;
+    
+    if (lang === "ko") {
+      cultureNoteEl.textContent = data.cultureNote;
+      situationLabelEl.textContent = data.situation;
+      tagLabelEl.textContent = data.tag;
+    } else {
+      cultureNoteEl.textContent = data.cultureNoteEn || data.cultureNote;
+      situationLabelEl.textContent = data.situationEn || data.situation;
+      tagLabelEl.textContent = data.tagEn || data.tag;
+    }
+
     levelChipEl.textContent = "CEFR " + data.level;
-    situationLabelEl.textContent = data.situation;
-    tagLabelEl.textContent = data.tag;
 
     sliderCaptionEl.textContent = `${currentIndex + 1} / ${expressions.length}`;
 
