@@ -3,7 +3,7 @@
   "nav.home": "Home",
   "nav.logo": "Onui Korean",
   "nav.daily_expression": "Daily Expression",
-  "nav.onuitube": "Onui Tube",
+  "nav.onuitube": "OnuiTube",
   "nav.onui_beats": "Onui Beats",
   "nav.voice_call": "AI Voice Call",
   "nav.roleplay": "AI Roleplay",
@@ -25,7 +25,6 @@
   "dash.onuitube_desc": "VOD Learning",
   "dash.onuibeats_desc": "K-Pop Lyrics",
   "dash.voicecall_desc": "Real-time Conversation",
-  "dash.messenger_desc": "AI Chat",
   "dash.pron_desc": "Precision Analysis",
   "dash.textbook_desc": "AI Textbook",
   "dash.no_records": "No records found",
@@ -376,5 +375,12 @@
   "land.feature9_title": "Growth Reports",
   "land.feature9_desc": "Receive detailed weekly reports analyzing your study time, accuracy, and fluency progress.",
   "land.features_title": "Core Features",
-  "land.features_subtitle": "Experience the most powerful AI-driven Korean learning tools."
+  "land.features_subtitle": "Experience the most powerful AI-driven Korean learning tools.",
+  "vc.connected": "Connected",
+  "vc.disconnected": "Disconnected",
+  "vc.mic_error": "Microphone access denied. Please allow mic access and refresh.",
+  "vc.thinking": "Thinking...",
+  "vc.recording": "Recording...",
+  "dash.roleplay_desc": "Chat with historical figures",
+  "bt.kpop_blanks": "K-Pop Blanks"
 }

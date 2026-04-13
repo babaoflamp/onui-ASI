@@ -12,7 +12,7 @@ from typing import Optional, Dict, List
 from pathlib import Path
 from datetime import datetime
 import threading
-from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, Request, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import (
@@ -252,7 +252,7 @@ MODEL_BACKEND = os.getenv("MODEL_BACKEND", "ollama")
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "exaone3.5:2.4b")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 if GEMINI_API_KEY:
     print(f"[Config] Gemini API Key loaded (starts with {GEMINI_API_KEY[:4]}...)")
@@ -4153,22 +4153,14 @@ async def generate_content(
                     status_code=400, content={"error": "GEMINI_API_KEY not configured"}
                 )
 
-            # Use REST API for Python 3.8 compatibility
-            gemini_model = model or "gemini-1.5-flash"
-            url = f"https://generativelanguage.googleapis.com/v1/models/{gemini_model}:generateContent?key={GEMINI_API_KEY}"
-            payload = {"contents": [{"parts": [{"text": prompt}]}]}
-
-            resp = requests.post(url, json=payload, timeout=60)
-            resp.raise_for_status()
-            result = resp.json()
-
-            if "candidates" in result and len(result["candidates"]) > 0:
-                out = result["candidates"][0]["content"]["parts"][0]["text"]
-            else:
-                return JSONResponse(
-                    status_code=500,
-                    content={"error": "No response from Gemini", "details": result},
-                )
+            gemini_model = model or GEMINI_MODEL
+            if not gemini_client:
+                return JSONResponse(status_code=500, content={"error": "Gemini client not initialized"})
+            gen_resp = gemini_client.models.generate_content(
+                model=gemini_model,
+                contents=prompt,
+            )
+            out = gen_resp.text
 
             parsed = _parse_model_output(out)
             if parsed is None:
@@ -4649,20 +4641,15 @@ async def chat_test(request: Request):
                 contents.append({"role": role, "parts": [{"text": h["content"]}]})
             contents.append({"role": "user", "parts": [{"text": prompt}]})
 
-            gemini_model = model or "gemini-1.5-flash"
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{gemini_model}:generateContent?key={GEMINI_API_KEY}"
-            resp = requests.post(url, json={"contents": contents}, timeout=60)
-            resp.raise_for_status()
-            result = resp.json()
-
-            if "candidates" in result and len(result["candidates"]) > 0:
-                out = result["candidates"][0]["content"]["parts"][0]["text"]
-                return JSONResponse(content={"model": gemini_model, "text": out})
-            else:
-                return JSONResponse(
-                    status_code=500,
-                    content={"error": "No response from Gemini", "details": result},
-                )
+            gemini_model = model or GEMINI_MODEL
+            if not gemini_client:
+                return JSONResponse(status_code=500, content={"error": "Gemini client not initialized"})
+            resp = gemini_client.models.generate_content(
+                model=gemini_model,
+                contents=contents,
+            )
+            out = resp.text
+            return JSONResponse(content={"model": gemini_model, "text": out})
 
         except Exception as e:
             return JSONResponse(
@@ -5236,12 +5223,18 @@ async def get_puzzle_sentence(sentence_id: int):
 
 # Daily Expression APIs
 @app.get("/api/expressions")
-async def get_expressions(level: str = None):
-    """Get all expressions, optionally filtered by CEFR level"""
+async def get_expressions(level: str = None, month: int = None):
+    """Get all expressions, optionally filtered by CEFR level or month (1-12).
+    Returns current-month expressions first when month is provided."""
     try:
         expressions = load_json_data("expressions.json")
         if level:
             expressions = [e for e in expressions if e.get("level") == level.upper()]
+        if month:
+            # Return current-month expressions first, then the rest
+            current = [e for e in expressions if e.get("month") == month]
+            others = [e for e in expressions if e.get("month") != month]
+            expressions = current + others
         return JSONResponse(content={"expressions": expressions})
     except Exception as e:
         return JSONResponse(
@@ -6094,6 +6087,129 @@ async def voice_call_chat_api(request: Request):
     except Exception as e:
         logger.error(f"Voice Call Error: {e}")
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+@app.websocket("/ws/voice-call/{scenario_id}")
+async def voice_call_live_ws(websocket: WebSocket, scenario_id: str):
+    """Gemini Live API 실시간 오디오 스트리밍 WebSocket 엔드포인트"""
+    await websocket.accept()
+
+    if not GEMINI_API_KEY or not gemini_client:
+        await websocket.send_json({"type": "error", "text": "GEMINI_API_KEY not configured"})
+        await websocket.close()
+        return
+
+    # Load scenario
+    try:
+        with open("data/voice-call.json", "r", encoding="utf-8") as f:
+            scenarios = json.load(f)
+        scenario = next((s for s in scenarios if s["id"] == scenario_id), scenarios[0])
+    except Exception as e:
+        await websocket.send_json({"type": "error", "text": f"Scenario load failed: {e}"})
+        await websocket.close()
+        return
+
+    system_prompt = f"""{scenario.get('system_prompt', '')}
+
+규칙:
+1. 반드시 한국어로만 짧게 대화하세요 (1-2문장).
+2. 학습자가 자연스럽게 대답할 수 있도록 질문을 섞어주세요.
+3. 친절하고 격려하는 말투로 대화하세요."""
+
+    from google.genai.types import (
+        LiveConnectConfig, SpeechConfig, VoiceConfig, PrebuiltVoiceConfig,
+        AudioTranscriptionConfig,
+    )
+    live_config = LiveConnectConfig(
+        response_modalities=["AUDIO"],
+        system_instruction=system_prompt,
+        speech_config=SpeechConfig(
+            voice_config=VoiceConfig(
+                prebuilt_voice_config=PrebuiltVoiceConfig(voice_name="Kore")
+            )
+        ),
+        input_audio_transcription=AudioTranscriptionConfig(),
+        output_audio_transcription=AudioTranscriptionConfig(),
+    )
+
+    try:
+        async with gemini_client.aio.live.connect(
+            model="gemini-2.0-flash-live-001",
+            config=live_config,
+        ) as session:
+            await websocket.send_json({"type": "status", "text": "connected"})
+
+            # Send initial greeting
+            initial_msg = scenario.get("initial_message", "안녕하세요! 한국어로 대화해 봐요.")
+            await session.send(input=initial_msg, end_of_turn=True)
+
+            async def browser_to_gemini():
+                """브라우저 PCM 오디오 → Gemini Live"""
+                try:
+                    async for msg in websocket.iter_bytes():
+                        if len(msg) == 0:
+                            # Empty buffer = end-of-turn signal from browser
+                            await session.send_realtime_input(audio_stream_end=True)
+                        else:
+                            from google.genai.types import Blob
+                            await session.send_realtime_input(
+                                audio=Blob(data=msg, mime_type="audio/pcm;rate=16000")
+                            )
+                except WebSocketDisconnect:
+                    pass
+                except Exception as e:
+                    logger.error(f"[VoiceCall WS] browser→gemini error: {e}")
+
+            async def gemini_to_browser():
+                """Gemini Live 응답 → 브라우저 (오디오 PCM + 텍스트 트랜스크립션)"""
+                try:
+                    async for response in session.receive():
+                        # Audio chunks (PCM bytes)
+                        if response.data:
+                            await websocket.send_bytes(response.data)
+
+                        sc = response.server_content
+                        if sc:
+                            # User speech transcription
+                            if sc.input_transcription and sc.input_transcription.text:
+                                t = sc.input_transcription.text.strip()
+                                if t:
+                                    await websocket.send_json({"type": "user_transcript", "text": t})
+
+                            # AI response transcription
+                            if sc.output_transcription and sc.output_transcription.text:
+                                t = sc.output_transcription.text.strip()
+                                if t:
+                                    await websocket.send_json({"type": "ai_transcript", "text": t})
+
+                            # Turn complete
+                            if sc.turn_complete:
+                                await websocket.send_json({"type": "turn_complete"})
+
+                except WebSocketDisconnect:
+                    pass
+                except Exception as e:
+                    logger.error(f"[VoiceCall WS] gemini→browser error: {e}")
+                    try:
+                        await websocket.send_json({"type": "error", "text": str(e)})
+                    except Exception:
+                        pass
+
+            await asyncio.gather(browser_to_gemini(), gemini_to_browser())
+
+    except WebSocketDisconnect:
+        logger.info(f"[VoiceCall WS] Client disconnected: {scenario_id}")
+    except Exception as e:
+        logger.error(f"[VoiceCall WS] Session error: {e}")
+        try:
+            await websocket.send_json({"type": "error", "text": str(e)})
+        except Exception:
+            pass
+    finally:
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 
 @app.get("/api/tube/poster/{video_id}")

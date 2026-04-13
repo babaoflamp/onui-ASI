@@ -3,7 +3,7 @@
   "nav.home": "홈",
   "nav.logo": "오누이 한국어",
   "nav.daily_expression": "오늘의 표현",
-  "nav.onuitube": "오누이 튜브",
+  "nav.onuitube": "OnuiTube",
   "nav.onui_beats": "오누이 비츠",
   "nav.voice_call": "AI 음성 통화",
   "nav.roleplay": "AI 역할극",
@@ -25,7 +25,6 @@
   "dash.onuitube_desc": "VOD 기반 영상 학습",
   "dash.onuibeats_desc": "K-Pop 가사 채우기",
   "dash.voicecall_desc": "실시간 음성 대화",
-  "dash.messenger_desc": "AI 친구와 채팅",
   "dash.pron_desc": "음소 단위 정밀 분석",
   "dash.textbook_desc": "맞춤형 교재 생성",
   "dash.no_records": "아직 평가 기록이 없습니다",
@@ -376,5 +375,12 @@
   "adm.no_user_access": "일반 사용자 계정으로는 접근할 수 없습니다.",
   "adm.go_regular_login": "일반 로그인으로 이동 →",
   "land.features_title": "핵심 학습 기능",
-  "land.features_subtitle": "오누이가 제공하는 독보적인 AI 한국어 학습 도구들을 경험해보세요."
+  "land.features_subtitle": "오누이가 제공하는 독보적인 AI 한국어 학습 도구들을 경험해보세요.",
+  "vc.connected": "연결됨",
+  "vc.disconnected": "연결 끊김",
+  "vc.mic_error": "마이크 접근이 거부됐습니다. 브라우저 설정에서 허용 후 새로고침 해주세요.",
+  "vc.thinking": "생각중...",
+  "vc.recording": "녹음 중...",
+  "dash.roleplay_desc": "역사 인물과 대화",
+  "bt.kpop_blanks": "K-Pop 빈칸 채우기"
 }

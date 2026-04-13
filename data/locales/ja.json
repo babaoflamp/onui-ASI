@@ -279,5 +279,12 @@
   "speechpro.ai_summary_title": "AI 総合フィードバック",
   "speechpro.generating_ai": "AI フィードバックを生成中です...",
   "speechpro.btn_view_details": "詳細分析を見る →",
-  "speechpro.btn_help_title": "SpeechProのメリットを見る"
+  "speechpro.btn_help_title": "SpeechProのメリットを見る",
+  "vc.connected": "接続済み",
+  "vc.disconnected": "接続切断",
+  "vc.mic_error": "マイクへのアクセスが拒否されました。ブラウザの設定を確認してください。",
+  "vc.thinking": "考え中...",
+  "vc.recording": "録音中...",
+  "bt.kpop_blanks": "K-Popブランク",
+  "dash.roleplay_desc": "歴史上の人物と会話"
 }

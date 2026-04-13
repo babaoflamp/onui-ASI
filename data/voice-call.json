@@ -37,7 +37,7 @@
     "tutor_name": "영호",
     "avatar_url": "/static/images/onui-pure-idol.png",
     "initial_message": "예약하셨나요? 이름이 어떻게 되세요?",
-    "system_prompt": "당신은 호텔 직원입니다. 예약 확인하고 방 열쇠를渡해주세요."
+    "system_prompt": "당신은 호텔 직원입니다. 예약 확인하고 방 열쇠를 전해주세요."
   },
   {
     "id": "taxi",

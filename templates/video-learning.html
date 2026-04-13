@@ -346,8 +346,10 @@
           <div class="flex flex-col gap-2">
              <h3 class="text-xl font-bold text-white leading-snug group-hover:text-orange-400 transition-colors line-clamp-2">${v.title}</h3>
              <p class="text-sm font-medium text-white/50 line-clamp-2">${v.description}</p>
-             <div class="flex items-center gap-3 mt-2">
+             <div class="flex items-center gap-2 flex-wrap mt-2">
                 <span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-white/40 tracking-widest uppercase">TOPIK Lv.${v.level}</span>
+                ${v.channel ? `<span class="px-2 py-1 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-white/40 tracking-widest">${v.channel}</span>` : ''}
+                ${v.license ? `<a href="${v.license_url || '#'}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="px-2 py-1 bg-green-500/10 border border-green-500/20 rounded text-[10px] font-bold text-green-400 tracking-widest hover:bg-green-500/20 transition-colors">${v.license}</a>` : ''}
              </div>
           </div>
         `;

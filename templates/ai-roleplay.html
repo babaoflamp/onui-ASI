@@ -316,7 +316,7 @@
         if (role === 'ai') {
             const avatar = document.createElement('div');
             avatar.className = "w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border-2 border-pink-400/30 shadow-[0_5px_15px_rgba(255,182,193,0.2)] mt-1 bg-white";
-            avatar.innerHTML = `<img src="${currentAvatarIcon}" class="w-full h-full object-cover">`;
+            avatar.innerHTML = `<img src="${currentAvatarIcon}" onerror="this.src='/static/images/onui-pure-idol.png'" class="w-full h-full object-cover">`;
             wrapper.appendChild(avatar);
         }
 

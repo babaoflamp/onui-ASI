@@ -25,7 +25,7 @@
     50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(249, 115, 22, 0.4); }
     100% { transform: scale(1); box-shadow: 0 0 60px rgba(249, 115, 22, 0.1); }
   }
-  
+
   .wave-ring {
     position: absolute;
     top: 50%; left: 50%;
@@ -40,7 +40,7 @@
   .wave-ring.active { opacity: 1; }
   .wave-ring:nth-child(2) { animation-delay: 0.6s; }
   .wave-ring:nth-child(3) { animation-delay: 1.2s; }
-  
+
   @keyframes ripple {
     0% { width: 200px; height: 200px; opacity: 1; }
     100% { width: 400px; height: 400px; opacity: 0; }
@@ -73,6 +73,16 @@
     0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
     40% { transform: scale(1); opacity: 1; }
   }
+
+  #mic-btn.listening {
+    background: #f97316;
+    box-shadow: 0 0 40px rgba(249,115,22,0.6);
+    animation: mic-pulse 1s ease-in-out infinite;
+  }
+  @keyframes mic-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
 </style>
 {% endblock %}
 
@@ -80,7 +90,6 @@
 <div class="max-w-4xl mx-auto px-4 py-12">
   <!-- Premium Header Section -->
   <div class="mb-12 animate-in fade-in slide-in-from-top-8 duration-700 flex flex-col md:flex-row items-center justify-between bg-white/5 border border-white/10 p-8 rounded-[40px] relative overflow-hidden group">
-    <!-- Background Glows -->
     <div class="absolute -right-20 -top-20 w-64 h-64 bg-orange-500/20 blur-[80px] rounded-full group-hover:bg-orange-500/30 transition-all duration-700"></div>
     <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-slate-500/20 blur-[80px] rounded-full group-hover:bg-slate-500/30 transition-all duration-700"></div>
 
@@ -98,66 +107,66 @@
     </div>
 
     <div class="md:w-2/5 relative z-10 flex justify-center md:justify-end">
-        <div class="relative w-32 h-32 md:w-44 md:h-44 rounded-[40px] overflow-hidden border-4 border-white/10 shadow-2xl rotate-3 group-hover:rotate-0 transition-all duration-700">
-            <img src="/static/images/onui-idol-staff.png" alt="Voice Call AI" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-        </div>
+      <div class="relative w-32 h-32 md:w-44 md:h-44 rounded-[40px] overflow-hidden border-4 border-white/10 shadow-2xl rotate-3 group-hover:rotate-0 transition-all duration-700">
+        <img src="/static/images/onui-idol-staff.png" alt="Voice Call AI" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+      </div>
     </div>
   </div>
 
   <div class="h-full flex items-center justify-center pb-12">
-  <div id="lobby" class="w-full max-w-6xl bg-white/5 border border-white/10 p-10 md:p-16 rounded-[48px] backdrop-blur-xl relative overflow-hidden">
-    <!-- Decorative background elements for lobby -->
-    <div class="absolute -top-24 -left-24 w-64 h-64 bg-orange-500/10 blur-[100px] rounded-full"></div>
-    <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-slate-500/10 blur-[100px] rounded-full"></div>
+    <div id="lobby" class="w-full max-w-6xl bg-white/5 border border-white/10 p-10 md:p-16 rounded-[48px] backdrop-blur-xl relative overflow-hidden">
+      <div class="absolute -top-24 -left-24 w-64 h-64 bg-orange-500/10 blur-[100px] rounded-full"></div>
+      <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-slate-500/10 blur-[100px] rounded-full"></div>
 
-    <div class="relative z-10">
-      <div class="text-center mb-12">
-        <h2 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter" data-i18n="vc.choose_scenario">Choose a Scenario</h2>
-        <p class="text-white/40 font-medium" data-i18n="vc.select_situation">Select a situation to start your AI voice conversation</p>
-      </div>
+      <div class="relative z-10">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter" data-i18n="vc.choose_scenario">Choose a Scenario</h2>
+          <p class="text-white/40 font-medium" data-i18n="vc.select_situation">Select a situation to start your AI voice conversation</p>
+        </div>
 
-      <div id="scenario-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="col-span-full py-20 text-center">
-           <div class="text-white/20 font-black uppercase tracking-[0.3em] animate-pulse" data-i18n="vc.loading_scenarios">Loading Scenarios...</div>
+        <div id="scenario-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="col-span-full py-20 text-center">
+            <div class="text-white/20 font-black uppercase tracking-[0.3em] animate-pulse" data-i18n="vc.loading_scenarios">Loading Scenarios...</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div id="call-screen" class="call-container w-full max-w-md h-[750px] flex flex-col items-center py-12 hidden">
-    <div class="status-badge" id="status-text" data-i18n="vc.connecting">Connecting...</div>
-    
-    <div class="text-center mb-16 z-10">
-      <h2 class="text-3xl font-black text-white" id="tutor-name">AI Tutor</h2>
-      <p class="text-orange-400 font-mono mt-2" id="call-timer">00:00</p>
-    </div>
+    <div id="call-screen" class="call-container w-full max-w-md h-[750px] flex flex-col items-center py-12 hidden">
+      <div class="status-badge" id="status-text" data-i18n="vc.connecting">Connecting...</div>
 
-    <div class="relative w-full flex justify-center items-center flex-1">
-      <div class="wave-ring" id="wave-1"></div>
-      <div class="wave-ring" id="wave-2"></div>
-      <div class="wave-ring" id="wave-3"></div>
-      <img id="tutor-avatar" src="/static/images/onui-pure-idol.png" class="caller-avatar z-10" />
-    </div>
-    
-    <div class="w-3/4 text-center mt-8 z-10 min-h-[60px]">
-      <p id="transcript-text" class="text-white/80 font-medium text-lg leading-snug" data-i18n="vc.initial_hint">"Please say hello when you're ready!"</p>
-    </div>
-
-    <div class="flex flex-col items-center gap-8 mt-12 z-10 w-full px-12">
-      <div id="user-transcript" class="text-orange-400 text-sm italic h-6 text-center"></div>
-      
-      <div class="flex gap-8">
-        <button id="record-btn" class="w-20 h-20 rounded-full bg-white text-black flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
-          <span class="text-3xl" id="record-icon">🎙️</span>
-        </button>
-        
-        <button id="end-call-btn" class="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)]">
-          <span class="text-3xl transform rotate-[135deg]">📞</span>
-        </button>
+      <div class="text-center mb-16 z-10">
+        <h2 class="text-3xl font-black text-white" id="tutor-name">AI Tutor</h2>
+        <p class="text-orange-400 font-mono mt-2" id="call-timer">00:00</p>
       </div>
-      
-      <p class="text-white/30 text-xs font-bold uppercase tracking-widest" data-i18n="vc.hold_to_speak">Hold to Speak</p>
+
+      <div class="relative w-full flex justify-center items-center flex-1">
+        <div class="wave-ring" id="wave-1"></div>
+        <div class="wave-ring" id="wave-2"></div>
+        <div class="wave-ring" id="wave-3"></div>
+        <img id="tutor-avatar" src="/static/images/onui-pure-idol.png" class="caller-avatar z-10" />
+      </div>
+
+      <div class="w-3/4 text-center mt-8 z-10 min-h-[60px]">
+        <p id="transcript-text" class="text-white/80 font-medium text-lg leading-snug" data-i18n="vc.initial_hint">"Please say hello when you're ready!"</p>
+      </div>
+
+      <div class="flex flex-col items-center gap-8 mt-12 z-10 w-full px-12">
+        <div id="user-transcript" class="text-orange-400 text-sm italic h-6 text-center"></div>
+
+        <div class="flex gap-8">
+          <button id="mic-btn" class="w-20 h-20 rounded-full bg-white text-black flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+            <span class="text-3xl" id="mic-icon">🎙️</span>
+          </button>
+
+          <button id="end-call-btn" class="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+            <span class="text-3xl transform rotate-[135deg]">📞</span>
+          </button>
+        </div>
+
+        <p class="text-white/30 text-xs font-bold uppercase tracking-widest" data-i18n="vc.hold_to_speak">Hold to Speak</p>
+      </div>
     </div>
   </div>
 </div>
@@ -168,21 +177,32 @@
   document.addEventListener("DOMContentLoaded", () => {
     let scenarios = [];
     let currentScenario = null;
-    let history = [];
     let timerInterval;
     let seconds = 0;
-    let currentAudio = null;
-    
+
+    // WebSocket & Audio state
+    let ws = null;
+    let audioCtx = null;
+    let mediaStream = null;
+    let scriptProcessor = null;
+    let isListening = false;
+
+    // Playback queue for incoming PCM from Gemini
+    let playbackQueue = [];
+    let isPlaying = false;
+    const GEMINI_SAMPLE_RATE = 24000; // Gemini Live outputs 24kHz PCM
+
     const lobby = document.getElementById('lobby');
     const callScreen = document.getElementById('call-screen');
     const scenarioList = document.getElementById('scenario-list');
     const transcriptText = document.getElementById('transcript-text');
     const userTranscript = document.getElementById('user-transcript');
-    const recordBtn = document.getElementById('record-btn');
-    const recordIcon = document.getElementById('record-icon');
+    const micBtn = document.getElementById('mic-btn');
+    const micIcon = document.getElementById('mic-icon');
     const tutorAvatar = document.getElementById('tutor-avatar');
     const statusText = document.getElementById('status-text');
 
+    // ── Scenario loading ──────────────────────────────────────────────────────
     async function loadScenarios() {
       try {
         const resp = await fetch('/api/voice-call/scenarios');
@@ -202,20 +222,15 @@
       scenarios.forEach(s => {
         const btn = document.createElement('button');
         btn.className = 'group relative w-full aspect-square md:aspect-auto md:h-64 p-8 bg-white/5 border border-white/10 rounded-[40px] flex flex-col items-center justify-center gap-6 hover:bg-white/10 hover:border-orange-500/50 hover:shadow-[0_20px_60px_rgba(249,115,22,0.15)] transition-all duration-500 text-center overflow-hidden';
-        
         btn.innerHTML = `
-          <!-- Hover Effect Background -->
           <div class="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-          
           <div class="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-orange-500/30 transition-all duration-700 shadow-2xl">
-            <img src="${s.avatar_url}" class="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" />
+            <img src="${s.avatar_url}" onerror="this.src='/static/images/onui-pure-idol.png'" class="w-full h-full object-cover group-hover:scale-110 transition-all duration-700" />
           </div>
-          
           <div class="relative">
             <h4 class="text-xl md:text-2xl font-black text-white mb-2 group-hover:text-orange-400 transition-colors duration-500 line-clamp-1">${s.title}</h4>
             <p class="text-white/40 text-xs font-bold uppercase tracking-widest italic group-hover:text-white/60 transition-colors duration-500">${callWithLabel} ${s.tutor_name}</p>
           </div>
-          
           <div class="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 transition-all duration-500">
             <span class="text-2xl text-orange-500">▶️</span>
           </div>
@@ -225,19 +240,19 @@
       });
     }
 
-    function startCall(s) {
-      // "Unlock" audio context for mobile/strict browsers immediately on user click
-      const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==");
-      silentAudio.play().catch(e => console.warn("Audio unlock failed:", e));
-
+    // ── Call lifecycle ────────────────────────────────────────────────────────
+    async function startCall(s) {
       currentScenario = s;
       lobby.classList.add('hidden');
       callScreen.classList.remove('hidden');
       document.getElementById('tutor-name').innerText = s.tutor_name;
       document.getElementById('tutor-avatar').src = s.avatar_url;
-      
+
+      statusText.innerText = translations['vc.connecting'] || 'Connecting...';
+      transcriptText.innerHTML = '<span class="thinking-dots"><span></span><span></span><span></span></span>';
+
       startTimer();
-      speakAI(s.initial_message);
+      await connectWebSocket(s.id);
     }
 
     function startTimer() {
@@ -245,144 +260,238 @@
       timerInterval = setInterval(() => {
         seconds++;
         const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-        const s = String(seconds % 60).padStart(2, '0');
-        document.getElementById('call-timer').innerText = `${m}:${s}`;
+        const s_str = String(seconds % 60).padStart(2, '0');
+        document.getElementById('call-timer').innerText = `${m}:${s_str}`;
       }, 1000);
     }
 
-    async function speakAI(text) {
-      if (!text) return;
-      console.log("[VoiceCall] speakAI:", text);
+    function endCall() {
+      clearInterval(timerInterval);
+      closeWebSocket();
+      stopMic();
+      playbackQueue = [];
+      isPlaying = false;
+      location.reload();
+    }
 
-      // 생각중 상태: 아바타 애니메이션 + 점 표시
-      tutorAvatar.classList.add('speaking');
-      document.querySelectorAll('.wave-ring').forEach(r => r.classList.add('active'));
-      transcriptText.innerHTML = '<span class="thinking-dots"><span></span><span></span><span></span></span>';
-      statusText.innerText = translations['vc.thinking'] || '생각중...';
+    // ── WebSocket connection ──────────────────────────────────────────────────
+    async function connectWebSocket(scenarioId) {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${location.host}/ws/voice-call/${scenarioId}`;
 
-      try {
-        const resp = await fetch('/api/tts/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: text, language_code: 'ko' })
-        });
+      ws = new WebSocket(wsUrl);
+      ws.binaryType = 'arraybuffer';
 
-        if (!resp.ok) {
-          const errData = await resp.json().catch(() => ({}));
-          throw new Error(errData.details || 'TTS generation failed');
+      ws.onopen = () => {
+        console.log('[VoiceCall] WebSocket connected');
+        statusText.innerText = translations['vc.connected'] || 'Connected';
+      };
+
+      ws.onmessage = (event) => {
+        if (event.data instanceof ArrayBuffer) {
+          // PCM audio from Gemini — enqueue for playback
+          enqueueAudio(event.data);
+          setAiSpeaking(true);
+        } else {
+          try {
+            const msg = JSON.parse(event.data);
+            handleJsonMessage(msg);
+          } catch (e) {
+            console.warn('[VoiceCall] Non-JSON text message:', event.data);
+          }
         }
+      };
 
-        const blob = await resp.blob();
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        currentAudio = audio;
+      ws.onclose = (evt) => {
+        console.log('[VoiceCall] WebSocket closed', evt.code);
+        statusText.innerText = translations['vc.disconnected'] || 'Disconnected';
+        setAiSpeaking(false);
+      };
 
-        audio.onended = () => {
-          currentAudio = null;
-          tutorAvatar.classList.remove('speaking');
-          document.querySelectorAll('.wave-ring').forEach(r => r.classList.remove('active'));
-          statusText.innerText = translations['vc.listening'] || 'Listening...';
-          URL.revokeObjectURL(url);
-        };
+      ws.onerror = (err) => {
+        console.error('[VoiceCall] WebSocket error', err);
+        if (window.ToastManager) ToastManager.error('Voice call connection error.');
+        statusText.innerText = 'Error';
+      };
 
-        audio.onerror = (e) => {
-          console.error("Audio playback error:", e);
-          currentAudio = null;
-          tutorAvatar.classList.remove('speaking');
-          statusText.innerText = translations['vc.playback_error'] || 'Playback Error';
-        };
+      // Set up mic capture after WS is ready
+      await setupMic();
+    }
 
-        // TTS 준비 완료 → 텍스트 표시 + 재생 동시 시작
-        transcriptText.innerText = `"${text}"`;
-        statusText.innerText = translations['vc.ai_speaking'] || 'AI is speaking...';
-
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(error => {
-            console.error("Playback blocked or failed:", error);
-            currentAudio = null;
-            statusText.innerText = translations['vc.playback_blocked'] || 'Playback Blocked';
-          });
-        }
-
-        history.push({ role: 'assistant', content: text });
-      } catch (err) {
-        console.error('TTS Error:', err);
-        tutorAvatar.classList.remove('speaking');
-        document.querySelectorAll('.wave-ring').forEach(r => r.classList.remove('active'));
-        transcriptText.innerText = '';
-        statusText.innerText = translations['vc.tts_error'] || 'TTS Error';
-        if (window.ToastManager) ToastManager.error(err.message);
+    function handleJsonMessage(msg) {
+      switch (msg.type) {
+        case 'status':
+          statusText.innerText = msg.text === 'connected'
+            ? (translations['vc.connected'] || 'Connected')
+            : msg.text;
+          break;
+        case 'user_transcript':
+          userTranscript.innerText = msg.text;
+          break;
+        case 'ai_transcript':
+          transcriptText.innerText = `"${msg.text}"`;
+          break;
+        case 'turn_complete':
+          setAiSpeaking(false);
+          if (!isListening) {
+            statusText.innerText = translations['vc.listening'] || 'Listening...';
+          }
+          break;
+        case 'error':
+          console.error('[VoiceCall] Server error:', msg.text);
+          if (window.ToastManager) ToastManager.error(msg.text);
+          statusText.innerText = 'Error';
+          break;
       }
     }
 
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'ko-KR';
-    recognition.continuous = false;
-    recognition.interimResults = true;
+    function closeWebSocket() {
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+    }
 
-    recognition.onresult = (e) => {
-      const text = Array.from(e.results).map(r => r[0].transcript).join('');
-      userTranscript.innerText = text;
-    };
+    // ── Mic capture (PCM 16kHz 16-bit mono) ──────────────────────────────────
+    async function setupMic() {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: {
+          channelCount: 1,
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true,
+        }});
 
-    recognition.onend = async () => {
-      const text = userTranscript.innerText;
-      if (!text) {
-        recordIcon.innerText = '🎙️';
+        audioCtx = new AudioContext({ sampleRate: 16000 });
+        const source = audioCtx.createMediaStreamSource(mediaStream);
+
+        // ScriptProcessor: 4096 samples at 16kHz → ~256ms chunks
+        scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
+        source.connect(scriptProcessor);
+        scriptProcessor.connect(audioCtx.destination);
+
+        scriptProcessor.onaudioprocess = (e) => {
+          if (!isListening || !ws || ws.readyState !== WebSocket.OPEN) return;
+          const float32 = e.inputBuffer.getChannelData(0);
+          const int16 = float32ToInt16(float32);
+          ws.send(int16.buffer);
+        };
+
+        console.log('[VoiceCall] Mic ready');
+      } catch (err) {
+        console.error('[VoiceCall] Mic access failed:', err);
+        const micErrMsg = translations['vc.mic_error'] || 'Microphone access denied. Please allow mic access in browser settings and refresh.';
+        statusText.innerText = '🎙️ Mic Error';
+        transcriptText.innerHTML = `<span class="text-red-400 text-sm leading-relaxed">${micErrMsg}</span>`;
+        micBtn.disabled = true;
+        micBtn.classList.add('opacity-40', 'cursor-not-allowed');
+      }
+    }
+
+    function stopMic() {
+      if (scriptProcessor) { scriptProcessor.disconnect(); scriptProcessor = null; }
+      if (audioCtx) { audioCtx.close(); audioCtx = null; }
+      if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
+    }
+
+    function float32ToInt16(float32Array) {
+      const int16 = new Int16Array(float32Array.length);
+      for (let i = 0; i < float32Array.length; i++) {
+        const clamped = Math.max(-1, Math.min(1, float32Array[i]));
+        int16[i] = clamped < 0 ? clamped * 0x8000 : clamped * 0x7FFF;
+      }
+      return int16;
+    }
+
+    // ── PCM playback queue (Gemini outputs 24kHz 16-bit mono PCM) ────────────
+    function enqueueAudio(arrayBuffer) {
+      playbackQueue.push(arrayBuffer);
+      if (!isPlaying) drainQueue();
+    }
+
+    async function drainQueue() {
+      if (playbackQueue.length === 0) {
+        isPlaying = false;
         return;
       }
+      isPlaying = true;
 
-      // 생각중 표시 시작
-      statusText.innerText = translations['vc.thinking'] || '생각중...';
-      transcriptText.innerHTML = '<span class="thinking-dots"><span></span><span></span><span></span></span>';
-      tutorAvatar.classList.add('speaking');
-      document.querySelectorAll('.wave-ring').forEach(r => r.classList.add('active'));
+      const pcmData = playbackQueue.shift();
+      const int16 = new Int16Array(pcmData);
 
+      // Convert Int16 PCM → Float32
+      const float32 = new Float32Array(int16.length);
+      for (let i = 0; i < int16.length; i++) {
+        float32[i] = int16[i] / 32768.0;
+      }
+
+      // We need a separate AudioContext at 24kHz for playback
+      // (reuse or create as needed)
+      let ctx;
       try {
-        const resp = await fetch('/api/voice-call/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text,
-            scenario_id: currentScenario.id,
-            history: history
-          })
-        });
-        const data = await resp.json();
-        if (data.success) {
-          history.push({ role: 'user', content: text });
-          speakAI(data.reply);
+        ctx = new AudioContext({ sampleRate: GEMINI_SAMPLE_RATE });
+      } catch (e) {
+        console.warn('[VoiceCall] 24kHz AudioContext not supported, using default sample rate');
+        ctx = new AudioContext();
+      }
+
+      const buffer = ctx.createBuffer(1, float32.length, GEMINI_SAMPLE_RATE);
+      buffer.copyToChannel(float32, 0);
+
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.connect(ctx.destination);
+      src.onended = () => {
+        ctx.close();
+        drainQueue();
+      };
+      src.start();
+    }
+
+    // ── UI helpers ────────────────────────────────────────────────────────────
+    function setAiSpeaking(speaking) {
+      if (speaking) {
+        tutorAvatar.classList.add('speaking');
+        document.querySelectorAll('.wave-ring').forEach(r => r.classList.add('active'));
+        statusText.innerText = translations['vc.ai_speaking'] || 'AI is speaking...';
+      } else {
+        if (playbackQueue.length === 0 && !isPlaying) {
+          tutorAvatar.classList.remove('speaking');
+          document.querySelectorAll('.wave-ring').forEach(r => r.classList.remove('active'));
         }
-      } catch (err) {
-        if (window.ToastManager) ToastManager.error('Failed to get AI response.');
       }
-      
-      recordIcon.innerText = '🎙️';
-      userTranscript.innerText = '';
-    };
+    }
 
-    recordBtn.addEventListener('mousedown', () => {
-      // TTS 재생 중이면 즉시 중단
-      if (currentAudio && !currentAudio.paused) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-        currentAudio = null;
-        tutorAvatar.classList.remove('speaking');
-        document.querySelectorAll('.wave-ring').forEach(r => r.classList.remove('active'));
+    function setListening(on) {
+      isListening = on;
+      if (on) {
+        micBtn.classList.add('listening');
+        micIcon.innerText = '🟠';
+        statusText.innerText = translations['vc.recording'] || 'Recording...';
+        userTranscript.innerText = '';
+        // Stop any playing audio when user starts speaking
+        playbackQueue = [];
+      } else {
+        micBtn.classList.remove('listening');
+        micIcon.innerText = '🎙️';
+        statusText.innerText = translations['vc.thinking'] || '생각중...';
+        // Signal end of user turn to Gemini
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(new ArrayBuffer(0)); // empty buffer as end-of-turn signal
+        }
       }
-      recognition.start();
-      recordIcon.innerText = '🟠';
-    });
+    }
 
-    recordBtn.addEventListener('mouseup', () => {
-      recognition.stop();
-    });
+    // ── Mic button (hold to talk) ─────────────────────────────────────────────
+    micBtn.addEventListener('mousedown', (e) => { e.preventDefault(); setListening(true); });
+    micBtn.addEventListener('mouseup', () => setListening(false));
+    micBtn.addEventListener('mouseleave', () => { if (isListening) setListening(false); });
 
-    document.getElementById('end-call-btn').onclick = () => {
-      clearInterval(timerInterval);
-      location.reload();
-    };
+    // Touch support
+    micBtn.addEventListener('touchstart', (e) => { e.preventDefault(); setListening(true); });
+    micBtn.addEventListener('touchend', (e) => { e.preventDefault(); setListening(false); });
+
+    document.getElementById('end-call-btn').onclick = endCall;
 
     loadScenarios();
   });
