@@ -24,7 +24,7 @@ def load_scenarios():
 
 @router.get("/roleplay", response_class=HTMLResponse)
 async def roleplay_page(request: Request):
-    return request.app.state.templates.TemplateResponse("ai-roleplay.html", {"request": request})
+    return request.app.state.templates.TemplateResponse(request, "ai-roleplay.html")
 
 @router.get("/api/roleplay/scenarios")
 async def get_scenarios():

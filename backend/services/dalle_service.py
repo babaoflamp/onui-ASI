@@ -295,81 +295,74 @@ def _generate_image_gemini_rest(prompt: str, model_name: str):
 
 
 async def generate_image_gemini(prompt: str, save_locally: bool = True) -> Dict[str, Any]:
-    """Google Gemini 이미지 생성 (시범용 간단 래퍼)."""
+    """Google Gemini 이미지 생성 (Imagen 3 기반 모델 사용)"""
     if not GEMINI_API_KEY:
         return {"success": False, "error": "GEMINI_API_KEY not configured"}
-    # SDK is optional; REST will be used if unavailable or incompatible.
+    
+    # SDK 사용 여부 확인
     sdk_available = bool(genai and hasattr(genai, "GenerativeModel"))
+    model_name = os.getenv("GEMINI_IMAGE_MODEL", DALLE_MODEL) # DALLE_MODEL might be fallback
+
+    # 만약 환경변수에 이미 모델이 설정되어 있다면 우선 사용
+    if not model_name or model_name == "gpt-image-1.5": # 기본값인 경우
+        model_name = "gemini-2.5-flash-image"
 
     try:
         genai.configure(api_key=GEMINI_API_KEY)
-        models_to_try = [GEMINI_MODEL, "gemini-2.0-flash-exp"]
-        seen = set()
-        last_error = None
-
-        for model_name in models_to_try:
-            if not model_name or model_name in seen:
-                continue
-            seen.add(model_name)
+        
+        logger.info(f"Generating Gemini image using model: {model_name}")
+        
+        # Prefer SDK first
+        if sdk_available:
             try:
-                # Prefer SDK first; REST remains as fallback.
-                if sdk_available:
-                    model = genai.GenerativeModel(model_name)
-                    resp = await asyncio.get_event_loop().run_in_executor(
-                        None,
-                        lambda: model.generate_content(prompt),
-                    )
+                model = genai.GenerativeModel(model_name)
+                # 이미지 생성은 일반 텍스트 생성과 동일한 인터페이스 사용 (Imagen 모델의 경우)
+                resp = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: model.generate_content(prompt),
+                )
 
-                    image_base64, mime_type = _extract_gemini_image_base64(resp)
-                    if not image_base64:
-                        last_error = "Gemini SDK did not return inline image data"
-                    else:
-                        result = {
-                            "success": True,
-                            "image_base64": image_base64,
-                            "mime_type": mime_type or "image/png",
-                            "model": model_name,
-                        }
-                        if save_locally:
-                            try:
-                                binary = base64.b64decode(image_base64)
-                                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                                filename = f"gemini_{timestamp}.png"
-                                filepath = UPLOAD_DIR / filename
-                                async with aiofiles.open(filepath, "wb") as f:
-                                    await f.write(binary)
-                                result["local_path"] = f"/uploads/images/{filename}"
-                            except Exception as e:
-                                logger.warning(f"Failed to save Gemini image locally: {e}")
-                        return result
-
-                rest_result = _generate_image_gemini_rest(prompt, model_name)
-                if rest_result.get("success"):
-                    result = rest_result
-                    image_base64 = result.get("image_base64")
-                    mime_type = result.get("mime_type")
-                else:
-                    last_error = rest_result.get("error") or "Gemini REST failed"
-                    continue
-
-                if save_locally:
-                    try:
-                        binary = base64.b64decode(image_base64)
-                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                        filename = f"gemini_{timestamp}.png"
-                        filepath = UPLOAD_DIR / filename
-                        async with aiofiles.open(filepath, "wb") as f:
-                            await f.write(binary)
-                        result["local_path"] = f"/uploads/images/{filename}"
-                    except Exception as e:
-                        logger.warning(f"Failed to save Gemini image locally: {e}")
-
-                return result
+                image_base64, mime_type = _extract_gemini_image_base64(resp)
+                if image_base64:
+                    result = {
+                        "success": True,
+                        "image_base64": image_base64,
+                        "mime_type": mime_type or "image/png",
+                        "model": model_name,
+                    }
+                    if save_locally:
+                        try:
+                            binary = base64.b64decode(image_base64)
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            filename = f"gemini_{timestamp}.png"
+                            filepath = UPLOAD_DIR / filename
+                            async with aiofiles.open(filepath, "wb") as f:
+                                await f.write(binary)
+                            result["local_path"] = f"/uploads/images/{filename}"
+                        except Exception as e:
+                            logger.warning(f"Failed to save Gemini image locally: {e}")
+                    return result
             except Exception as e:
-                last_error = str(e)
-                continue
+                logger.warning(f"Gemini SDK failed for {model_name}: {e}, trying REST fallback...")
 
-        return {"success": False, "error": f"Gemini image generation failed: {last_error or 'Unknown error'}"}
+        # Fallback to REST
+        rest_result = _generate_image_gemini_rest(prompt, model_name)
+        if rest_result.get("success"):
+            result = rest_result
+            if save_locally:
+                try:
+                    binary = base64.b64decode(result["image_base64"])
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"gemini_{timestamp}.png"
+                    filepath = UPLOAD_DIR / filename
+                    async with aiofiles.open(filepath, "wb") as f:
+                        await f.write(binary)
+                    result["local_path"] = f"/uploads/images/{filename}"
+                except Exception as e:
+                    logger.warning(f"Failed to save Gemini image locally: {e}")
+            return result
+
+        return {"success": False, "error": f"Gemini image generation failed for {model_name}"}
 
     except Exception as e:
         return {"success": False, "error": f"Gemini image generation failed: {e}"}

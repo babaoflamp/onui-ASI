@@ -2423,55 +2423,55 @@ Overall: {overall_score}/100
 @app.get("/")
 def landing_page(request: Request):
     """기본 랜딩 페이지"""
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 
 @app.get("/video-learning")
 def video_learning_page(request: Request):
     """VOD 기반 학습 (Lingopie 스타일)"""
-    return templates.TemplateResponse("video-learning.html", {"request": request})
+    return templates.TemplateResponse(request, "video-learning.html")
 
 
 @app.get("/onui-beats")
 def onui_beats_page(request: Request):
     """Lirica 스타일 음악 학습"""
-    return templates.TemplateResponse("onui-beats.html", {"request": request})
+    return templates.TemplateResponse(request, "onui-beats.html")
 
 
 @app.get("/voice-call")
 def voice_call_page(request: Request):
     """Speak 스타일 실시간 통화 연습"""
-    return templates.TemplateResponse("voice-call.html", {"request": request})
+    return templates.TemplateResponse(request, "voice-call.html")
 
 
 @app.get("/onui-messenger")
 def onui_messenger_page(request: Request):
     """HelloTalk 스타일 메신저 교정"""
-    return templates.TemplateResponse("onui-messenger.html", {"request": request})
+    return templates.TemplateResponse(request, "onui-messenger.html")
 
 
 @app.get("/content-generation")
 def content_generation_page(request: Request):
     """맞춤형 교재 생성 페이지"""
-    return templates.TemplateResponse("content-generation.html", {"request": request})
+    return templates.TemplateResponse(request, "content-generation.html")
 
 
 @app.get("/daily-expression")
 def daily_expression_page(request: Request):
     """오늘의 한국어 표현 카드 슬라이더"""
-    return templates.TemplateResponse("daily-expression.html", {"request": request})
+    return templates.TemplateResponse(request, "daily-expression.html")
 
 
 @app.get("/signup")
 def signup_page(request: Request):
     """회원가입 페이지"""
-    return templates.TemplateResponse("signup.html", {"request": request})
+    return templates.TemplateResponse(request, "signup.html")
 
 
 @app.get("/stt-api-test")
 def stt_api_test_page(request: Request):
     """STT API 다중 테스트 페이지"""
-    return templates.TemplateResponse("stt-multi-test.html", {"request": request})
+    return templates.TemplateResponse(request, "stt-multi-test.html")
 
 
 @app.get("/api-test")
@@ -2479,37 +2479,37 @@ def api_test_page(request: Request):
     """관리자 API 테스트 도구 (클라이언트 측 인증 검사)"""
     # Note: Token validation happens on client-side (JavaScript)
     # Client will redirect to /admin/login if not authenticated
-    return templates.TemplateResponse("api-test.html", {"request": request})
+    return templates.TemplateResponse(request, "api-test.html")
 
 
 @app.get("/sitemap")
 def sitemap_page(request: Request):
     """사이트맵 페이지"""
-    return templates.TemplateResponse("sitemap.html", {"request": request})
+    return templates.TemplateResponse(request, "sitemap.html")
 
 
 @app.get("/login")
 def login_page(request: Request):
     """로그인 페이지"""
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request, "login.html")
 
 
 @app.get("/mypage")
 def mypage(request: Request):
     """사용자 프로필 페이지"""
-    return templates.TemplateResponse("mypage.html", {"request": request})
+    return templates.TemplateResponse(request, "mypage.html")
 
 
 @app.get("/learning-progress")
 def learning_progress(request: Request):
     """학습 진도 대시보드"""
-    return templates.TemplateResponse("learning-progress.html", {"request": request})
+    return templates.TemplateResponse(request, "learning-progress.html")
 
 
 @app.get("/dashboard")
 def learning_dashboard(request: Request):
     """학습 대시보드 (alias)"""
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+    return templates.TemplateResponse(request, "dashboard.html")
 
 
 @app.get("/api/dashboard/recent-pronunciation")
@@ -2568,13 +2568,13 @@ async def get_dashboard_recent_pronunciation(request: Request):
 @app.get("/change-password")
 def change_password_page(request: Request):
     """비밀번호 변경 페이지"""
-    return templates.TemplateResponse("change-password.html", {"request": request})
+    return templates.TemplateResponse(request, "change-password.html")
 
 
 @app.get("/admin/login")
 def admin_login_page(request: Request):
     """관리자 로그인 페이지"""
-    return templates.TemplateResponse("admin-login.html", {"request": request})
+    return templates.TemplateResponse(request, "admin-login.html")
 
 
 @app.get("/admin/dashboard")
@@ -2582,7 +2582,7 @@ def admin_dashboard_page(request: Request):
     """관리자 대시보드 페이지 (클라이언트 측 인증 검사)"""
     # Note: Token validation happens on client-side (JavaScript)
     # API endpoints enforce _require_admin for actual operations
-    return templates.TemplateResponse("admin-dashboard.html", {"request": request})
+    return templates.TemplateResponse(request, "admin-dashboard.html")
 
 
 @app.get("/admin/users")
@@ -2590,25 +2590,25 @@ def admin_users_page(request: Request):
     """관리자 사용자 관리 페이지 (클라이언트 측 인증 검사)"""
     # Note: Token validation happens on client-side (JavaScript)
     # API endpoints enforce _require_admin for actual operations
-    return templates.TemplateResponse("admin-users.html", {"request": request})
+    return templates.TemplateResponse(request, "admin-users.html")
 
 
 @app.get("/admin")
 def admin_shell_page(request: Request):
     """관리자 셸: 좌측 사이드 패널 + 우측 콘텐츠 프레임"""
-    return templates.TemplateResponse("admin.html", {"request": request})
+    return templates.TemplateResponse(request, "admin.html")
 
 
 @app.get("/admin/api")
 def admin_api_page(request: Request):
     """관리자 API 설정 페이지"""
-    return templates.TemplateResponse("admin-api.html", {"request": request})
+    return templates.TemplateResponse(request, "admin-api.html")
 
 
 @app.get("/admin/system")
 def admin_system_page(request: Request):
     """관리자 시스템 설정 페이지"""
-    return templates.TemplateResponse("admin-system.html", {"request": request})
+    return templates.TemplateResponse(request, "admin-system.html")
 
 
 @app.get("/admin/logs")
@@ -2616,7 +2616,7 @@ def admin_logs_page(request: Request):
     """관리자 로그 모니터링 페이지 (클라이언트 측 인증 검사)"""
     # Note: Token validation happens on client-side (JavaScript)
     # API endpoints enforce _require_admin for actual operations
-    return templates.TemplateResponse("admin-logs.html", {"request": request})
+    return templates.TemplateResponse(request, "admin-logs.html")
 
 
 @app.get("/admin/settings")
@@ -2624,7 +2624,7 @@ def admin_settings_page(request: Request):
     """관리자 설정 페이지 (클라이언트 측 인증 검사)"""
     # Note: Token validation happens on client-side (JavaScript)
     # API endpoints enforce _require_admin for actual operations
-    return templates.TemplateResponse("admin-settings.html", {"request": request})
+    return templates.TemplateResponse(request, "admin-settings.html")
 
 
 # ------------------------------------------
@@ -5810,7 +5810,7 @@ async def stt_scorefile(
 @app.get("/sentence-evaluation")
 def sentence_evaluation_page(request: Request):
     """문장 학습 페이지"""
-    return templates.TemplateResponse("sentence-evaluation.html", {"request": request})
+    return templates.TemplateResponse(request, "sentence-evaluation.html")
 
 
 @app.post("/api/chatbot")

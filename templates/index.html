@@ -63,7 +63,7 @@ Intelligence{% endblock %} {% block extra_css %}
   }
 
   .hero-title {
-    font-size: clamp(2.5rem, 6vw, 3.5rem); /* 5xl 수준으로 조정 */
+    font-size: clamp(2.5rem, 6vw, 3.8rem); /* 4.5 -> 3.8로 축소 */
     font-weight: 900;
     line-height: 1.1;
     letter-spacing: -0.05em;
@@ -71,10 +71,10 @@ Intelligence{% endblock %} {% block extra_css %}
   }
 
   .hero-subtitle {
-    font-size: 1.25rem;
+    font-size: 1.25rem; /* 1.5 -> 1.25로 원복 */
     color: #a0a0a0;
-    max-width: 600px;
-    margin-bottom: 20px; /* 플레이그라운드와의 간격 밀착 */
+    max-width: 700px;
+    margin-bottom: 20px;
     font-weight: 500;
   }
 
@@ -181,6 +181,19 @@ Intelligence{% endblock %} {% block extra_css %}
     transform: translateY(-10px) scale(1.02);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 255, 255, 0.05);
   }
+
+  .glass-sub-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .glass-sub-card:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-12px) scale(1.03);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 255, 255, 0.08);
+  }
 </style>
 {% endblock %} {% block content %}
 <!-- 🌌 Animated Background Layer -->
@@ -198,12 +211,40 @@ Intelligence{% endblock %} {% block extra_css %}
 
 <!-- 🚀 Floating Capsule Header (Top Right) -->
 <div class="fixed top-8 right-8 z-50 animate-in fade-in slide-in-from-top-4 duration-700">
-  <div class="flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-full overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-1.5">
-    <button onclick="openAuthModal('login')" class="px-8 py-3 text-[12px] font-black text-white uppercase tracking-[0.2em] hover:bg-white/10 rounded-full transition-all duration-300" data-i18n="auth.login">
+  <div class="flex items-center bg-white/5 backdrop-blur-xl border border-white/10 rounded-full overflow-visible shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-2 gap-2">
+    
+    <!-- 🌍 Language Selector -->
+    <div class="relative group">
+      <button class="flex items-center gap-2 px-4 py-2.5 text-[13px] font-black text-white/60 hover:text-white uppercase tracking-[0.1em] hover:bg-white/10 rounded-full transition-all duration-300">
+        <span id="current-lang-flag" class="text-lg">🇰🇷</span>
+        <span id="current-lang-name">KO</span>
+        <svg class="w-3.5 h-3.5 opacity-40 group-hover:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+      </button>
+      
+      <!-- Dropdown -->
+      <div class="absolute top-full right-0 mt-3 w-36 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 shadow-2xl z-[100]">
+        <button onclick="setAppLang('ko')" class="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-white/10 text-[12px] font-black text-white/70 hover:text-white transition-all text-left">
+          <span class="text-base">🇰🇷</span> 한국어
+        </button>
+        <button onclick="setAppLang('en')" class="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-white/10 text-[12px] font-black text-white/70 hover:text-white transition-all text-left">
+          <span class="text-base">🇺🇸</span> English
+        </button>
+        <button onclick="setAppLang('ja')" class="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-white/10 text-[12px] font-black text-white/70 hover:text-white transition-all text-left">
+          <span class="text-base">🇯🇵</span> 日本語
+        </button>
+        <button onclick="setAppLang('zh')" class="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-white/10 text-[12px] font-black text-white/70 hover:text-white transition-all text-left">
+          <span class="text-base">🇨🇳</span> 简体中文
+        </button>
+      </div>
+    </div>
+
+    <div class="w-px h-5 bg-white/10 mx-1"></div>
+
+    <button onclick="openAuthModal('login')" class="px-8 py-3.5 text-[13px] font-black text-white uppercase tracking-[0.2em] hover:bg-white/10 rounded-full transition-all duration-300" data-i18n="auth.login">
       SIGN IN
     </button>
     <div class="w-px h-5 bg-white/10 mx-1"></div>
-    <button onclick="openAuthModal('signup')" class="px-8 py-3 text-[12px] font-black text-white uppercase tracking-[0.2em] bg-orange-500 rounded-full shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:scale-[1.05] hover:bg-orange-400 active:scale-95 transition-all duration-300" data-i18n="auth.signup">
+    <button onclick="openAuthModal('signup')" class="px-8 py-3.5 text-[13px] font-black text-white uppercase tracking-[0.2em] bg-orange-500 rounded-full shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:scale-[1.05] hover:bg-orange-400 active:scale-95 transition-all duration-300" data-i18n="auth.signup">
       SIGN UP
     </button>
   </div>
@@ -223,9 +264,9 @@ Intelligence{% endblock %} {% block extra_css %}
       <span id="hero-typing-2" class="glow-text bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent italic"></span>
     </h1>
 
-    <p class="hero-subtitle" data-i18n="land.hero_subtitle">
-      The most advanced Korean pronunciation correction solution with AI Onui.<br />
-      Start the experience where your voice meets data.
+    <p class="hero-subtitle" data-i18n="land.hero_subtitle" style="white-space: pre-line;">
+      AI 오누이와 함께하는 가장 진보된 한국어 발음 교정 솔루션.
+      당신의 목소리가 데이터와 만나 완성되는 경험을 시작하세요.
     </p>
 
   </section>
@@ -242,12 +283,14 @@ Intelligence{% endblock %} {% block extra_css %}
           SpeechPro Playground
         </div>
         
-        <h2 class="text-3xl md:text-4xl font-black text-white mb-4 tracking-tighter" data-i18n="land.playground_title">
-          Check your <span class="text-orange-400">pronunciation</span> now
+        <h2 class="text-3xl md:text-4xl font-black text-white mb-4 tracking-tighter">
+          <span data-i18n="land.playground_title_1">지금 바로 </span>
+          <span class="text-orange-400" data-i18n="land.playground_title_2">발음을 확인</span>
+          <span data-i18n="land.playground_title_3">해보세요</span>
         </h2>
         
         <div class="bg-black/40 rounded-[32px] p-6 mb-6 border border-white/5">
-          <p class="text-xs font-black text-white/30 uppercase tracking-[0.2em] mb-3" data-i18n="land.read_this">Read this sentence</p>
+          <p class="text-xs font-black text-white/30 uppercase tracking-[0.2em] mb-3" data-i18n="land.read_this">이 문장을 읽어주세요</p>
           <h3 id="demo-sentence" class="text-2xl md:text-3xl font-bold text-white mb-1">안녕하세요, 반갑습니다!</h3>
           <p class="text-sm text-white/40 italic">An-nyeong-ha-se-yo, ban-gap-seum-ni-da!</p>
         </div>
@@ -266,7 +309,7 @@ Intelligence{% endblock %} {% block extra_css %}
             <div id="record-icon" class="w-6 h-6 bg-red-600 rounded-full group-hover/btn:scale-110 transition-transform"></div>
           </button>
           
-          <p id="demo-status" class="text-sm font-bold text-white/40 uppercase tracking-widest" data-i18n="land.click_record">Click to start recording</p>
+          <p id="demo-status" class="text-sm font-bold text-white/40 uppercase tracking-widest" data-i18n="land.click_record">클릭하여 녹음 시작</p>
         </div>
 
         </div>
@@ -293,18 +336,19 @@ Intelligence{% endblock %} {% block extra_css %}
 
       <h3 class="text-xl font-black text-white/40 uppercase tracking-[0.2em] mb-4" data-i18n="land.your_pron">Your Pronunciation</h3>
 
-      <div class="flex flex-col items-center mb-6">
-        <div class="relative mb-4">
-          <svg class="w-40 h-40 transform -rotate-90">
-            <circle cx="80" cy="80" r="72" stroke="currentColor" stroke-width="10" fill="transparent" class="text-white/5" />
-            <circle id="score-circle" cx="80" cy="80" r="72" stroke="currentColor" stroke-width="10" fill="transparent" stroke-dasharray="452.4" stroke-dashoffset="452.4" class="text-orange-500 transition-all duration-[2s] ease-out" />
-          </svg>
-          <div class="absolute inset-0 flex flex-col items-center justify-center">
-            <span id="demo-score" class="text-6xl font-black text-white tracking-tighter">0</span>
-            <span class="text-[10px] font-black text-white/30 uppercase tracking-widest" data-i18n="land.score_label">Score / 100</span>
-          </div>
+      <div class="flex flex-col items-center mb-10">
+        <div class="text-center">
+          <span id="demo-score" class="text-8xl font-black text-orange-500 leading-none">0</span>
+          <p class="text-[12px] font-black text-white/30 uppercase tracking-[0.3em] mt-4" data-i18n="land.score_label">Score / 100</p>
         </div>
-        <p id="score-feedback-label" class="text-xl font-bold text-white"></p>
+        <p id="score-feedback-label" class="text-2xl font-bold text-white mt-6"></p>
+      </div>
+
+      <div class="bg-white/5 border border-white/5 rounded-3xl p-6 mb-6 text-left">
+        <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-4">Detailed Analysis</p>
+        <div id="demo-details" class="flex flex-wrap gap-3 justify-center">
+          <!-- Syllable cards will be injected here -->
+        </div>
       </div>
 
       <div class="bg-white/5 border border-white/5 rounded-3xl p-6 mb-8 text-left">
@@ -320,52 +364,132 @@ Intelligence{% endblock %} {% block extra_css %}
     </div>
   </div>
 
-  <!-- 🎨 Visual Features Grid (Total 6 Power Points) -->
+  <!-- 🎨 Visual Features Grid (Total 9 Power Points) -->
   <section class="max-w-6xl mx-auto px-4 pb-20">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- 1. SpeechPro Engine -->
-      <div class="glass-main-card p-6 rounded-[32px] group hover:border-orange-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.1s">
-        <img src="/static/images/speech_analysis_card_1775102232244.png" alt="SpeechPro Engine" class="w-full h-32 object-cover rounded-2xl mb-6 border border-white/5 opacity-80 group-hover:opacity-100 transition-opacity">
-        <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature1_title">SpeechPro Engine</h3>
-        <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature1_desc">Precision analysis at the phoneme level corrects pronunciation errors in real-time and perfectly reproduces native-speaker intonation.</p>
-      </div>
+    <div class="glass-main-card p-8 md:p-16 rounded-[60px] border border-white/10 relative overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.4)]">
+      <!-- Background glow for the container -->
+      <div class="absolute -top-24 -left-24 w-96 h-96 bg-orange-500/5 blur-[120px] rounded-full"></div>
+      
+      <div class="relative z-10">
+        <!-- Section Header -->
+        <div class="text-center mb-4">
+          <h2 class="text-4xl md:text-5xl font-black text-white mb-0 tracking-tighter" data-i18n="land.features_title">
+            CORE FEATURES
+          </h2>
+          <p class="text-white/40 text-lg font-medium max-w-2xl mx-auto" data-i18n="land.features_subtitle">
+            Experience the most powerful AI-driven Korean learning tools.
+          </p>
+        </div>
 
-      <!-- 2. AI Personalized Roadmap -->
-      <div class="glass-main-card p-6 rounded-[32px] group hover:border-blue-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.2s">
-        <img src="/static/images/roadmap_card_1775102248093.png" alt="AI Roadmap" class="w-full h-32 object-cover rounded-2xl mb-6 border border-white/5 opacity-80 group-hover:opacity-100 transition-opacity">
-        <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature2_title">AI Personalized Roadmap</h3>
-        <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature2_desc">Analyze your learning data to create optimal learning paths and customized conversation scripts every day, just for you.</p>
-      </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- 1. Onui Tube -->
+          <div class="glass-sub-card p-6 rounded-[32px] group hover:border-pink-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.1s">
+            <div class="w-full h-32 rounded-2xl mb-6 overflow-hidden border border-white/5 bg-black/20 group-hover:border-pink-500/30 transition-all">
+              <img src="/static/images/landing/feature_onuitube.png" alt="Onui Tube" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+            </div>
+            <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature5_title">Onui Tube</h3>
+            <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature5_desc">Watch educational VODs with dual subtitles and an integrated real-time click dictionary.</p>
+          </div>
 
-      <!-- 3. Visual Insight Feedback -->
-      <div class="glass-main-card p-6 rounded-[32px] group hover:border-purple-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.3s">
-        <img src="/static/images/visual_insight_card_1775102267623.png" alt="Visual Insight" class="w-full h-32 object-cover rounded-2xl mb-6 border border-white/5 opacity-80 group-hover:opacity-100 transition-opacity">
-        <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature3_title">Visual Insight</h3>
-        <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature3_desc">Visually prove your pronunciation improvement through speech waveforms and multi-dimensional graphs, not just simple numbers.</p>
-      </div>
+          <!-- 2. Onui Beats -->
+          <div class="glass-sub-card p-6 rounded-[32px] group hover:border-blue-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.2s">
+            <div class="w-full h-32 rounded-2xl mb-6 overflow-hidden border border-white/5 bg-black/20 group-hover:border-blue-500/30 transition-all">
+              <img src="/static/images/landing/feature_onuibeats.png" alt="Onui Beats" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+            </div>
+            <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature2_title">Onui Beats</h3>
+            <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature2_desc">Learn Korean vocabulary the fun way by filling in lyrics to your favorite K-Pop rhythms.</p>
+          </div>
 
-      <!-- 4. Interactive AI Roleplay -->
-      <div class="glass-main-card p-6 rounded-[32px] group hover:border-green-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.4s">
-        <img src="/static/images/ai_roleplay_card_1775102287129.png" alt="AI Roleplay" class="w-full h-32 object-cover rounded-2xl mb-6 border border-white/5 opacity-80 group-hover:opacity-100 transition-opacity">
-        <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature4_title">AI Roleplay</h3>
-        <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature4_desc">Enjoy free-flowing real-life conversations with AI in scenarios identical to real-world situations, from restaurant reservations to business meetings.</p>
-      </div>
+          <!-- 3. AI Voice Call -->
+          <div class="glass-sub-card p-6 rounded-[32px] group hover:border-orange-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.3s">
+            <div class="w-full h-32 rounded-2xl mb-6 overflow-hidden border border-white/5 bg-black/20 group-hover:border-orange-500/30 transition-all">
+              <img src="/static/images/landing/feature_voicecall.png" alt="AI Voice Call" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+            </div>
+            <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature1_title">AI Voice Call</h3>
+            <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature1_desc">Practice real-time conversations with AI tutors to build speaking confidence and natural flow.</p>
+          </div>
 
-      <!-- 5. Weekly Smart Report -->
-      <div class="glass-main-card p-6 rounded-[32px] group hover:border-pink-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.5s">
-        <img src="/static/images/progress_analytics_card_1775102305337.png" alt="Progress Analytics" class="w-full h-32 object-cover rounded-2xl mb-6 border border-white/5 opacity-80 group-hover:opacity-100 transition-opacity">
-        <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature5_title">Progress Analytics</h3>
-        <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature5_desc">Precisely analyze your language growth trends through weekly reports and provide expert-level guidance for moving to the next level.</p>
-      </div>
+          <!-- 4. AI Messenger -->
+          <div class="glass-sub-card p-6 rounded-[32px] group hover:border-teal-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.4s">
+            <div class="w-full h-32 rounded-2xl mb-6 overflow-hidden border border-white/5 bg-black/20 group-hover:border-teal-500/30 transition-all">
+              <img src="/static/images/landing/feature_messenger.png" alt="AI Messenger" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+            </div>
+            <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature6_title">AI Messenger</h3>
+            <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature6_desc">Chat with AI friends and receive real-time grammar corrections and natural expression tips.</p>
+          </div>
 
-      <!-- 6. Global Learning Network -->
-      <div class="glass-main-card p-6 rounded-[32px] group hover:border-teal-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.6s">
-        <img src="/static/images/global_network_card_1775102319738.png" alt="Global Network" class="w-full h-32 object-cover rounded-2xl mb-6 border border-white/5 opacity-80 group-hover:opacity-100 transition-opacity">
-        <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature6_title">Global Network</h3>
-        <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature6_desc">Connect with learners worldwide to share achievements, compete, and communicate with a larger world beyond language barriers.</p>
+          <!-- 5. AI Roleplay -->
+          <div class="glass-sub-card p-6 rounded-[32px] group hover:border-green-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.5s">
+            <div class="w-full h-32 rounded-2xl mb-6 overflow-hidden border border-white/5 bg-black/20 group-hover:border-green-500/30 transition-all">
+              <img src="/static/images/landing/feature_roleplay.png" alt="AI Roleplay" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+            </div>
+            <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature4_title">AI Roleplay</h3>
+            <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature4_desc">Become the protagonist in dozens of real-world scenarios, from ordering coffee to business meetings.</p>
+          </div>
+
+          <!-- 6. AI Textbook -->
+          <div class="glass-sub-card p-6 rounded-[32px] group hover:border-indigo-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.6s">
+            <div class="w-full h-32 rounded-2xl mb-6 overflow-hidden border border-white/5 bg-black/20 group-hover:border-indigo-500/30 transition-all">
+              <img src="/static/images/landing/feature_textbook.png" alt="AI Textbook" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+            </div>
+            <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature8_title">AI Textbook</h3>
+            <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature8_desc">Generate personalized learning materials tailored specifically to your interests and level.</p>
+          </div>
+
+          <!-- 7. Precision Analysis -->
+          <div class="glass-sub-card p-6 rounded-[32px] group hover:border-purple-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.7s">
+            <div class="w-full h-32 rounded-2xl mb-6 overflow-hidden border border-white/5 bg-black/20 group-hover:border-purple-500/30 transition-all">
+              <img src="/static/images/landing/feature_precision.png" alt="Precision Analysis" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+            </div>
+            <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature3_title">Precision Analysis</h3>
+            <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature3_desc">Perfect your pronunciation with phoneme-level assessments that catch even the smallest errors.</p>
+          </div>
+
+          <!-- 8. Daily Expressions -->
+          <div class="glass-sub-card p-6 rounded-[32px] group hover:border-yellow-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.8s">
+            <div class="w-full h-32 rounded-2xl mb-6 overflow-hidden border border-white/5 bg-black/20 group-hover:border-yellow-500/30 transition-all">
+              <img src="/static/images/landing/feature_daily.png" alt="Daily Expressions" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+            </div>
+            <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature7_title">Daily Expressions</h3>
+            <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature7_desc">Master essential phrases and Korean culture through curated daily cards and insights.</p>
+          </div>
+
+          <!-- 9. Growth Reports -->
+          <div class="glass-sub-card p-6 rounded-[32px] group hover:border-red-500/20 transition-all duration-500 reveal-card" style="animation-delay: 0.9s">
+            <div class="w-full h-32 rounded-2xl mb-6 overflow-hidden border border-white/5 bg-black/20 group-hover:border-red-500/30 transition-all">
+              <img src="/static/images/landing/feature_reports.png" alt="Growth Reports" class="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700">
+            </div>
+            <h3 class="text-xl font-black text-white mb-3 tracking-tight" data-i18n="land.feature9_title">Growth Reports</h3>
+            <p class="text-white/40 text-sm leading-relaxed" data-i18n="land.feature9_desc">Receive detailed weekly reports analyzing your study time, accuracy, and fluency progress.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
+
+  <!-- 🏢 Footer -->
+  <footer class="max-w-6xl mx-auto px-4 pb-20 mt-10">
+    <div class="border-t border-white/5 pt-16 text-center">
+      <h4 class="text-white/60 font-black text-xl mb-8 tracking-tighter">미디어젠(주)</h4>
+      
+      <div class="text-white/30 text-[11px] md:text-xs leading-loose space-y-3 font-bold">
+        <p>
+          본사 : 경기도 성남시 분당구 판교역로 230 (삼평동) <span class="mx-2 opacity-20">|</span> 
+          R&D센터 : 서울시 강서구 마곡중앙 12로 31(마곡동) 미디어젠 R&D 센터
+        </p>
+        <p>
+          대표번호 : 02-6429-7100 <span class="mx-2 opacity-20">|</span> 
+          FAX : 02-6429-7188 <span class="mx-2 opacity-20">|</span> 
+          영업(AUTO) : 02-6429-7109 <span class="mx-2 opacity-20">|</span> 
+          영업(AI) : 02-6429-7156 <span class="mx-2 opacity-20">|</span> 
+          주식 : 02-6429-7121
+        </p>
+        <p class="pt-10 uppercase tracking-[0.3em] text-[10px] font-black opacity-40">
+          copyright ⓒ mediazen all rights reserved.
+        </p>
+      </div>
+    </div>
+  </footer>
 </div>
 
 <!-- 🔐 Auth Modals -->
@@ -387,10 +511,9 @@ Intelligence{% endblock %} {% block extra_css %}
         <label class="block text-[10px] font-black text-white/40 uppercase tracking-widest mb-3">Password</label>
         <input type="password" name="password" required placeholder="••••••••" class="w-full bg-white/5 border border-white/10 focus:border-orange-500 rounded-2xl px-6 py-4 text-white outline-none transition-all placeholder:text-white/10 font-bold">
       </div>
-      <button type="submit" class="w-full py-5 bg-white text-black rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-2xl">
+      <button type="submit" class="w-full py-5 bg-orange-500 text-white rounded-2xl font-black text-lg hover:scale-[1.02] active:scale-95 transition-all shadow-[0_0_40px_rgba(249,115,22,0.3)]">
         SIGN IN NOW
-      </button>
-    </form>
+      </button>    </form>
 
     <!-- Sign Up Form -->
     <form id="signup-form" onsubmit="handleAuthSubmit(event, 'signup')" class="space-y-5 hidden">
@@ -590,6 +713,7 @@ Intelligence{% endblock %} {% block extra_css %}
       const formData = new FormData();
       formData.append("text", "안녕하세요, 반갑습니다!");
       formData.append("audio", audioBlob, "demo.wav");
+      formData.append("include_ai", "false");
 
       try {
         const response = await fetch("/api/speechpro/evaluate", {
@@ -598,9 +722,11 @@ Intelligence{% endblock %} {% block extra_css %}
         });
         
         const data = await response.json();
+        console.log("API Response Data:", data);
         if (data.success) {
-          showResults(data.overall_score, data.ai_feedback || "Excellent pronunciation! Your tone sounds very natural.");
+          showResults(data);
         } else {
+          console.error("API returned failure:", data);
           statusText.innerText = "Error analyzing. Try again.";
         }
       } catch (err) {
@@ -609,44 +735,150 @@ Intelligence{% endblock %} {% block extra_css %}
       }
     }
 
-    function showResults(score, feedback) {
-      const modal = document.getElementById("demo-modal");
-      const scoreDisplay = document.getElementById("demo-score");
-      const scoreCircle = document.getElementById("score-circle");
-      const feedbackLabel = document.getElementById("score-feedback-label");
-      const feedbackText = document.getElementById("demo-feedback");
+    function showResults(data) {
+      try {
+        console.log("Showing results:", data);
+        const modal = document.getElementById("demo-modal");
+        const scoreDisplay = document.getElementById("demo-score");
+        const feedbackLabel = document.getElementById("score-feedback-label");
+        const feedbackText = document.getElementById("demo-feedback");
+        const detailsContainer = document.getElementById("demo-details");
 
-      modal.classList.remove("hidden");
-      statusText.innerText = "Check your report!";
-      
-      // Animate Score Number
-      let currentScore = 0;
-      const targetScore = Math.round(score);
-      const interval = setInterval(() => {
-        if (currentScore >= targetScore) {
-          clearInterval(interval);
-        } else {
-          currentScore++;
-          scoreDisplay.innerText = currentScore;
+        if (!modal || !scoreDisplay || !feedbackLabel || !feedbackText || !detailsContainer) {
+          console.error("Missing modal elements");
+          return;
         }
-      }, 30);
 
-      // Animate Score Circle
-      const circumference = 88 * 2 * Math.PI; // r=88
-      const offset = circumference - (score / 100) * circumference;
-      scoreCircle.style.strokeDasharray = circumference;
-      scoreCircle.style.strokeDashoffset = circumference; // Start empty
-      setTimeout(() => {
-        scoreCircle.style.strokeDashoffset = offset;
-      }, 100);
-      
-      // Set Label
-      if (score >= 90) feedbackLabel.innerText = "Perfect! 🌟";
-      else if (score >= 80) feedbackLabel.innerText = "Excellent! ✨";
-      else if (score >= 60) feedbackLabel.innerText = "Good Job! 👍";
-      else feedbackLabel.innerText = "Keep it up! 💪";
+        const score = data.overall_score || 0;
+        const feedback = data.ai_feedback || "Excellent pronunciation! Your tone sounds very natural.";
 
-      feedbackText.innerText = feedback;
+        modal.classList.remove("hidden");
+        if (statusText) statusText.innerText = "Check your report!";
+        
+        // Animate Score Number
+        let currentScore = 0;
+        const targetScore = Math.round(score);
+        const interval = setInterval(() => {
+          if (currentScore >= targetScore) {
+            clearInterval(interval);
+          } else {
+            currentScore++;
+            scoreDisplay.innerText = currentScore;
+          }
+        }, 30);
+        
+        // Set Label
+        if (score >= 90) feedbackLabel.innerText = "Perfect! 🌟";
+        else if (score >= 80) feedbackLabel.innerText = "Excellent! ✨";
+        else if (score >= 60) feedbackLabel.innerText = "Good Job! 👍";
+        else feedbackLabel.innerText = "Keep it up! 💪";
+
+        // Confetti effect for all scores with different intensities
+        if (typeof confetti === 'function') {
+          if (score >= 80) {
+            // Intense burst for high scores
+            confetti({
+              particleCount: 150,
+              spread: 70,
+              origin: { y: 0.6 },
+              colors: ['#f97316', '#ec4899', '#ffffff']
+            });
+          } else {
+            // Gentle effect for lower scores
+            confetti({
+              particleCount: 40,
+              spread: 50,
+              origin: { y: 0.7 },
+              colors: ['#f97316', '#ffffff']
+            });
+          }
+        }
+
+        feedbackText.innerText = feedback;
+
+        // Render Detailed Analysis
+        detailsContainer.innerHTML = "";
+        
+        // Robust way to find syllables/phonemes in deeply nested SpeechPro response
+        const findSyllables = (obj) => {
+          if (!obj || typeof obj !== 'object') return null;
+          
+          // Strategy 1: Check quality.sentences (Standard SpeechPro structure)
+          try {
+            const quality = obj.score?.details?.quality || obj.details?.quality;
+            if (quality && Array.isArray(quality.sentences)) {
+              let allSyllables = [];
+              quality.sentences.forEach(s => {
+                // Ignore silent segments or empty sentences
+                if (s.text === "!SIL" || !s.words) return;
+                s.words.forEach(w => {
+                  if (w.syll && Array.isArray(w.syll)) {
+                    allSyllables = allSyllables.concat(w.syll);
+                  }
+                });
+              });
+              if (allSyllables.length > 0) return allSyllables;
+            }
+          } catch (e) { console.error("Strategy 1 failed", e); }
+
+          // Strategy 2: Direct syllables array (fallback)
+          if (Array.isArray(obj.syllables)) return obj.syllables;
+          if (obj.score && Array.isArray(obj.score.syllables)) return obj.score.syllables;
+          
+          // Strategy 3: phoneme_score object (convert to array)
+          const phonemeScore = obj.phoneme_score || obj.score?.phoneme_score;
+          if (phonemeScore && typeof phonemeScore === 'object') {
+            return Object.entries(phonemeScore).map(([phn, score]) => ({ text: phn, score: score }));
+          }
+          
+          return null;
+        };
+
+        const syllables = findSyllables(data);
+
+        if (syllables && Array.isArray(syllables)) {
+          syllables.forEach(syl => {
+            const char = syl.syllable || syl.text || "?";
+            const sylScore = Math.round(syl.accuracy_percentage || syl.score || 0);
+            
+            let colorClass = "border-red-500/30 text-red-400";
+            if (sylScore >= 80) colorClass = "border-green-500/30 text-green-400";
+            else if (sylScore >= 60) colorClass = "border-orange-500/30 text-orange-400";
+
+            const card = document.createElement("div");
+            card.className = `flex flex-col items-center p-3 rounded-2xl border bg-white/5 min-w-[70px] ${colorClass}`;
+            
+            // Phonemes rendering
+            let phonemesHtml = "";
+            if (syl.phones && Array.isArray(syl.phones)) {
+              phonemesHtml = `<div class="flex gap-1 mt-2">`;
+              syl.phones.forEach(p => {
+                const pScore = Math.round(p.score || 0);
+                let pColor = "text-red-400/60";
+                if (pScore >= 80) pColor = "text-green-400/60";
+                else if (pScore >= 60) pColor = "text-orange-400/60";
+                
+                phonemesHtml += `<div class="flex flex-col items-center">
+                  <span class="text-[9px] font-black">${p.symbol || p.text}</span>
+                  <span class="text-[7px] font-bold ${pColor}">${pScore}</span>
+                </div>`;
+              });
+              phonemesHtml += `</div>`;
+            }
+
+            card.innerHTML = `
+              <span class="text-2xl font-black mb-0.5">${char}</span>
+              <span class="text-[10px] font-bold opacity-60">${sylScore}%</span>
+              ${phonemesHtml}
+            `;
+            detailsContainer.appendChild(card);
+          });
+        } else {
+          detailsContainer.innerHTML = "<p class='text-white/40 text-xs'>Detailed syllable data not available.</p>";
+        }
+      } catch (err) {
+        console.error("Error in showResults:", err);
+      }
     }
 
       // --- Hero Typing Animation ---
@@ -662,12 +894,26 @@ Intelligence{% endblock %} {% block extra_css %}
       const runHeroTyping = async () => {
         const line1 = document.getElementById('hero-typing-1');
         const line2 = document.getElementById('hero-typing-2');
-        const text1 = translations['land.hero_type1'] || "Learn Korean";
-        const text2 = translations['land.hero_type2'] || "Like Magic.";
-        if (line1 && line2) {
-          await typeText(line1, text1);
-          await new Promise(r => setTimeout(r, 400));
-          await typeText(line2, text2);
+        
+        while (true) {
+          const text1 = translations['land.hero_type1'] || "Learn Korean";
+          const text2 = translations['land.hero_type2'] || "Like Magic.";
+          
+          if (line1 && line2) {
+            // Reset text
+            line1.innerText = "";
+            line2.innerText = "";
+            
+            // Type lines
+            await typeText(line1, text1);
+            await new Promise(r => setTimeout(r, 400));
+            await typeText(line2, text2);
+            
+            // Wait 3 seconds before repeating
+            await new Promise(r => setTimeout(r, 3000));
+          } else {
+            break; // Stop if elements are missing
+          }
         }
       };
 
@@ -691,7 +937,7 @@ Intelligence{% endblock %} {% block extra_css %}
 
     window.closeDemoModal = function() {
       document.getElementById("demo-modal").classList.add("hidden");
-      document.getElementById("status-text").innerText = "Click to start recording";
+      document.getElementById("status-text").innerText = "클릭하여 녹음 시작";
     };
 </script>
 {% endblock %}

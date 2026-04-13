@@ -75,7 +75,7 @@ def speechpro_practice_page(request: Request):
         return JSONResponse(
             status_code=500, content={"error": "Templates not configured"}
         )
-    return templates.TemplateResponse("speechpro-practice.html", {"request": request})
+    return templates.TemplateResponse(request, "speechpro-practice.html")
 
 
 # ==========================================

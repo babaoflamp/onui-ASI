@@ -9,14 +9,22 @@ async function setAppLang(lang) {
     await loadTranslations(lang);
     applyTranslations();
     
-    // Update label if exists
+    // Update labels and flags
     const lbl = document.getElementById("current-lang-label");
     if (lbl) lbl.textContent = lang.toUpperCase();
+
+    const flagEl = document.getElementById("current-lang-flag");
+    const nameEl = document.getElementById("current-lang-name");
+    if (flagEl && nameEl) {
+        const flags = { ko: "🇰🇷", en: "🇺🇸", ja: "🇯🇵", zh: "🇨🇳" };
+        flagEl.textContent = flags[lang] || "🌍";
+        nameEl.textContent = lang.toUpperCase();
+    }
 }
 
 async function loadTranslations(lang) {
     try {
-        const resp = await fetch(`/data/locales/${lang}.json`);
+        const resp = await fetch(`/data/locales/${lang}.json?v=${new Date().getTime()}`);
         if (resp.ok) {
             translations = await resp.json();
         }
@@ -32,14 +40,23 @@ function applyTranslations() {
             if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") {
                 el.placeholder = translations[key];
             } else {
-                el.textContent = translations[key];
+                el.innerHTML = translations[key];
             }
         }
     });
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const lang = localStorage.getItem("app_lang") || "en";
+    const lang = localStorage.getItem("app_lang") || "ko";
     await loadTranslations(lang);
     applyTranslations();
+
+    // Sync header selector if it exists
+    const flagEl = document.getElementById("current-lang-flag");
+    const nameEl = document.getElementById("current-lang-name");
+    if (flagEl && nameEl) {
+        const flags = { ko: "🇰🇷", en: "🇺🇸", ja: "🇯🇵", zh: "🇨🇳" };
+        flagEl.textContent = flags[lang] || "🌍";
+        nameEl.textContent = lang.toUpperCase();
+    }
 });
