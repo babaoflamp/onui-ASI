@@ -83,7 +83,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
         <div class="md:col-span-5">
-           <input id="topic" type="text" placeholder="What would you like to study? (e.g. Kimchi, Travel)" value="Kimchi" data-i18n="tx.topic_placeholder"
+           <input id="topic" type="text" placeholder="무엇을 공부하고 싶으세요? (예: 김치, 여행)" value="김치" data-i18n="tx.topic_placeholder"
              class="w-full input-dark px-6 py-4 rounded-2xl text-base outline-none transition-all"
              onkeydown="if (event.key === 'Enter') { event.preventDefault(); if (document.getElementById('topic').value.trim()) generateContent(); }" />
         </div>
@@ -112,24 +112,34 @@
     <div id="contentResult" class="hidden pt-10 border-t border-white/5"></div>
   </div>
 
-  <!-- Interactive AI Chat -->
+  <!-- Interactive AI Coach (Multi-turn Chat) -->
   <section class="glass-main-card rounded-[40px] p-8 lg:p-10 mb-8">
-    <h2 class="text-xs font-black text-white/40 uppercase tracking-widest mb-6 flex items-center gap-2">
+    <h2 class="text-xs font-black text-white/40 uppercase tracking-widest mb-2 flex items-center gap-2">
       <span>💬</span> INTERACTIVE COACH
     </h2>
-    <p class="text-sm text-white/60 mb-6 font-medium" data-i18n="tx.coach_desc">Ask AI questions about the generated textbook content.</p>
-    
-    <div class="flex flex-col sm:flex-row gap-3">
+    <p class="text-sm text-white/60 mb-6 font-medium" data-i18n="tx.coach_desc">생성된 교재 내용에 대해 AI 코치에게 자유롭게 질문하세요.</p>
+
+    <!-- Chat Messages -->
+    <div id="coachMessages" class="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar mb-6 pr-1">
+      <div class="flex gap-3">
+        <span class="text-2xl">🤖</span>
+        <div class="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm text-white/80 max-w-[85%]">
+          교재를 생성한 후 질문해 주세요! 문법, 어휘, 문화 등 무엇이든 물어보세요.
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="flex gap-3">
       <input id="testPrompt" type="text"
         class="flex-1 input-dark px-6 py-4 rounded-2xl text-base outline-none transition-all"
-        placeholder="Type your question... 😊" data-i18n="tx.coach_placeholder"
+        placeholder="질문을 입력하세요... 😊" data-i18n="tx.coach_placeholder"
         onkeydown="if (event.key === 'Enter') { event.preventDefault(); testModel(); }" />
       <button onclick="testModel()"
         class="px-8 py-4 bg-orange-500 text-white rounded-2xl hover:bg-orange-600 transition font-black shadow-lg">
-        ASK AI
+        전송
       </button>
     </div>
-    <div id="modelTestResult" class="mt-8 p-8 glass-sub-card rounded-[32px] hidden prose max-w-full"></div>
   </section>
 
   <!-- Usage Tips -->
@@ -295,25 +305,61 @@
     for (const item of items) { await playTTS(item.getAttribute("data-text")); }
   }
 
+  let coachHistory = [];
+
+  function appendCoachBubble(role, content) {
+    const msgs = document.getElementById("coachMessages");
+    const isUser = role === "user";
+    const div = document.createElement("div");
+    div.className = `flex gap-3 ${isUser ? "justify-end" : ""}`;
+    div.innerHTML = isUser
+      ? `<div class="bg-orange-500 rounded-2xl px-5 py-3 text-sm text-white max-w-[85%]">${content}</div>`
+      : `<span class="text-2xl">🤖</span><div class="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm text-white/80 max-w-[85%]">${content}</div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
   async function testModel() {
-    const prompt = document.getElementById("testPrompt").value;
-    const outDiv = document.getElementById("modelTestResult");
+    const input = document.getElementById("testPrompt");
+    const prompt = input.value.trim();
+    if (!prompt) return;
+    input.value = "";
+
     const sel = document.getElementById("modelSelect");
-    outDiv.classList.remove("hidden");
-    outDiv.innerHTML = '<div class="animate-pulse text-orange-500 font-black uppercase tracking-widest">Calling AI Coach...</div>';
-    
-    const fd = new FormData();
-    fd.append("prompt", prompt);
-    fd.append("backend", sel.options[sel.selectedIndex].getAttribute("data-backend"));
-    fd.append("model", sel.value);
+    const backend = sel.options[sel.selectedIndex].getAttribute("data-backend");
+    const model = sel.value;
+
+    // 교재 컨텍스트 추출
+    const dialogueItems = [...document.querySelectorAll(".dialogue-item")].map(el => el.getAttribute("data-text")).join("\n");
+
+    appendCoachBubble("user", prompt);
+    coachHistory.push({ role: "user", content: prompt });
+
+    // 생각중 표시
+    const msgs = document.getElementById("coachMessages");
+    const typing = document.createElement("div");
+    typing.className = "flex gap-3";
+    typing.id = "coach-typing";
+    typing.innerHTML = `<span class="text-2xl">🤖</span><div class="bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm text-white/40 animate-pulse">생각중...</div>`;
+    msgs.appendChild(typing);
+    msgs.scrollTop = msgs.scrollHeight;
 
     try {
-      const res = await fetch("/api/chat/test", { method: "POST", body: fd });
+      const res = await fetch("/api/chat/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, backend, model, history: coachHistory.slice(-10), system_context: dialogueItems })
+      });
       const data = await res.json();
-      const md = data.text || JSON.stringify(data.parsed || data, null, 2);
-      if (window.marked) outDiv.innerHTML = DOMPurify.sanitize(marked.parse(md));
-      else outDiv.innerText = md;
-    } catch (e) { outDiv.innerText = "Error: " + e.message; }
+      document.getElementById("coach-typing")?.remove();
+      const reply = data.text || JSON.stringify(data, null, 2);
+      const safeReply = window.marked ? DOMPurify.sanitize(marked.parse(reply)) : reply;
+      appendCoachBubble("assistant", safeReply);
+      coachHistory.push({ role: "assistant", content: reply });
+    } catch (e) {
+      document.getElementById("coach-typing")?.remove();
+      appendCoachBubble("assistant", "오류가 발생했습니다: " + e.message);
+    }
   }
 </script>
 

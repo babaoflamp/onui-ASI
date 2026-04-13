@@ -38,19 +38,24 @@ async def roleplay_chat(request: Request, payload: ChatRequest):
     if not scenario:
         raise HTTPException(status_code=404, detail="Scenario not found")
 
-    # LLM 프롬프트 구성
-    system_prompt = f"""
-    당신은 한국어 학습 도우미 '오누이'입니다. 현재 상황은 '{scenario['title']}'이며, 당신의 역할은 '{scenario['persona']}'입니다.
-    학습자가 자연스럽게 한국어를 연습할 수 있도록 도와주세요.
-    
-    지침:
-    1. 반드시 한국어로만 답변하세요.
-    2. 학습자의 수준({scenario['level']})에 맞춰 너무 어렵지 않은 단어를 사용하세요.
-    3. 학습자가 대화를 이어갈 수 있도록 질문을 포함하세요.
-    4. 학습자가 잘못된 표현을 쓰면 아주 친절하게 짧게 교정해 줄 수도 있습니다.
-    5. 현재 상황의 목표들({', '.join(scenario['goals'])})을 달성할 수 있도록 유도하세요.
-    6. 대화 도중 관련 한국 문화(예: 식사 예절, 높임말 관습 등)를 자연스럽게 언급하며 팁을 주면 좋습니다.
-    """
+    # 역사 인물 롤플레이 프롬프트 구성
+    era = scenario.get("era", "")
+    speaking_style = scenario.get("speaking_style", "")
+    topics = scenario.get("topics", [])
+
+    system_prompt = f"""당신은 한국 역사 인물 '{scenario['persona']}'입니다.
+시대: {era}
+말투: {speaking_style}
+주요 주제: {', '.join(topics)}
+
+역할극 지침:
+1. 반드시 한국어로만 답변하세요. 절대 영어로 답하지 마세요.
+2. '{scenario['persona']}'의 성격, 시대적 배경, 말투를 일관되게 유지하세요.
+3. 학습자 수준({scenario['level']})에 맞게 어휘를 조절하세요.
+4. 대화를 이어갈 수 있도록 질문을 포함하세요 (2-3문장 답변).
+5. 학습 목표({', '.join(scenario['goals'])})를 자연스럽게 달성할 수 있도록 유도하세요.
+6. 역사적 맥락과 문화를 자연스럽게 대화에 녹여주세요.
+7. 학습자가 잘못된 표현을 쓰면 인물의 캐릭터를 유지하며 친절히 교정해주세요."""
 
     messages = [{"role": "system", "content": system_prompt}] + payload.messages
 
