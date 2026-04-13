@@ -74,17 +74,17 @@
     "audio_url": "/static/audio/ollegil.mp3",
     "image_url": "/static/images/ollegil-cover.svg",
     "lyrics": [
-      { "text": "올레질은 좋은 질", "blank": "올레", "meaning": "Olle (Jeju hiking trail)" },
-      { "text": "조미있는 질", "blank": "좋은", "meaning": "Good / Nice" },
-      { "text": "산새 들새 벗되영 반겨주는 질", "blank": "산새", "meaning": "Mountain birds" },
-      { "text": "생이추룩 놀고싶엉", "blank": "달고", "meaning": "Want to fly" },
-      { "text": "두폴 벨기민 산들 보름 개뿐이 밀려줍니다", "blank": "두팔", "meaning": "Two arms" },
-      { "text": "올레 질은 좋은 질 정이 드는 질", "blank": "정이", "meaning": "Affection / Love" },
-      { "text": "고장덜이 도투멍 인사 호는 질", "blank": "인사", "meaning": "Greeting" },
-      { "text": "꽃들처럼 예쁘게 하하 웃으민 메아리도 정답게 따라합니다", "blank": "메아리", "meaning": "Echo" },
-      { "text": "올레 질은 좋은 질 도틈어신 질", "blank": "다툼", "meaning": "Dispute / Conflict" },
-      { "text": "놀멍 쉬멍 걸어도 꼴등 어신 질", "blank": "꼴등", "meaning": "Last place" },
-      { "text": "대자연의 숨소리 풀말축놀래 아름다운 노을만 품엉옵니다", "blank": "노을", "meaning": "Sunset" }
+      { "text": "올레질은 좋은 질", "blank": "올레질은", "meaning": "Olle path (제주 방언: 오솔길)" },
+      { "text": "조미있는 질", "blank": "조미있는", "meaning": "재미있는 (Jeju dialect: Interesting / Fun)" },
+      { "text": "산새 들새 벗되영 반겨주는 질", "blank": "벗되영", "meaning": "친구가 되어 (Jeju: becoming friends)" },
+      { "text": "생이추룩 놀고싶엉", "blank": "생이추룩", "meaning": "새처럼 (Jeju: like a bird)" },
+      { "text": "두폴 벨기민 산들 보름달이 밀려줍니다", "blank": "두폴", "meaning": "두 팔 (Jeju: two arms)" },
+      { "text": "올레 질은 좋은 질 정이 드는 질", "blank": "정이", "meaning": "Affection / Love (정情)" },
+      { "text": "고장덜이 도투멍 인사 호는 질", "blank": "도투멍", "meaning": "함께 모여 (Jeju: gathering together)" },
+      { "text": "꽃들처럼 예쁘게 하하 웃으민 메아리도 정답게 따라합니다", "blank": "메아리", "meaning": "Echo (메아리)" },
+      { "text": "올레 질은 좋은 질 도틈어신 질", "blank": "도틈어신", "meaning": "다툼없는 (Jeju: without conflict)" },
+      { "text": "놀멍 쉬멍 걸어도 꼴등 어신 질", "blank": "놀멍 쉬멍", "meaning": "놀면서 쉬면서 (Jeju: playing and resting)" },
+      { "text": "대자연의 숨소리 풀말축놀래 아름다운 노을만 품엉옵니다", "blank": "노을만", "meaning": "Sunset only (아름다운 노을)" }
     ]
   }
 ]

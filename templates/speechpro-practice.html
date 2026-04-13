@@ -113,12 +113,12 @@
           <label class="block text-xs font-black text-white/40 uppercase tracking-widest mb-4">Level Filter</label>
           <select id="level-filter" class="w-full input-dark px-5 py-4 rounded-2xl text-sm font-bold outline-none cursor-pointer">
             <option value="" data-i18n="sp.all_levels">All Levels</option>
-            <option value="초급1" data-i18n="sp.level_beg">Beginner 1</option>
-            <option value="초급2" data-i18n="sp.level_beg">Beginner 2</option>
-            <option value="중급1" data-i18n="sp.level_int">Intermediate 1</option>
-            <option value="중급2" data-i18n="sp.level_int">Intermediate 2</option>
-            <option value="고급1" data-i18n="sp.level_adv">Advanced 1</option>
-            <option value="고급2" data-i18n="sp.level_adv">Advanced 2</option>
+            <option value="A1">초급 1 (A1)</option>
+            <option value="A2">초급 2 (A2)</option>
+            <option value="B1">중급 1 (B1)</option>
+            <option value="B2">중급 2 (B2)</option>
+            <option value="C1">고급 1 (C1)</option>
+            <option value="C2">고급 2 (C2)</option>
           </select>
         </div>
 
@@ -269,11 +269,13 @@
     renderSentenceList();
   }
 
+  const LEVEL_KR = { A1:'초급1', A2:'초급2', B1:'중급1', B2:'중급2', C1:'고급1', C2:'고급2' };
+
   function renderSentenceList() {
     const list = document.getElementById('sentence-list');
     list.innerHTML = appState.sentenceAll.map((s, i) => `
       <button class="glass-sub-card w-full text-left p-4 rounded-2xl text-sm text-white/80 hover:text-white transition-all border border-white/5 mb-2" onclick="selectSentence(${i})">
-        <span class="text-[10px] font-black text-orange-500/60 mr-2">${s.level}</span> ${s.sentenceKr || s.sentence}
+        <span class="text-[10px] font-black text-orange-500/60 mr-2">${LEVEL_KR[s.level] || s.level}</span> ${s.sentenceKr || s.sentence}
       </button>
     `).join('');
   }
