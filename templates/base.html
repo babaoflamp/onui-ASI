@@ -635,14 +635,26 @@
             </button>
 
             <!-- Language Dropdown -->
-            <div id="lang-dropdown" class="absolute top-full right-0 mt-3 w-36 bg-[#121212]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] py-2 hidden z-[100] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
-              <button onclick="changeLang('en')" class="w-full px-5 py-2.5 text-left text-[10px] font-black text-white/50 hover:text-white hover:bg-white/5 transition-all flex items-center justify-between group">
-                ENGLISH
-                <span class="opacity-0 group-hover:opacity-100 transition-opacity">🇺🇸</span>
-              </button>
+            <div id="lang-dropdown" class="absolute top-full right-0 mt-3 w-40 bg-[#121212]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] py-2 hidden z-[100] animate-in fade-in zoom-in-95 duration-200 origin-top-right">
               <button onclick="changeLang('ko')" class="w-full px-5 py-2.5 text-left text-[10px] font-black text-white/50 hover:text-white hover:bg-white/5 transition-all flex items-center justify-between group">
-                한국어
-                <span class="opacity-0 group-hover:opacity-100 transition-opacity">🇰🇷</span>
+                <span>🇰🇷</span>
+                <span>한국어</span>
+                <span id="lang-check-ko" class="text-orange-500 hidden">✓</span>
+              </button>
+              <button onclick="changeLang('en')" class="w-full px-5 py-2.5 text-left text-[10px] font-black text-white/50 hover:text-white hover:bg-white/5 transition-all flex items-center justify-between group">
+                <span>🇺🇸</span>
+                <span>ENGLISH</span>
+                <span id="lang-check-en" class="text-orange-500 hidden">✓</span>
+              </button>
+              <button onclick="changeLang('ja')" class="w-full px-5 py-2.5 text-left text-[10px] font-black text-white/50 hover:text-white hover:bg-white/5 transition-all flex items-center justify-between group">
+                <span>🇯🇵</span>
+                <span>日本語</span>
+                <span id="lang-check-ja" class="text-orange-500 hidden">✓</span>
+              </button>
+              <button onclick="changeLang('zh')" class="w-full px-5 py-2.5 text-left text-[10px] font-black text-white/50 hover:text-white hover:bg-white/5 transition-all flex items-center justify-between group">
+                <span>🇨🇳</span>
+                <span>中文</span>
+                <span id="lang-check-zh" class="text-orange-500 hidden">✓</span>
               </button>
             </div>
           </div>
@@ -706,10 +718,17 @@
           if (item.getAttribute("href") === path) item.classList.add("active");
         });
 
-        // Language Label
-        const lang = (localStorage.getItem("app_lang") || "en").toUpperCase();
+        // Language Label + checkmark
+        const lang = localStorage.getItem("app_lang") || "ko";
         const lbl = document.getElementById("current-lang-label");
-        if (lbl) lbl.textContent = lang;
+        const flagMap = { ko: "🇰🇷", en: "🇺🇸", ja: "🇯🇵", zh: "🇨🇳" };
+        if (lbl) lbl.textContent = lang.toUpperCase();
+        const flagEl = document.getElementById("current-lang-flag");
+        if (flagEl) flagEl.textContent = flagMap[lang] || "🌍";
+        ["ko","en","ja","zh"].forEach(l => {
+          const el = document.getElementById("lang-check-" + l);
+          if (el) el.classList.toggle("hidden", l !== lang);
+        });
 
         // Language Dropdown Toggle
         const langBtn = document.getElementById("lang-selector-btn");

@@ -74,14 +74,15 @@
   <div class="glass-main-card rounded-[40px] p-8 lg:p-12 mb-8">
     <!-- Input Section -->
     <section class="mb-12">
-      <label class="block text-xs font-black text-white/40 uppercase tracking-[0.2em] mb-4">Type Your Sentence</label>
+      <label class="block text-xs font-black text-white/40 uppercase tracking-[0.2em] mb-4" data-i18n="fe.input_label">연습할 한국어 문장을 입력하세요</label>
       <div class="flex flex-col sm:flex-row gap-3">
-        <input type="text" id="custom-sentence" placeholder="e.g. The weather is really nice today." data-i18n="fe.input_placeholder"
+        <input type="text" id="custom-sentence" data-i18n="fe.input_placeholder"
+          placeholder="예) 오늘 날씨가 정말 좋네요."
           class="flex-1 input-dark px-6 py-4 rounded-2xl text-lg outline-none transition-all"
           onkeydown="if (event.key === 'Enter') { setCustomSentence(); }" />
         <button onclick="setCustomSentence()"
           class="px-10 py-4 bg-white text-black rounded-2xl font-black text-base hover:scale-[1.03] active:scale-95 transition-all shadow-2xl" data-i18n="fe.btn_start">
-          START PRACTICE →
+          연습 시작 →
         </button>
       </div>
     </section>
@@ -105,7 +106,7 @@
       <!-- Recording Controls -->
       <div class="glass-sub-card rounded-[32px] p-8 text-center relative overflow-hidden">
         <div id="sentenceRecordingStatus" class="mb-8">
-          <div class="inline-flex items-center gap-2 px-3 py-1 bg-black/40 border border-white/5 rounded-full text-[10px] font-black text-white/40 uppercase tracking-widest">READY TO RECORD</div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-black/40 border border-white/5 rounded-full text-[10px] font-black text-white/40 uppercase tracking-widest" id="statusReadyBadge">녹음 준비</div>
         </div>
 
         <div id="sentenceCountdown" class="absolute inset-0 flex items-center justify-center text-9xl font-black text-orange-500 z-20 hidden">3</div>
@@ -113,9 +114,9 @@
         <div id="sentenceRecordingTimer" class="text-6xl font-black text-white tracking-tighter mb-8">00:00</div>
 
         <div class="flex gap-3 justify-center">
-          <button id="sentenceRecordStart" onclick="startSentenceRecording()" class="flex-1 py-4 bg-orange-500 text-white rounded-2xl font-black shadow-2xl hover:scale-105 transition-all">🎙️ RECORD</button>
-          <button id="sentenceRecordStop" onclick="stopSentenceRecording()" class="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black shadow-2xl hidden">STOP</button>
-          <button id="sentenceRecordPlay" onclick="playSentenceRecording()" class="flex-1 py-4 bg-white/10 text-white rounded-2xl font-black border border-white/10 disabled:opacity-20 transition-all" disabled>PLAY</button>
+          <button id="sentenceRecordStart" onclick="startSentenceRecording()" class="flex-1 py-4 bg-orange-500 text-white rounded-2xl font-black shadow-2xl hover:scale-105 transition-all" data-i18n="fe.btn_record">🎙️ 녹음</button>
+          <button id="sentenceRecordStop" onclick="stopSentenceRecording()" class="flex-1 py-4 bg-red-500 text-white rounded-2xl font-black shadow-2xl hidden" data-i18n="fe.btn_stop">중지</button>
+          <button id="sentenceRecordPlay" onclick="playSentenceRecording()" class="flex-1 py-4 bg-white/10 text-white rounded-2xl font-black border border-white/10 disabled:opacity-20 transition-all" disabled data-i18n="fe.btn_play">재생</button>
         </div>
 
         <div id="sentencePlaybackSection" class="mt-8 hidden">
@@ -126,9 +127,9 @@
 
     <!-- Final Evaluate Button -->
     <div class="mt-8">
-      <button id="sentenceAiEvaluate" onclick="evaluateRecordedAudio()" 
-        class="w-full py-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-[28px] font-black text-2xl shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-20" disabled>
-        🪄 AI EVALUATE NOW
+      <button id="sentenceAiEvaluate" onclick="evaluateRecordedAudio()"
+        class="w-full py-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-[28px] font-black text-2xl shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-20" disabled data-i18n="fe.btn_evaluate">
+        🪄 AI 발음 평가
       </button>
     </div>
   </div>
@@ -139,7 +140,7 @@
   <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeSpeechProModal()"></div>
   <div class="relative w-full max-w-4xl max-h-[90vh] glass-modal-content rounded-[40px] p-10 overflow-y-auto custom-scrollbar">
     <div class="flex justify-between items-center mb-10">
-      <h2 class="text-3xl font-black text-white tracking-tight">Analysis Report</h2>
+      <h2 class="text-3xl font-black text-white tracking-tight" data-i18n="fe.modal_title">분석 리포트</h2>
       <button class="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 text-white/60 hover:text-white transition-all text-2xl" onclick="closeSpeechProModal()">✕</button>
     </div>
 
@@ -150,8 +151,8 @@
     </div>
 
     <div class="flex gap-8 mb-8 border-b border-white/5">
-      <button id="tab-details" onclick="switchSpeechProTab('details')" class="pb-4 text-sm font-black uppercase tracking-widest text-orange-500 border-b-2 border-orange-500">Details</button>
-      <button id="tab-ai-feedback" onclick="switchSpeechProTab('ai-feedback')" class="pb-4 text-sm font-black uppercase tracking-widest text-white/40 hover:text-white transition">AI Coach</button>
+      <button id="tab-details" onclick="switchSpeechProTab('details')" class="pb-4 text-sm font-black uppercase tracking-widest text-orange-500 border-b-2 border-orange-500" data-i18n="fe.tab_details">상세 분석</button>
+      <button id="tab-ai-feedback" onclick="switchSpeechProTab('ai-feedback')" class="pb-4 text-sm font-black uppercase tracking-widest text-white/40 hover:text-white transition" data-i18n="fe.tab_ai">AI 코치</button>
     </div>
 
     <div id="sp-details-tab-content" class="space-y-4"></div>
@@ -160,7 +161,7 @@
     </div>
 
     <div class="mt-10 flex justify-end">
-      <button onclick="closeSpeechProModal()" class="px-8 py-4 bg-white/5 text-white rounded-xl font-bold hover:bg-white/10">CLOSE REPORT</button>
+      <button onclick="closeSpeechProModal()" class="px-8 py-4 bg-white/5 text-white rounded-xl font-bold hover:bg-white/10" data-i18n="fe.btn_close">리포트 닫기</button>
     </div>
   </div>
 </div>
@@ -174,7 +175,7 @@
     </div>
     <div id="ai-section-content" class="text-lg leading-relaxed text-white/80"></div>
     <div class="mt-10 text-right">
-      <button onclick="closeAiSectionModal()" class="px-8 py-3 bg-white text-black rounded-xl font-black">GOT IT</button>
+      <button onclick="closeAiSectionModal()" class="px-8 py-3 bg-white text-black rounded-xl font-black" data-i18n="fe.btn_got_it">확인</button>
     </div>
   </div>
 </div>
@@ -231,8 +232,8 @@
       startTimer();
       document.getElementById("sentenceRecordStart").classList.add("hidden");
       document.getElementById("sentenceRecordStop").classList.remove("hidden");
-      document.getElementById("sentenceRecordingStatus").innerHTML = '<div class="inline-flex items-center gap-2 px-3 py-1 bg-red-500/20 border border-red-500/30 rounded-full text-[10px] font-black text-red-500 uppercase tracking-widest animate-pulse">RECORDING</div>';
-    } catch (e) { alert("Mic access denied"); }
+      document.getElementById("sentenceRecordingStatus").innerHTML = `<div class="inline-flex items-center gap-2 px-3 py-1 bg-red-500/20 border border-red-500/30 rounded-full text-[10px] font-black text-red-500 uppercase tracking-widest animate-pulse">${translations['fe.status_recording'] || '● 녹음 중'}</div>`;
+    } catch (e) { alert(translations['fe.err_mic'] || "마이크 접근 거부됨"); }
   }
 
   function stopSentenceRecording() {
@@ -242,7 +243,7 @@
       stopTimer();
       document.getElementById("sentenceRecordStop").classList.add("hidden");
       document.getElementById("sentenceRecordStart").classList.remove("hidden");
-      document.getElementById("sentenceRecordingStatus").innerHTML = '<div class="inline-flex items-center gap-2 px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-[10px] font-black text-green-500 uppercase tracking-widest">CAPTURED</div>';
+      document.getElementById("sentenceRecordingStatus").innerHTML = `<div class="inline-flex items-center gap-2 px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-[10px] font-black text-green-500 uppercase tracking-widest">✓ ${translations['fe.status_captured'] || '녹음 완료'}</div>`;
     }
   }
 
@@ -264,7 +265,7 @@
     const text = document.getElementById("selectedSentenceDisplay").textContent;
     if (!recordedAudioBlob) return;
     
-    document.getElementById("sentenceRecordingStatus").innerHTML = '<div class="flex items-center gap-2"><div class="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div><span class="text-[10px] font-black text-white/40">ANALYZING...</span></div>';
+    document.getElementById("sentenceRecordingStatus").innerHTML = `<div class="flex items-center gap-2"><div class="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div><span class="text-[10px] font-black text-white/40">${translations['fe.status_analyzing'] || '분석 중...'}</span></div>`;
     
     const fd = new FormData();
     fd.append("audio", recordedAudioBlob, "rec.wav");
