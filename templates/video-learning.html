@@ -208,7 +208,7 @@
       </div>
       
       <label class="flex items-center gap-3 cursor-pointer group">
-        <span class="text-sm font-bold text-white/50 group-hover:text-white transition-colors">Auto-pause at sentence end</span>
+        <span class="text-sm font-bold text-white/50 group-hover:text-white transition-colors" data-i18n="yt.auto_pause">Auto-pause at sentence end</span>
         <div class="relative">
           <input type="checkbox" id="auto-pause-toggle" class="peer sr-only" checked />
           <div class="block w-12 h-6 rounded-full bg-white/10 border border-white/10 peer-checked:bg-orange-500 transition-all"></div>
@@ -227,7 +227,7 @@
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z"></path></svg>
       </button>
 
-      <button id="btn-back-lobby" class="px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all">
+      <button id="btn-back-lobby" class="px-6 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white/20 transition-all" data-i18n="yt.back_lobby">
         Back to Lobby
       </button>
       
@@ -241,7 +241,7 @@
     <div class="suno-card flex-1 flex flex-col p-6 max-h-[800px]">
       <div class="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
         <h2 class="text-xl font-black text-white flex items-center gap-2">
-          <span>📚</span> My Vocabulary
+          <span>📚</span> <span data-i18n="yt.my_vocab">My Vocabulary</span>
         </h2>
         <span class="text-xs font-bold bg-white/10 text-white/70 px-2 py-1 rounded-md" id="vocab-count">0 words</span>
       </div>
@@ -249,8 +249,8 @@
       <div id="vocab-list" class="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-3 pr-2">
         <div id="vocab-empty" class="h-full flex flex-col items-center justify-center text-center opacity-50 py-10">
           <span class="text-4xl mb-3">🖱️</span>
-          <p class="text-sm font-bold text-white">Click any word in subtitles<br/>to see meaning!</p>
-          <p class="text-xs text-white/50 mt-2">Saved words will appear here.</p>
+          <p class="text-sm font-bold text-white" data-i18n="yt.click_hint">Click any word in subtitles to see meaning!</p>
+          <p class="text-xs text-white/50 mt-2" data-i18n="yt.saved_words">Saved words will appear here.</p>
         </div>
       </div>
     </div>
@@ -306,24 +306,27 @@
           recommendedVideos = data.videos;
           renderLocalVideos(recommendedVideos);
         } else {
-          exploreGrid.innerHTML = '<div class="col-span-full py-20 text-center text-white/50 font-black uppercase">No videos found in database.</div>';
+          exploreGrid.innerHTML = `<div class="col-span-full py-20 text-center text-white/50 font-black uppercase">${translations['yt.no_videos'] || 'No videos found in database.'}</div>`;
         }
       } catch(e) {
         console.error('Failed to load recommended videos:', e);
-        exploreGrid.innerHTML = '<div class="col-span-full py-20 text-center text-red-400 font-bold uppercase">Server Connection Error.</div>';
+        exploreGrid.innerHTML = `<div class="col-span-full py-20 text-center text-red-400 font-bold uppercase">${translations['yt.server_error'] || 'Server Connection Error.'}</div>`;
       }
     }
 
     function renderLocalVideos(videosToRender, isSearchResult = false) {
       exploreGrid.innerHTML = '';
       if (videosToRender.length === 0) {
-        exploreGrid.innerHTML = '<div class="col-span-full py-20 text-center text-white/50 font-black uppercase">No matching videos found.</div>';
+        exploreGrid.innerHTML = `<div class="col-span-full py-20 text-center text-white/50 font-black uppercase">${translations['yt.no_results'] || 'No matching videos found.'}</div>`;
         return;
       }
-      
+
       const titleDiv = document.createElement('div');
       titleDiv.className = 'col-span-full mb-4 border-b border-white/10 pb-2';
-      titleDiv.innerHTML = `<h3 class="text-orange-400 font-bold text-sm tracking-widest uppercase">${isSearchResult ? '🔍 Search Results' : '✨ Recommended Content'}</h3>`;
+      const sectionLabel = isSearchResult
+        ? (translations['yt.search_results'] || '🔍 Search Results')
+        : (translations['yt.recommended'] || '✨ Recommended Content');
+      titleDiv.innerHTML = `<h3 class="text-orange-400 font-bold text-sm tracking-widest uppercase">${sectionLabel}</h3>`;
       exploreGrid.appendChild(titleDiv);
       
       videosToRender.forEach((v, idx) => {
@@ -340,7 +343,7 @@
              </div>
              <div class="absolute top-3 left-3 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_10px_#f97316]"></span>
-                <span class="text-[10px] font-black text-white tracking-widest uppercase">AI Captions Ready</span>
+                <span class="text-[10px] font-black text-white tracking-widest uppercase">${translations['yt.ai_captions_ready'] || 'AI Captions Ready'}</span>
              </div>
           </div>
           <div class="flex flex-col gap-2">
