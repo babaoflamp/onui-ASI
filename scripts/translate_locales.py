@@ -26,7 +26,7 @@ TARGET_LANGS = {"ja": "Japanese", "zh": "Simplified Chinese"}
 
 
 def translate_with_gemini(source_data, target_lang_name):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
     prompt = f"""
     You are an expert app localizer. Translate the values of the following JSON from English to {target_lang_name}.
