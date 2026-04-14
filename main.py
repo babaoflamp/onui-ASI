@@ -261,8 +261,13 @@ else:
 
 # Initialize Gemini client if available
 gemini_client = None
+gemini_live_client = None  # Separate client for Live API (requires v1alpha)
 if GEMINI_API_KEY and GENAI_AVAILABLE:
     gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+    gemini_live_client = genai.Client(
+        api_key=GEMINI_API_KEY,
+        http_options={"api_version": "v1alpha"},
+    )
 
 # Initialize Google Cloud Speech client if available
 google_speech_client = None
@@ -6094,7 +6099,7 @@ async def voice_call_live_ws(websocket: WebSocket, scenario_id: str):
     """Gemini Live API 실시간 오디오 스트리밍 WebSocket 엔드포인트"""
     await websocket.accept()
 
-    if not GEMINI_API_KEY or not gemini_client:
+    if not GEMINI_API_KEY or not gemini_live_client:
         await websocket.send_json({"type": "error", "text": "GEMINI_API_KEY not configured"})
         await websocket.close()
         return
@@ -6133,7 +6138,7 @@ async def voice_call_live_ws(websocket: WebSocket, scenario_id: str):
     )
 
     try:
-        async with gemini_client.aio.live.connect(
+        async with gemini_live_client.aio.live.connect(
             model="gemini-2.0-flash-live-001",
             config=live_config,
         ) as session:
