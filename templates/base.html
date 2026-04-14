@@ -3,6 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- FOUC 방지: 번역 적용 전까지 콘텐츠 숨김 -->
+    <script>
+      (function() {
+        var lang = localStorage.getItem("app_lang");
+        if (lang && lang !== "ko") {
+          document.documentElement.style.visibility = "hidden";
+        }
+      })();
+    </script>
     <title data-i18n="app.title">ONUI | AI Speech Intelligence</title>
 
     <!-- Favicon -->

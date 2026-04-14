@@ -51,6 +51,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadTranslations(lang);
     applyTranslations();
 
+    // FOUC 방지 해제: 번역 적용 완료 후 표시
+    document.documentElement.style.visibility = "";
+
     // Sync header selector if it exists
     const flagEl = document.getElementById("current-lang-flag");
     const nameEl = document.getElementById("current-lang-name");
