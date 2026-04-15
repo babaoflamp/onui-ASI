@@ -62,12 +62,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .map(
         (sense) => `
         <p class="text-gray-700 text-sm mb-1">
-          ${sense.sense_order}. ${sense.definition}
+          ${escapeHtml(String(sense.sense_order || ""))}. ${escapeHtml(sense.definition || "")}
         </p>
         ${(sense.translations || [])
           .map(
             (trans) =>
-              `<p class="text-gray-500 text-xs pl-4">(${trans.trans_lang}) ${trans.trans_word || "-"}: ${trans.trans_dfn || "-"}</p>`,
+              `<p class="text-gray-500 text-xs pl-4">(${escapeHtml(trans.trans_lang || "")}) ${escapeHtml(trans.trans_word || "-")}: ${escapeHtml(trans.trans_dfn || "-")}</p>`,
           )
           .join("")}
       `,
@@ -75,16 +75,17 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
 
     const detailLabel = (typeof translations !== 'undefined' && translations['dict.open_full']) || "Open in full page →";
+    const safeLink = (item.link && /^https?:\/\//.test(item.link)) ? item.link : null;
     return `
       <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
         <div class="flex justify-between items-start mb-2">
-          <h4 class="font-bold text-md text-gray-800">${item.word}</h4>
-          <span class="text-xs text-gray-500">${item.pos || ""} ${item.word_grade || ""}</span>
+          <h4 class="font-bold text-md text-gray-800">${escapeHtml(item.word || "")}</h4>
+          <span class="text-xs text-gray-500">${escapeHtml(item.pos || "")} ${escapeHtml(item.word_grade || "")}</span>
         </div>
         ${sensesHtml}
         ${
-          item.link
-            ? `<a href="${item.link}" target="_blank" rel="noopener noreferrer" class="text-xs text-emerald-700 hover:text-emerald-600 font-semibold">${detailLabel}</a>`
+          safeLink
+            ? `<a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="text-xs text-emerald-700 hover:text-emerald-600 font-semibold">${escapeHtml(detailLabel)}</a>`
             : ""
         }
       </div>

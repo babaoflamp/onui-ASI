@@ -1612,25 +1612,6 @@ def _parse_session_token(token: str) -> dict:
                 "is_admin": session.get("is_admin", False),
             }
 
-        # Fallback: parse token (for backward compatibility)
-        data = base64.b64decode(token.encode()).decode()
-        parts = data.split("|")
-        if len(parts) >= 3:
-            user_id = int(parts[0])
-            email = parts[1]
-            timestamp = int(parts[2])
-
-            # Check expiry
-            if time.time() - timestamp > SESSION_EXPIRY_SECONDS:
-                logger.info(f"[SESSION_EXPIRED] user_id={user_id} email={email}")
-                return None
-
-            payload = {"user_id": user_id, "email": email}
-            if len(parts) >= 5:
-                payload["is_admin"] = parts[4] == "1"
-            else:
-                payload["is_admin"] = False
-            return payload
     except Exception as e:
         logger.debug(f"[SESSION_PARSE_ERROR] {e}")
     return None
@@ -2490,11 +2471,6 @@ def api_test_page(request: Request):
     return templates.TemplateResponse(request, "api-test.html")
 
 
-@app.get("/sitemap")
-def sitemap_page(request: Request):
-    """사이트맵 페이지"""
-    return templates.TemplateResponse(request, "sitemap.html")
-
 
 @app.get("/login")
 def login_page(request: Request):
@@ -2721,7 +2697,7 @@ async def auth_google_callback(request: Request):
         key="session_token",
         value=session_token,
         max_age=SESSION_EXPIRY_SECONDS,
-        httponly=False,
+        httponly=True,
         samesite="lax",
         path="/",
     )
@@ -2810,7 +2786,7 @@ async def login(request: Request):
         key="session_token",
         value=token,
         max_age=SESSION_EXPIRY_SECONDS,
-        httponly=False,
+        httponly=True,
         samesite="lax",
         path="/",
     )

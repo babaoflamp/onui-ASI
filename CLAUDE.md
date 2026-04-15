@@ -20,10 +20,8 @@ source .venv/bin/activate && python -m uvicorn main:app --host 0.0.0.0 --port 90
 # Stop server
 pkill -f uvicorn
 
-# Run tests
+# Run tests (tests/ currently has no source files; add them under tests/unit, tests/api, tests/integration)
 python -m pytest
-python -m pytest tests/unit          # unit tests only
-python -m pytest tests/api           # API tests only
 ```
 
 ## Key Environment Variables (`.env`)
@@ -55,7 +53,19 @@ Key sections in `main.py`:
 - **Lines 970–2090**: SQLite DB init (`data/users.db`), auth helpers (PBKDF2 passwords, session tokens), app factory, middleware setup
 - **Lines 2090+**: All route handlers (`@app.get/post/...`)
 
-### Microservices in `backend/services/`
+### Routers in `backend/routes/`
+
+These are mounted in `main.py` (~line 1976) via `app.include_router(...)`:
+
+| Router | Prefix/Routes |
+|---|---|
+| `learning_progress.py` | `/api/learning/*` — per-user progress tracking |
+| `tts.py` | `/api/tts/*` — TTS generation endpoint |
+| `speechpro.py` | `/api/speechpro/*` — pronunciation evaluation |
+| `roleplay.py` | `/roleplay`, `/api/roleplay/*` — AI historical figure roleplay |
+| `lms.py` | LMS (Learning Management System) routes |
+
+### Services in `backend/services/`
 
 | Service | Purpose |
 |---|---|
@@ -83,6 +93,14 @@ Cookie-based sessions using an in-memory `active_sessions` dict (token → user 
 - **`static/js/` and `static/css/`**: Feature-specific assets with kebab-case names matching their template (e.g., `word-puzzle.js` ↔ `word-puzzle.html`).
 - Tailwind CSS is loaded via CDN (not compiled locally).
 - JavaScript in templates is mostly inline; standalone JS files exist only for complex pages (word-puzzle, vocab-garden, etc.).
+
+Notable templates beyond the learning activities: `ai-roleplay.html`, `voice-call.html`, `video-learning.html`, `onui-beats.html`, `sentence-evaluation.html`, `dashboard.html`, and a full admin section (`admin-dashboard.html`, `admin-users.html`, `admin-logs.html`, `admin-settings.html`, `admin-system.html`).
+
+### i18n System
+
+UI strings are translated client-side. Locale files live in `data/locales/{lang}.json` (supports `ko`, `en`, `ja`, `zh`) and are served as static JSON at `/data/locales/`. `static/js/i18n.js` fetches the file on page load, then applies translations to any element with a `data-i18n="key"` attribute. The active language is persisted in `localStorage` under `app_lang`.
+
+**FOUC prevention**: `base.html` sets `document.documentElement.style.visibility = "hidden"` immediately; `i18n.js` clears it after translations are applied. When adding new translatable strings, add the key to all four locale files.
 
 ### Data Files (`data/`)
 

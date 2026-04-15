@@ -48,20 +48,23 @@ async def roleplay_chat(request: Request, payload: ChatRequest):
     # 역사 인물 롤플레이 프롬프트 구성
     era = scenario.get("era", "")
     speaking_style = scenario.get("speaking_style", "")
-    topics = scenario.get("topics", [])
+    topics = scenario.get("topics") or []
+    persona = scenario.get("persona", "역사 인물")
+    level = scenario.get("level", "중급")
+    goals = scenario.get("goals") or []
 
-    system_prompt = f"""당신은 한국 역사 인물 '{scenario['persona']}'입니다.
+    system_prompt = f"""당신은 한국 역사 인물 '{persona}'입니다.
 시대: {era}
 말투: {speaking_style}
 주요 주제: {', '.join(topics)}
 
 역할극 지침:
 1. 반드시 한국어로만 답변하세요. 절대 영어로 답하지 마세요.
-2. '{scenario['persona']}'의 성격, 시대적 배경, 말투를 일관되게 유지하세요.
-3. 학습자 수준({scenario['level']})에 맞게 어휘를 조절하세요.
+2. '{persona}'의 성격, 시대적 배경, 말투를 일관되게 유지하세요.
+3. 학습자 수준({level})에 맞게 어휘를 조절하세요.
 4. 답변은 반드시 2~3문장 이내로 짧고 간결하게 하세요. 절대 길게 설명하지 마세요.
 5. 마지막 문장은 학습자에게 짧은 질문으로 끝내세요.
-6. 학습 목표({', '.join(scenario['goals'])})를 자연스럽게 달성할 수 있도록 유도하세요.
+6. 학습 목표({', '.join(goals)})를 자연스럽게 달성할 수 있도록 유도하세요.
 7. 학습자가 잘못된 표현을 쓰면 인물의 캐릭터를 유지하며 한 문장으로만 교정해주세요."""
 
     messages = [{"role": "system", "content": system_prompt}] + payload.messages
@@ -152,18 +155,22 @@ async def roleplay_evaluate(request: Request, payload: ChatRequest):
     # 전체 대화 내용을 바탕으로 평가 프롬프트 구성
     chat_log = "\n".join([f"{m['role']}: {m['content']}" for m in payload.messages])
     
+    title = scenario.get("title", "") if scenario else ""
+    eval_goals = scenario.get("goals") or [] if scenario else []
+    keywords = scenario.get("keywords") or [] if scenario else []
+
     eval_prompt = f"""
-    다음은 '{scenario['title']}' 상황에서의 한국어 대화 기록입니다. 
+    다음은 '{title}' 상황에서의 한국어 대화 기록입니다.
     학습자의 한국어 능력을 평가하고 개선점을 알려주세요.
-    
+
     대화 기록:
     {chat_log}
-    
+
     평가 기준:
-    1. 목표 달성도: {', '.join(scenario['goals'])}
-    2. 어휘 사용: {', '.join(scenario['keywords'])} 사용 여부
+    1. 목표 달성도: {', '.join(eval_goals)}
+    2. 어휘 사용: {', '.join(keywords)} 사용 여부
     3. 문법 및 자연스러움
-    
+
     결과는 반드시 JSON 형식으로 반환하세요.
     형식: {{"score": 0~100, "feedback": "전체 총평", "strengths": ["장점1", "장점2"], "improvements": ["개선점1", "개선점2"]}}
     """

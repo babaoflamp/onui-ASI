@@ -13,15 +13,13 @@ from typing import Optional
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
+from backend.utils import _get_state
+
 router = APIRouter()
 
 # ──────────────────────────────────────────────
 # 헬퍼
 # ──────────────────────────────────────────────
-
-
-def _get_state(request: Request, key: str):
-    return getattr(request.app.state, key, None)
 
 
 def _db(request: Request):
@@ -39,15 +37,6 @@ def _require_user(request: Request) -> dict:
     if not callable(fn):
         raise RuntimeError("Auth not configured")
     return fn(request)
-
-
-def _now() -> str:
-    return (
-        datetime.now(timezone.utc)
-        .strftime("%Y-%m-%d %Human:%M:%S")
-        .replace("Human:", "H")
-        .replace("H", "")
-    )
 
 
 def _utcnow() -> str:

@@ -5,6 +5,7 @@ SpeechPro API 서비스
 GTP (Grapheme-to-Phoneme), Model, Score의 3단계 워크플로우를 지원합니다.
 """
 
+import logging
 import os
 import uuid
 import requests
@@ -12,6 +13,8 @@ import base64
 import time
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
 
 
 # SpeechPro API 설정
@@ -280,10 +283,10 @@ def call_speechpro_score(
 
     # 오디오 데이터를 Base64로 인코딩
     wav_usr = base64.b64encode(audio_data).decode('utf-8')
-    print(f"[Score] Audio size: {len(audio_data)} bytes, Base64 size: {len(wav_usr)}, Text: {text}")
+    logger.debug(f"[Score] Audio size: {len(audio_data)} bytes, Base64 size: {len(wav_usr)}, Text: {text}")
 
     url = f"{SPEECHPRO_URL.rstrip('/')}/scorejson"
-    print(f"[Score] URL: {url}, Request ID: {request_id}")
+    logger.debug(f"[Score] URL: {url}, Request ID: {request_id}")
 
     payload = {
         "id": request_id,
@@ -295,7 +298,7 @@ def call_speechpro_score(
     }
 
     try:
-        print(f"[Score] Sending payload with FST length: {len(fst)}")
+        logger.debug(f"[Score] Sending payload with FST length: {len(fst)}")
 
         max_attempts = 3
         response = None
@@ -306,12 +309,12 @@ def call_speechpro_score(
                 headers={'Content-Type': 'application/json'},
                 timeout=60,  # 긴 문장 처리를 위해 타임아웃 증가
             )
-            print(f"[Score] Response status: {response.status_code} (attempt {attempt}/{max_attempts})")
+            logger.debug(f"[Score] Response status: {response.status_code} (attempt {attempt}/{max_attempts})")
 
             # SpeechPro가 간헐적으로 5xx를 반환하는 경우가 있어, 짧게 재시도한다.
             if response.status_code >= 500 and attempt < max_attempts:
                 body_preview = (response.text or "")[:500]
-                print(f"[Score] Server error response (attempt {attempt}): {body_preview}")
+                logger.warning(f"[Score] Server error response (attempt {attempt}): {body_preview}")
                 time.sleep(0.4 * attempt)
                 continue
             break
@@ -319,7 +322,7 @@ def call_speechpro_score(
         # 5xx 에러 시 더 자세한 정보 로깅
         if response is not None and response.status_code >= 500:
             body_preview = (response.text or "")[:500]
-            print(f"[Score] Server error response: {body_preview}")
+            logger.error(f"[Score] Server error response: {body_preview}")
             raise RuntimeError(
                 f"SpeechPro 서버에서 오류가 발생했습니다 (상태: {response.status_code}). "
                 f"응답(앞부분): {body_preview}"
@@ -327,7 +330,7 @@ def call_speechpro_score(
 
         response.raise_for_status()
         data = response.json()
-        print(f"[Score] Response data: {data}")
+        logger.debug(f"[Score] Response data: {data}")
         
         # 일부 SpeechPro 빌드에서는 scorejson 응답이 {"score": ..., "details": ...}
         # 대신 {"result": {"quality": {...}, "fluency": {...}}} 형태로 반환됨.
@@ -359,7 +362,7 @@ def call_speechpro_score(
             error_code=data.get('error code', 0)
         )
     except requests.exceptions.RequestException as e:
-        print(f"[Score] Error: {str(e)}")
+        logger.error(f"[Score] Error: {str(e)}")
         raise RuntimeError(f"Score API 호출 실패: {str(e)}")
 
 

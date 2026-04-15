@@ -1,28 +1,29 @@
 import logging
-logger = logging.getLogger(__name__)
+
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from backend.utils import _get_state
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
-
-
-def _get_state(request: Request, name: str):
-    return getattr(request.app.state, name, None)
 
 
 @router.post("/api/learning/pronunciation-completed")
 async def record_pronunciation_completed(request: Request):
-    """발음 연습 완료 기록"""
+    """발음 연습 완료 기록 (인증 필요)"""
     try:
-        data = await request.json()
-        user_id = data.get("user_id", "anonymous")
-        logger.info(f"[API_CALL] user_id={user_id} endpoint={request.url.path} method={request.method} params={data}")
-        score = int(data.get("score", 0))
-
+        require_authenticated_user = _get_state(request, "require_authenticated_user")
         learning_service = _get_state(request, "learning_service")
-        if learning_service is None:
-            return JSONResponse(status_code=500, content={"error": "Learning service not configured"})
+        if require_authenticated_user is None or learning_service is None:
+            return JSONResponse(status_code=500, content={"error": "Auth or learning service not configured"})
+
+        user = require_authenticated_user(request)
+        user_id = user["id"]
+
+        data = await request.json()
+        logger.info(f"[API_CALL] user_id={user_id} endpoint={request.url.path} method={request.method}")
+        score = int(data.get("score", 0))
 
         result = learning_service.update_pronunciation_practice(user_id, score)
         popup_trigger = learning_service.check_popup_trigger(user_id)
@@ -33,16 +34,19 @@ async def record_pronunciation_completed(request: Request):
 
 @router.post("/api/learning/sentence-learned")
 async def record_sentence_learned(request: Request):
-    """문장 학습 완료 기록"""
+    """문장 학습 완료 기록 (인증 필요)"""
     try:
-        data = await request.json()
-        user_id = data.get("user_id", "anonymous")
-        logger.info(f"[API_CALL] user_id={user_id} endpoint={request.url.path} method={request.method} params={data}")
-        count = data.get("count", 1)
-
+        require_authenticated_user = _get_state(request, "require_authenticated_user")
         learning_service = _get_state(request, "learning_service")
-        if learning_service is None:
-            return JSONResponse(status_code=500, content={"error": "Learning service not configured"})
+        if require_authenticated_user is None or learning_service is None:
+            return JSONResponse(status_code=500, content={"error": "Auth or learning service not configured"})
+
+        user = require_authenticated_user(request)
+        user_id = user["id"]
+
+        data = await request.json()
+        logger.info(f"[API_CALL] user_id={user_id} endpoint={request.url.path} method={request.method}")
+        count = data.get("count", 1)
 
         result = learning_service.update_sentence_learned(user_id, count=count)
         popup_trigger = learning_service.check_popup_trigger(user_id)
@@ -77,12 +81,14 @@ async def record_popup_shown(request: Request):
 
 @router.get("/api/learning/user-stats/{user_id}")
 async def get_user_learning_stats(request: Request, user_id: str):
-    """사용자 학습 통계 조회"""
+    """사용자 학습 통계 조회 (인증 필요; path param은 무시되고 인증된 사용자 ID 사용)"""
     try:
+        require_authenticated_user = _get_state(request, "require_authenticated_user")
         learning_service = _get_state(request, "learning_service")
-        if learning_service is None:
-            return JSONResponse(status_code=500, content={"error": "Learning service not configured"})
-        stats = learning_service.get_user_stats(user_id)
+        if require_authenticated_user is None or learning_service is None:
+            return JSONResponse(status_code=500, content={"error": "Auth or learning service not configured"})
+        user = require_authenticated_user(request)
+        stats = learning_service.get_user_stats(user["id"])
         return JSONResponse(stats)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
@@ -90,12 +96,14 @@ async def get_user_learning_stats(request: Request, user_id: str):
 
 @router.get("/api/learning/today-progress/{user_id}")
 async def get_today_progress(request: Request, user_id: str):
-    """오늘의 학습 진도 조회"""
+    """오늘의 학습 진도 조회 (인증 필요; path param은 무시되고 인증된 사용자 ID 사용)"""
     try:
+        require_authenticated_user = _get_state(request, "require_authenticated_user")
         learning_service = _get_state(request, "learning_service")
-        if learning_service is None:
-            return JSONResponse(status_code=500, content={"error": "Learning service not configured"})
-        progress = learning_service.get_or_create_today_progress(user_id)
+        if require_authenticated_user is None or learning_service is None:
+            return JSONResponse(status_code=500, content={"error": "Auth or learning service not configured"})
+        user = require_authenticated_user(request)
+        progress = learning_service.get_or_create_today_progress(user["id"])
         return JSONResponse(progress)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})

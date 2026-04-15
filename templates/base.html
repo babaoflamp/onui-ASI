@@ -742,7 +742,7 @@
         });
 
         // Language Label + checkmark
-        const lang = localStorage.getItem("app_lang") || "ko";
+        const lang = localStorage.getItem("app_lang") || "en";
         const lbl = document.getElementById("current-lang-label");
         const flagMap = { ko: "🇰🇷", en: "🇺🇸", ja: "🇯🇵", zh: "🇨🇳" };
         if (lbl) lbl.textContent = lang.toUpperCase();

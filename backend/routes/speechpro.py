@@ -15,6 +15,7 @@ from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from backend.utils import _get_state
 from backend.services.speechpro_service import (
     ScoreResult,
     call_speechpro_gtp,
@@ -51,10 +52,6 @@ class SpeechProFeedbackRequest(BaseModel):
     text: str
     score: dict
     ui_lang: Optional[str] = "en"
-
-
-def _get_state(request: Request, name: str):
-    return getattr(request.app.state, name, None)
 
 
 def _redirect_if_unauthenticated(request: Request):
