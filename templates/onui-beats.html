@@ -182,7 +182,7 @@
 
     <div class="md:w-2/5 relative z-10 flex justify-center md:justify-end">
         <div class="relative w-32 h-32 md:w-44 md:h-44 rounded-[40px] overflow-hidden border-4 border-white/10 shadow-2xl rotate-3 group-hover:rotate-0 transition-all duration-700 bg-white/5">
-            <img src="/static/images/kpop-banner.svg" alt="K-Pop Vibes" class="w-full h-full object-cover">
+            <img src="/static/images/kpop-banner.svg" alt="K-Pop Vibes" class="w-full h-full object-cover" loading="lazy">
             <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
         </div>
     </div>
@@ -217,7 +217,7 @@
     <div id="game-card" class="suno-card w-full p-8 md:p-12 flex flex-col items-center">
       <!-- Local Audio Album Art -->
       <div id="player-visual" class="album-art-container">
-         <img id="game-album-art" src="/static/images/onui-pure-idol.png" class="album-art-img" alt="Album Art">
+         <img id="game-album-art" src="/static/images/onui-pure-idol.webp" class="album-art-img" alt="Album Art">
       </div>
       
       <div class="text-center mb-8">
@@ -286,20 +286,53 @@
     const playerVisual = document.getElementById('player-visual');
 
     async function fetchSongs() {
+      console.time('fetchSongs API call'); // Start timer for API call
       try {
         const resp = await fetch('/api/beats/songs');
         const data = await resp.json();
         if (data.success) {
           songs = data.songs;
-          renderLobby();
-        }
-      } catch (err) { 
-        console.error('Failed to load songs', err); 
-      }
-    }
+          console.timeEnd('fetchSongs API call'); // End timer for API call
 
-    function renderLobby() {
-      songGrid.innerHTML = songs.map((s, idx) => `
+          console.time('renderLobby function'); // Start timer for rendering
+          renderLobby();
+          console.timeEnd('renderLobby function'); // End timer for rendering
+          preloadAudioFiles(); // Start preloading audio files
+          }
+          } catch (err) {
+          console.error('Failed to load songs', err);
+          console.timeEnd('fetchSongs API call'); // Ensure timer ends on error
+          }
+          }
+
+          function preloadAudioFiles() {
+          console.time('Audio preloading');
+          const preloadPromises = songs.map(song => {
+          return new Promise((resolve, reject) => {
+          const audio = new Audio();
+          audio.src = song.audio_url;
+          audio.preload = 'auto'; // Suggest to the browser to preload
+          audio.oncanplaythrough = () => {
+            console.log(`Preloaded: ${song.title} (${song.audio_url})`);
+            resolve();
+          };
+          audio.onerror = (e) => {
+            console.warn(`Failed to preload: ${song.title} (${song.audio_url})`, e);
+            resolve(); // Resolve even on error to not block other preloads
+          };
+          // For immediate loading, we can also call load()
+          audio.load();
+          });
+          });
+
+          Promise.allSettled(preloadPromises).then(() => {
+          console.timeEnd('Audio preloading');
+          console.log('All audio files preload attempts finished.');
+          });
+          }
+
+          function renderLobby() {
+          songGrid.innerHTML = songs.map((s, idx) => `
         <div onclick="startSong(${idx})" class="song-card suno-card p-6 flex items-center gap-6 cursor-pointer group">
            <div class="relative w-24 h-24 flex-shrink-0">
              <img src="${s.image_url}" class="w-full h-full object-cover rounded-2xl shadow-lg group-hover:scale-105 transition-all duration-500" />

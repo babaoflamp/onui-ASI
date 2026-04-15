@@ -63,18 +63,22 @@
             }, durationMs || 3500);
         },
 
-        updateOutfit(situation) {
+        updateOutfit(situation, imageUrl) {
             const img = document.getElementById('avatar-img-main');
             if (!img) return;
-            let src = '/static/images/onui-pure-idol.png';
-            if (situation.includes('카페') || situation.includes('주문')) {
+            let src;
+            if (imageUrl) {
+                src = imageUrl;
+            } else if (situation.includes('카페') || situation.includes('주문')) {
                 src = '/static/images/onui-idol-barista.png';
             } else if (situation.includes('공항') || situation.includes('체크인')) {
                 src = '/static/images/onui-idol-staff.png';
             } else if (situation.includes('병원') || situation.includes('증상')) {
                 src = '/static/images/onui-idol-nurse.png';
+            } else {
+                src = '/static/images/onui-pure-idol.webp';
             }
-            
+
             img.style.transition = 'opacity 0.4s ease';
             img.style.opacity = '0';
             setTimeout(() => {

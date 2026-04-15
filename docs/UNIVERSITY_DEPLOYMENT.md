@@ -136,7 +136,7 @@ VOSK_MODEL_PATH=/opt/models/vosk-model-small-ko-0.22
 
 # 웹 서비스 설정
 NGROK_AUTHTOKEN=your_token  # (선택, 공개 접근용)
-NGROK_DOMAIN=your-domain.ngrok.app
+NGROK_DOMAIN=onui-ai.ngrok.app
 
 # 로깅 및 캐시
 TTS_CACHE_DIR=/var/cache/onui_korean/tts

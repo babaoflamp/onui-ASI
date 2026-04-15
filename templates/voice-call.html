@@ -108,7 +108,7 @@
 
     <div class="md:w-2/5 relative z-10 flex justify-center md:justify-end">
       <div class="relative w-32 h-32 md:w-44 md:h-44 rounded-[40px] overflow-hidden border-4 border-white/10 shadow-2xl rotate-3 group-hover:rotate-0 transition-all duration-700">
-        <img src="/static/images/onui-idol-staff.png" alt="Voice Call AI" class="w-full h-full object-cover">
+        <img src="/static/images/onui-idol-staff.webp" alt="Voice Call AI" class="w-full h-full object-cover">
         <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
       </div>
     </div>
@@ -148,12 +148,13 @@
         <img id="tutor-avatar" src="/static/images/onui-pure-idol.png" class="caller-avatar z-10" />
       </div>
 
-      <div class="w-3/4 text-center mt-8 z-10 min-h-[60px]">
-        <p id="transcript-text" class="text-white/80 font-medium text-lg leading-snug" data-i18n="vc.initial_hint">"Please say hello when you're ready!"</p>
+      <div class="w-full px-6 mt-6 z-10">
+        <div id="transcript-log" class="max-h-36 overflow-y-auto flex flex-col gap-2 text-sm rounded-2xl bg-white/5 px-4 py-3 border border-white/5">
+          <p class="text-white/30 text-center text-xs italic" data-i18n="vc.initial_hint">Say hello when you're ready!</p>
+        </div>
       </div>
 
-      <div class="flex flex-col items-center gap-8 mt-12 z-10 w-full px-12">
-        <div id="user-transcript" class="text-orange-400 text-sm italic h-6 text-center"></div>
+      <div class="flex flex-col items-center gap-8 mt-6 z-10 w-full px-12">
 
         <div class="flex gap-8">
           <button id="mic-btn" class="w-20 h-20 rounded-full bg-white text-black flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
@@ -183,6 +184,7 @@
     // WebSocket & Audio state
     let ws = null;
     let audioCtx = null;
+    let playbackCtx = null;  // 단일 재사용 AudioContext (24kHz)
     let mediaStream = null;
     let scriptProcessor = null;
     let isListening = false;
@@ -195,8 +197,6 @@
     const lobby = document.getElementById('lobby');
     const callScreen = document.getElementById('call-screen');
     const scenarioList = document.getElementById('scenario-list');
-    const transcriptText = document.getElementById('transcript-text');
-    const userTranscript = document.getElementById('user-transcript');
     const micBtn = document.getElementById('mic-btn');
     const micIcon = document.getElementById('mic-icon');
     const tutorAvatar = document.getElementById('tutor-avatar');
@@ -271,6 +271,9 @@
       stopMic();
       playbackQueue = [];
       isPlaying = false;
+      if (playbackCtx) { playbackCtx.close(); playbackCtx = null; }
+      const log = document.getElementById('transcript-log');
+      if (log) log.innerHTML = '';
       location.reload();
     }
 
@@ -278,6 +281,13 @@
     async function connectWebSocket(scenarioId) {
       const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${location.host}/ws/voice-call/${scenarioId}`;
+
+      // 재사용 가능한 단일 재생 AudioContext 생성 (24kHz)
+      try {
+        playbackCtx = new AudioContext({ sampleRate: GEMINI_SAMPLE_RATE });
+      } catch (e) {
+        playbackCtx = new AudioContext();
+      }
 
       ws = new WebSocket(wsUrl);
       ws.binaryType = 'arraybuffer';
@@ -318,6 +328,21 @@
       await setupMic();
     }
 
+    function appendTranscript(role, text) {
+      const log = document.getElementById('transcript-log');
+      if (!log || !text.trim()) return;
+      // 힌트 메시지 제거 (첫 번째 실제 발화 시)
+      const hint = log.querySelector('[data-i18n="vc.initial_hint"]');
+      if (hint) hint.remove();
+      const el = document.createElement('p');
+      el.className = role === 'ai'
+        ? 'text-orange-300 font-semibold text-right leading-snug'
+        : 'text-white/70 text-left leading-snug';
+      el.textContent = role === 'ai' ? `"${text}"` : text;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+    }
+
     function handleJsonMessage(msg) {
       switch (msg.type) {
         case 'status':
@@ -326,10 +351,10 @@
             : msg.text;
           break;
         case 'user_transcript':
-          userTranscript.innerText = msg.text;
+          appendTranscript('user', msg.text);
           break;
         case 'ai_transcript':
-          transcriptText.innerText = `"${msg.text}"`;
+          appendTranscript('ai', msg.text);
           break;
         case 'turn_complete':
           setAiSpeaking(false);
@@ -382,7 +407,7 @@
         console.error('[VoiceCall] Mic access failed:', err);
         const micErrMsg = translations['vc.mic_error'] || 'Microphone access denied. Please allow mic access in browser settings and refresh.';
         statusText.innerText = '🎙️ Mic Error';
-        transcriptText.innerHTML = `<span class="text-red-400 text-sm leading-relaxed">${micErrMsg}</span>`;
+        appendTranscript('ai', micErrMsg);
         micBtn.disabled = true;
         micBtn.classList.add('opacity-40', 'cursor-not-allowed');
       }
@@ -409,8 +434,12 @@
       if (!isPlaying) drainQueue();
     }
 
-    async function drainQueue() {
+    function drainQueue() {
       if (playbackQueue.length === 0) {
+        isPlaying = false;
+        return;
+      }
+      if (!playbackCtx || playbackCtx.state === 'closed') {
         isPlaying = false;
         return;
       }
@@ -419,32 +448,20 @@
       const pcmData = playbackQueue.shift();
       const int16 = new Int16Array(pcmData);
 
-      // Convert Int16 PCM → Float32
+      // Int16 PCM → Float32
       const float32 = new Float32Array(int16.length);
       for (let i = 0; i < int16.length; i++) {
         float32[i] = int16[i] / 32768.0;
       }
 
-      // We need a separate AudioContext at 24kHz for playback
-      // (reuse or create as needed)
-      let ctx;
-      try {
-        ctx = new AudioContext({ sampleRate: GEMINI_SAMPLE_RATE });
-      } catch (e) {
-        console.warn('[VoiceCall] 24kHz AudioContext not supported, using default sample rate');
-        ctx = new AudioContext();
-      }
-
-      const buffer = ctx.createBuffer(1, float32.length, GEMINI_SAMPLE_RATE);
+      // 단일 playbackCtx 재사용 — 매 청크마다 새 Context 생성 안 함
+      const buffer = playbackCtx.createBuffer(1, float32.length, GEMINI_SAMPLE_RATE);
       buffer.copyToChannel(float32, 0);
 
-      const src = ctx.createBufferSource();
+      const src = playbackCtx.createBufferSource();
       src.buffer = buffer;
-      src.connect(ctx.destination);
-      src.onended = () => {
-        ctx.close();
-        drainQueue();
-      };
+      src.connect(playbackCtx.destination);
+      src.onended = drainQueue;  // 다음 청크를 연속 재생
       src.start();
     }
 
@@ -468,7 +485,6 @@
         micBtn.classList.add('listening');
         micIcon.innerText = '🟠';
         statusText.innerText = translations['vc.recording'] || 'Recording...';
-        userTranscript.innerText = '';
         // Stop any playing audio when user starts speaking
         playbackQueue = [];
       } else {

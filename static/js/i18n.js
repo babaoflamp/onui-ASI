@@ -24,7 +24,7 @@ async function setAppLang(lang) {
 
 async function loadTranslations(lang) {
     try {
-        const resp = await fetch(`/data/locales/${lang}.json?v=${new Date().getTime()}`);
+        const resp = await fetch(`/data/locales/${lang}.json`);
         if (resp.ok) {
             translations = await resp.json();
         }
@@ -47,7 +47,7 @@ function applyTranslations() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const lang = localStorage.getItem("app_lang") || "ko";
+    const lang = localStorage.getItem("app_lang") || "en";
     await loadTranslations(lang);
     applyTranslations();
 

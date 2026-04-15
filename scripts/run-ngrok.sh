@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /home/scottk/Projects/onui-ASI
+cd /home/scottk/Projects/onui-ai
 
 # 0. 환경변수(.env) 로드 (안전 파싱)
 if [ -f ".env" ]; then
@@ -59,8 +59,8 @@ fi
 # ngrok 시작 (NGROK_DOMAIN이 설정된 경우 해당 도메인 사용)
 if [ -n "$NGROK_DOMAIN" ]; then
   echo "Starting ngrok with domain: $NGROK_DOMAIN"
-  exec "$NGROK_BIN" http --domain="$NGROK_DOMAIN" 9000
+  exec "$NGROK_BIN" http --config=ngrok-config.yml --domain="$NGROK_DOMAIN" 9002
 else
   echo "Starting ngrok with random domain"
-  exec "$NGROK_BIN" http 9000
+  exec "$NGROK_BIN" http --config=ngrok-config.yml 9002
 fi

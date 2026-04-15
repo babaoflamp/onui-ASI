@@ -1959,6 +1959,10 @@ app = FastAPI()
 # API setup
 app = FastAPI(title="Onui Korean Learning Platform API", version="2.0.0")
 
+@app.get("/privacy")
+async def privacy(request: Request):
+    return templates.TemplateResponse("privacy.html", {"request": request})
+
 # Session persistence for OAuth state
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 
@@ -2044,13 +2048,7 @@ app.state.openai_model = OPENAI_MODEL
 app.state.stt_backend = STT_BACKEND
 
 
-# 특정 호스트(moj.ngrok.app) 루트 접근 시 speechpro-practice로 리다이렉트
-@app.middleware("http")
-async def redirect_speechpro_practice(request: Request, call_next):
-    host = request.headers.get("host", "")
-    if host.startswith("moj.ngrok.app") and request.url.path in ("", "/"):
-        return RedirectResponse(url="/speechpro-practice")
-    return await call_next(request)
+
 
 
 # CORS 설정
@@ -2155,12 +2153,21 @@ def load_json_data(filename):
         return []
 
 
+_SPEECHPRO_SENTENCES_CACHE: list | None = None
+
+
 def load_speechpro_precomputed_sentences():
-    """Load precomputed SpeechPro sentences (with syllables/FST) from CSV"""
+    """Load precomputed SpeechPro sentences (with syllables/FST) from CSV.
+    Cached in memory after first load — CSV is only parsed once per process."""
+    global _SPEECHPRO_SENTENCES_CACHE
+    if _SPEECHPRO_SENTENCES_CACHE is not None:
+        return _SPEECHPRO_SENTENCES_CACHE
+
     path = "data/sp_ko_questions.csv"
     sentences = []
 
     if not os.path.exists(path):
+        _SPEECHPRO_SENTENCES_CACHE = sentences
         return sentences
 
     try:
@@ -2200,6 +2207,7 @@ def load_speechpro_precomputed_sentences():
 
     # Order by given order, then id
     sentences.sort(key=lambda s: (s.get("order", 0), s.get("id", 0)))
+    _SPEECHPRO_SENTENCES_CACHE = sentences
     return sentences
 
 
@@ -6139,7 +6147,7 @@ async def voice_call_live_ws(websocket: WebSocket, scenario_id: str):
 
     try:
         async with gemini_live_client.aio.live.connect(
-            model="gemini-2.0-flash-live-001",
+            model="gemini-2.5-flash-native-audio-latest",
             config=live_config,
         ) as session:
             await websocket.send_json({"type": "status", "text": "connected"})
@@ -6251,6 +6259,7 @@ async def get_tube_poster(video_id: str):
         return StreamingResponse(
             image_resp.iter_content(chunk_size=1024),
             media_type=image_resp.headers["Content-Type"],
+            headers={"Cache-Control": "public, max-age=3600"}
         )
 
     except requests.exceptions.HTTPError as e:

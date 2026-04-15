@@ -35,7 +35,7 @@ fi
 
 if pm2 show onui-ngrok | grep -q "online"; then
     echo -e "${GREEN}✓ ngrok 터널 시작됨${NC}"
-    echo -e "${GREEN}  → https://mediazen.ngrok.app${NC}"
+    echo -e "${GREEN}  → https://onui-ai.ngrok.app${NC}"
 else
     echo -e "${YELLOW}⚠ ngrok 상태 확인 필요 (pm2 logs onui-ngrok)${NC}"
 fi

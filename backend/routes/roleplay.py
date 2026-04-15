@@ -16,11 +16,18 @@ class ChatRequest(BaseModel):
     scenario_id: str
     messages: List[dict]  # [{"role": "user/assistant", "content": "..."}]
 
+_scenarios_cache: list | None = None
+
 def load_scenarios():
+    global _scenarios_cache
+    if _scenarios_cache is not None:
+        return _scenarios_cache
     if not os.path.exists(DATA_PATH):
-        return []
+        _scenarios_cache = []
+        return _scenarios_cache
     with open(DATA_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+        _scenarios_cache = json.load(f)
+    return _scenarios_cache
 
 @router.get("/roleplay", response_class=HTMLResponse)
 async def roleplay_page(request: Request):
@@ -52,10 +59,10 @@ async def roleplay_chat(request: Request, payload: ChatRequest):
 1. 반드시 한국어로만 답변하세요. 절대 영어로 답하지 마세요.
 2. '{scenario['persona']}'의 성격, 시대적 배경, 말투를 일관되게 유지하세요.
 3. 학습자 수준({scenario['level']})에 맞게 어휘를 조절하세요.
-4. 대화를 이어갈 수 있도록 질문을 포함하세요 (2-3문장 답변).
-5. 학습 목표({', '.join(scenario['goals'])})를 자연스럽게 달성할 수 있도록 유도하세요.
-6. 역사적 맥락과 문화를 자연스럽게 대화에 녹여주세요.
-7. 학습자가 잘못된 표현을 쓰면 인물의 캐릭터를 유지하며 친절히 교정해주세요."""
+4. 답변은 반드시 2~3문장 이내로 짧고 간결하게 하세요. 절대 길게 설명하지 마세요.
+5. 마지막 문장은 학습자에게 짧은 질문으로 끝내세요.
+6. 학습 목표({', '.join(scenario['goals'])})를 자연스럽게 달성할 수 있도록 유도하세요.
+7. 학습자가 잘못된 표현을 쓰면 인물의 캐릭터를 유지하며 한 문장으로만 교정해주세요."""
 
     messages = [{"role": "system", "content": system_prompt}] + payload.messages
 
@@ -73,7 +80,10 @@ async def roleplay_chat(request: Request, payload: ChatRequest):
             if not request.app.state.gemini_model:
                 raise RuntimeError("GEMINI_MODEL 설정이 필요합니다.")
 
-            model = genai.GenerativeModel(request.app.state.gemini_model)
+            model = genai.GenerativeModel(
+                request.app.state.gemini_model,
+                generation_config={"max_output_tokens": 200, "temperature": 0.7},
+            )
 
             # 대화 형식 변환 (Gemini용)
             history = []
@@ -97,7 +107,8 @@ async def roleplay_chat(request: Request, payload: ChatRequest):
             resp = requests.post(url, json={
                 "model": model,
                 "messages": messages,
-                "temperature": 0.7
+                "temperature": 0.7,
+                "max_tokens": 200,
             }, timeout=30)
 
             if resp.status_code != 200:
@@ -120,7 +131,7 @@ async def roleplay_chat(request: Request, payload: ChatRequest):
                     *messages[1:]
                 ],
                 temperature=0.7,
-                max_tokens=1000
+                max_tokens=200,
             )
             ai_message = response.choices[0].message.content
 

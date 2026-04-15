@@ -26,9 +26,18 @@
 
     <!-- Pretendard font -->
     <link
+      rel="preconnect"
+      href="https://cdn.jsdelivr.net"
+      crossorigin
+    />
+    <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css"/></noscript>
+    <style>@font-face { font-family: 'Pretendard'; font-display: swap; }</style>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -673,14 +682,19 @@
       <!-- Unified page content shell -->
       <div class="page-shell mx-auto w-full max-w-7xl">
         {% block content %}{% endblock %}
+        
+        <footer class="mt-20 pb-10 text-[10px] text-gray-500 font-bold uppercase tracking-widest border-t border-white/5 pt-6 flex justify-between">
+          <span>&copy; 2026 Onui. All rights reserved.</span>
+          <a href="/privacy" class="hover:text-white transition-colors">Privacy Policy / 개인정보 처리방침</a>
+        </footer>
       </div>
     </main>
 
     <!-- JS Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="/static/js/ui-components.js"></script>
-    <script src="/static/js/i18n.js?v=1.0.1"></script>
-    <script src="/static/js/auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" async></script>
+    <script src="/static/js/ui-components.js" defer></script>
+    <script src="/static/js/i18n.js?v=1.0.1" defer></script>
+    <script src="/static/js/auth.js" defer></script>
     {% block extra_js %}{% endblock %} {% include
     'components/character-popup.html' %}
 

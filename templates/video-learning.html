@@ -267,12 +267,17 @@
     window.isApiReady = true;
   };
 
-  // Load YouTube API Script Dynamically
+  // Load YouTube API Script Dynamically (only if not already loaded)
   (function() {
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    if (!window.YT) {
+      var tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      var firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    } else {
+      console.log("Onui YouTube: YouTube API already exists.");
+      window.isApiReady = true;
+    }
   })();
 
   // 2. Main Logic
@@ -283,6 +288,15 @@
     let timeUpdateInterval;
     let savedVocab = [];
     let recommendedVideos = []; // Store loaded videos globally for filtering
+
+    // Cleanup on page leave
+    window.addEventListener("beforeunload", () => {
+      if (player && player.destroy) {
+        player.destroy();
+        player = null;
+      }
+      if (timeUpdateInterval) clearInterval(timeUpdateInterval);
+    });
 
     const captionsContainer = document.getElementById('captions-container');
     const vocabList = document.getElementById('vocab-list');
@@ -329,13 +343,14 @@
       titleDiv.innerHTML = `<h3 class="text-orange-400 font-bold text-sm tracking-widest uppercase">${sectionLabel}</h3>`;
       exploreGrid.appendChild(titleDiv);
       
+      const fragment = document.createDocumentFragment();
       videosToRender.forEach((v, idx) => {
         const card = document.createElement('div');
         card.className = 'scenario-card flex flex-col group cursor-pointer animate-in fade-in slide-in-from-bottom-8 duration-700';
         card.style.animationDelay = `${idx * 0.05}s`;
         card.innerHTML = `
           <div class="relative w-full aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/10 mb-5">
-             <img src="${v.poster_url}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Video">
+             <img src="${v.poster_url}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Video">
              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-500">
                 <div class="w-16 h-16 bg-gradient-to-r from-orange-600 to-pink-600 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(234,88,12,0.6)]">
                   <svg class="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -357,8 +372,9 @@
           </div>
         `;
         card.onclick = () => initPlayer(v);
-        exploreGrid.appendChild(card);
+        fragment.appendChild(card);
       });
+      exploreGrid.appendChild(fragment);
     }
 
     async function handleYouTubeSearch(event) {
